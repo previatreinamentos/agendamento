@@ -1,241 +1,208 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <base target="_top">
+    <title>Parceria Estratégica - Autoescola Digital</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-      body { 
-        background-color: #f1f3f5; 
-        font-family: sans-serif; 
-        padding: 15px;
-      }
-      .portal-container { 
-        max-width: 600px; 
-        width: 100%;
-        background: white; 
-        padding: 25px; 
-        border-radius: 10px; 
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.1); 
-        margin: 20px auto; 
-      }
-      .card-agendamento {
-        background-color: #ffffff;
-        border-left: 5px solid #0d6efd;
-        border-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      }
-    </style>
-  </head>
-  <body>
-
-    <div class="container-fluid">
-      <div class="portal-container">
-        
-        <div id="secao-login">
-          <h3 class="text-center text-primary mb-4 fw-bold">Portal do Aluno</h3>
-          <form id="formLoginAluno">
-            <div class="mb-3">
-              <label class="form-label fw-bold">Digite seu CPF:</label>
-              <input type="text" class="form-control form-control-lg" id="alunoCpf" placeholder="Apenas números" required inputmode="numeric">
-            </div>
-            <div class="mb-3">
-              <label class="form-label fw-bold">Sua Senha:</label>
-              <input type="password" class="form-control form-control-lg" id="alunoSenha" placeholder="Senha inicial (4 dígitos)" required>
-            </div>
-            <button type="button" class="btn btn-primary btn-lg w-100" id="btnLogar" onclick="logarAluno()">Entrar no Portal</button>
-          </form>
-          <div id="erroLogin" class="alert alert-danger mt-3 text-center" style="display:none;"></div>
-        </div>
-
-        <div id="secao-interna" style="display: none;">
-          <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
-            <div>
-              <span class="text-muted small d-block">Bem-vindo(a),</span>
-              <h5 class="text-dark m-0 fw-bold" id="nomeUsuarioLogado">Nome do Aluno</h5>
-            </div>
-            <button class="btn btn-sm btn-outline-danger" onclick="logoutAluno()">Sair</button>
-          </div>
-
-          <ul class="nav nav-pills nav-fill mb-4 bg-light p-1 rounded" id="pills-tab">
-            <li class="nav-item">
-              <button class="nav-link active fw-bold" id="btn-tab-agendar" onclick="mudarAba('agendar')">📅 Novo Agendamento</button>
-            </li>
-            <li class="nav-item">
-              <button class="nav-link fw-bold" id="btn-tab-treinos" onclick="mudarAba('meus-treinos')">📋 Meus Horários</button>
-            </li>
-          </ul>
-
-          <div id="conteudo-agendar">
-            <h5 class="text-secondary mb-3 fw-bold">Escolha um Horário Disponível:</h5>
-            <div class="mb-3">
-              <select class="form-select form-select-lg" id="selectHorarios">
-                <option value="">Buscando vagas...</option>
-              </select>
-            </div>
-            <button type="button" class="btn btn-success btn-lg w-100" id="btnConfirmarAgendamento" onclick="confirmarAgendamento()" disabled>
-              Confirmar Agendamento
-            </button>
-          </div>
-
-          <div id="conteudo-meus-treinos" style="display: none;">
-            <h5 class="text-secondary mb-3 fw-bold">Seus Horários Agendados:</h5>
-            <div id="listaAgendamentos">
-              <p class="text-muted text-center">Nenhum horário reservado.</p>
-            </div>
-          </div>
-
-          <div id="msgFeedback" class="alert mt-4 text-center" style="display:none;"></div>
-        </div>
-
-      </div>
-    </div>
-
-    <script>
-      var alunoLogado = { nome: "", cpf: "" };
-      var dadosHorariosCarregados = [];
-
-      function logarAluno() {
-        var cpf = document.getElementById("alunoCpf").value.trim();
-        var senha = document.getElementById("alunoSenha").value;
-        var erroDiv = document.getElementById("erroLogin");
-        var btn = document.getElementById("btnLogar");
-
-        if(!cpf || !senha) { alert("Preencha todos os campos."); return; }
-
-        erroDiv.style.display = "none";
-        btn.disabled = true;
-        btn.innerText = "Validando...";
-
-        google.script.run
-          .withSuccessHandler(function(res) {
-            btn.disabled = false;
-            btn.innerText = "Entrar no Portal";
-            
-            if(res && res.sucesso) {
-              alunoLogado.nome = res.nome;
-              alunoLogado.cpf = res.cpf;
-              
-              document.getElementById("nomeUsuarioLogado").innerText = res.nome;
-              document.getElementById("secao-login").style.display = "none";
-              document.getElementById("secao-interna").style.display = "block";
-              
-              atualizarPainelAluno();
-            } else {
-              erroDiv.innerText = (res && res.mensagem) ? res.mensagem : "CPF ou Senha incorretos.";
-              erroDiv.style.display = "block";
-            }
-          })
-          .realizarLogin(cpf, senha);
-      }
-
-      function atualizarPainelAluno() {
-        document.getElementById("msgFeedback").style.display = "none";
-        carregarVagasDisponiveis();
-        carregarMeusAgendamentos();
-      }
-
-      function mudarAba(aba) {
-        document.getElementById("msgFeedback").style.display = "none";
-        var btnAgendar = document.getElementById("btn-tab-agendar");
-        var btnTreinos = document.getElementById("btn-tab-treinos");
-        
-        if(aba === 'agendar') {
-          btnAgendar.className = "nav-link active fw-bold"; 
-          btnTreinos.className = "nav-link fw-bold";
-          document.getElementById("conteudo-agendar").style.display = "block";
-          document.getElementById("conteudo-meus-treinos").style.display = "none";
-        } else {
-          btnAgendar.className = "nav-link fw-bold"; 
-          btnTreinos.className = "nav-link active fw-bold";
-          document.getElementById("conteudo-agendar").style.display = "none";
-          document.getElementById("conteudo-meus-treinos").style.display = "block";
+        :root {
+            --primary-color: #0d6efd; /* Azul Elétrico */
+            --dark-color: #1a1d20;    /* Grafite Escuro */
+            --light-bg: #f8f9fa;      /* Cinza Claro */
         }
-      }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: var(--light-bg);
+        }
 
-      function carregarVagasDisponiveis() {
-        var select = document.getElementById("selectHorarios");
-        var btn = document.getElementById("btnConfirmarAgendamento");
-        select.innerHTML = '<option value="">Carregando horários da nuvem...</option>';
-        btn.disabled = true;
+        .hero-section {
+            background: linear-gradient(135deg, var(--dark-color) 0%, #2c3034 100%);
+            color: white;
+            padding: 100px 0;
+        }
 
-        google.script.run.withSuccessHandler(function(lista) {
-          dadosHorariosCarregados = lista || [];
-          select.innerHTML = '<option value="">-- Selecione uma opção --</option>';
-          if(dadosHorariosCarregados.length === 0) {
-            select.innerHTML = '<option value="">Nenhuma vaga disponível no momento</option>';
-            return;
-          }
-          dadosHorariosCarregados.forEach(function(item) {
-            var opt = document.createElement("option");
-            opt.value = item.id;
-            opt.textContent = item.texto;
-            select.appendChild(opt);
-          });
-          btn.disabled = false;
-        }).buscarHorariosDisponiveis();
-      }
+        .badge-comissao {
+            background-color: #212529;
+            border: 2px solid #ffc107;
+            color: #ffc107;
+            font-weight: bold;
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+        }
 
-      function confirmarAgendamento() {
-        var select = document.getElementById("selectHorarios");
-        var idx = select.value;
-        if(idx === "") { alert("Por favor, selecione um horário válido."); return; }
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
 
-        var horarioEscolhido = dadosHorariosCarregados.find(function(h) { return h.id == idx; });
-        if(!horarioEscolhido) return;
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
 
-        var dadosEnvio = {
-          titulo: horarioEscolhido.titulo,
-          inicio: horarioEscolhido.inicio,
-          fim: horarioEscolhido.fim,
-          descricao: horarioEscolhido.descricao,
-          local: horarioEscolhido.local,
-          aluno: alunoLogado.nome,
-          cpf: alunoLogado.cpf
-        };
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(13, 110, 253, 0.1);
+            color: var(--primary-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
 
-        var divFeed = document.getElementById("msgFeedback");
-        divFeed.className = "alert alert-warning"; divFeed.innerText = "Reservando sua vaga, aguarde..."; divFeed.style.display = "block";
+        .card-ganhos {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(13, 110, 253, 0.2);
+        }
 
-        google.script.run.withSuccessHandler(function(resultado) {
-          if(resultado && resultado.includes("Sucesso")) {
-            divFeed.className = "alert alert-success"; divFeed.innerText = resultado;
-            atualizarPainelAluno();
-          } else {
-            divFeed.className = "alert alert-danger"; divFeed.innerText = resultado;
-          }
-        }).salvarAgendamento(dadosEnvio);
-      }
+        footer {
+            background-color: var(--dark-color);
+            color: #aaa;
+            padding: 40px 0;
+        }
+    </style>
+</head>
+<body>
 
-      function carregarMeusAgendamentos() {
-        var container = document.getElementById("listaAgendamentos");
-        container.innerHTML = '<p class="text-muted text-center">Buscando seus registros...</p>';
+    <!-- HERO SECTION (Abertura do Site) -->
+    <header class="hero-section text-center text-md-start">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-7">
+                    <span class="badge bg-primary px-3 py-2 rounded-pill mb-3">Parceria Comercial B2B</span>
+                    <h1 class="display-4 fw-bold mb-3">A CNH na palma da mão do seu aluno. <span class="text-primary">Mais receita</span> para o seu Polo.</h1>
+                    <p class="lead text-muted mb-4" style="color: #adb5bd !important;">Transforme o seu espaço educacional em um Hub de Mobilidade. Ofereça uma Autoescola 100% digital e fature de forma passiva.</p>
+                    <div class="mb-4">
+                        <div class="badge-comissao">
+                            <i class="fa-solid fa-percent me-2"></i> Receba 5% de comissão por aluno cadastrado
+                        </div>
+                    </div>
+                    <a href="#proposta" class="btn btn-primary btn-lg px-4 me-2"><i class="fa-solid fa-handshake me-2"></i>Seja um Parceiro</a>
+                    <a href="#sistema" class="btn btn-outline-light btn-lg px-4">Conhecer o App</a>
+                </div>
+                <div class="col-md-5 text-center d-none d-md-block">
+                    <!-- Ícone Gigante simulando um celular com o ecossistema -->
+                    <i class="fa-solid fa-mobile-screen-button text-primary" style="font-size: 18rem; filter: drop-shadow(0px 10px 20px rgba(13,110,253,0.3));"></i>
+                </div>
+            </div>
+        </div>
+    </header>
 
-        google.script.run.withSuccessHandler(function(lista) {
-          var agendamentos = lista || [];
-          if(agendamentos.length === 0) {
-            container.innerHTML = '<p class="text-muted text-center">Você não possui nenhum agendamento futuro.</p>';
-            return;
-          }
-          container.innerHTML = "";
-          agendamentos.forEach(function(item) {
-            var card = document.createElement("div");
-            card.className = "card-agendamento p-3 mb-2 bg-white border";
-            card.innerHTML = "<strong>" + item.titulo + "</strong><br>" +
-                             "<small class='text-primary'>📅 Horário: " + item.inicio + "</small><br>" +
-                             "<small class='text-muted'>📍 Local: " + (item.local || 'Não definido') + "</small>";
-            container.appendChild(card);
-          });
-        }).consultarAgendamentosAlunoPorCPF(alunoLogado.cpf);
-      }
+    <!-- O ECOSSISTEMA DIGITAL -->
+    <section id="sistema" class="py-5">
+        <div class="container py-4">
+            <div class="text-center max-width-600 mb-5">
+                <h2 class="fw-bold">Tecnologia Inteligente e Pronta para Telemóvel</h2>
+                <p class="text-muted">Desenvolvemos um ecossistema completo em nuvem que elimina totalmente a burocracia das autoescolas tradicionais.</p>
+            </div>
 
-      function logoutAluno() {
-        alunoLogado = { nome: "", cpf: "" };
-        document.getElementById("formLoginAluno").reset();
-        document.getElementById("secao-login").style.display = "block";
-        document.getElementById("secao-interna").style.display = "none";
-        mudarAba('agendar');
-      }
-    </script>
-  </body>
+            <div class="row g-4">
+                <!-- Card 1 -->
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="icon-box"><i class="fa-solid fa-user-graduate"></i></div>
+                        <h5>Portal do Aluno</h5>
+                        <p class="text-muted mb-0">Login rápido e seguro com CPF. O aluno consulta o seu progresso e agenda suas aulas práticas em menos de 3 cliques, direto pelo telemóvel.</p>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="icon-box"><i class="fa-solid fa-user-tie"></i></div>
+                        <h5>Painel do Instrutor</h5>
+                        <p class="text-muted mb-0">Os professores lançam e atualizam as suas grades de horários diretamente na nuvem, otimizando o tempo e evitando conflitos de agenda.</p>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="icon-box"><i class="fa-solid fa-sliders"></i></div>
+                        <h5>Master Admin Centralizado</h5>
+                        <p class="text-muted mb-0">Gestão integrada conectada a bancos de dados automatizados, permitindo o controle em tempo real de matrículas e fluxo financeiro.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROPOSTA COMERCIAL -->
+    <section id="proposta" class="py-5 bg-white border-top">
+        <div class="container py-4">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <h2 class="fw-bold mb-4">Vantagens de trazer mais uma forma de renda para o seu negócio</h2>
+                    <p class="text-muted mb-3">Seus alunos estão na idade ideal (18 anos ou mais) para tirar a primeira habilitação. Em vez de deixá-los procurar o serviço lá fora, ofereça a solução dentro do seu Polo.</p>
+                    
+                    <ul class="list-unstyled">
+                        <li class="mb-3 d-flex align-items-top">
+                            <i class="fa-solid fa-circle-check text-success mt-1 me-3 fs-5"></i>
+                            <div><strong>Renda Extra Sem Custos:</strong> Você não gasta nada com frota, carros ou manutenção. Toda a operação é nossa.</div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-top">
+                            <i class="fa-solid fa-circle-check text-success mt-1 me-3 fs-5"></i>
+                            <div><strong>Retenção e Atrativo:</strong> Agregue um serviço extremamente desejado pelos jovens, aumentando o valor percebido da sua marca.</div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-top">
+                            <i class="fa-solid fa-circle-check text-success mt-1 me-3 fs-5"></i>
+                            <div><strong>Burocracia Zero:</strong> Nós cuidamos de toda a homologação técnica, instrutores credenciados e suporte do sistema.</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card-ganhos text-center">
+                        <h3 class="fw-bold mb-3">Modelo de Comissão</h3>
+                        <p class="mb-4">Para cada aluno da sua instituição ou polo que fechar a matrícula connosco através da parceria:</p>
+                        <div class="display-1 fw-bold text-warning mb-2">5%</div>
+                        <p class="fw-bold mb-4 text-uppercase tracking-wider">De Comissão Direta e Líquida</p>
+                        <hr class="bg-white my-4">
+                        <p class="small mb-0 opacity-75">Ganhos escaláveis: quanto mais alunos utilizarem a plataforma do seu polo, maior será o faturamento extra no fim do mês.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CALL TO ACTION / CONTATO -->
+    <section class="py-5 bg-light">
+        <div class="container text-center py-4">
+            <h2 class="fw-bold mb-3">Pronto para começar a faturar?</h2>
+            <p class="text-muted mb-4 max-width-600 mx-auto">Vamos agendar uma demonstração do sistema operacional ou formalizar o seu contrato de parceria.</p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <!-- Substitua o link abaixo pelo link do seu WhatsApp ou Formulário -->
+                <a href="https://wa.me/SEUNUMERO" target="_blank" class="btn btn-success btn-lg px-4">
+                    <i class="fa-brands fa-whatsapp me-2"></i>Falar com Consultor no WhatsApp
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="text-center">
+        <div class="container">
+            <p class="mb-2">© 2026 Ecossistema de Autoescola Digital. Todos os direitos reservados.</p>
+            <p class="small text-muted m-0">Desenvolvido estrategicamente para integração com Google Apps Script e GitHub Pages.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>
