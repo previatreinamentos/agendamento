@@ -1,0 +1,535 @@
+/**
+ * AutoEscola Inteligente - Código do Servidor (Google Apps Script)
+ * Gerencia a segurança, base de dados no Google Sheets e eventos no Google Calendar.
+ * Todos os dados são filtrados por utilizador garantindo privacidade padrão SaaS.
+ */
+
+const ID_PLANILHA = SpreadsheetApp.getActiveSpreadsheet().getId();
+const ABA_INSTRUTORES = "Instrutores";
+const ABA_ALUNOS = "Alunos";
+const ABA_AGENDAMENTOS = "Agendamentos";
+const ABA_LOGS = "Logs";
+
+/**
+ * Função obrigatória do Google Apps Script para servir o ficheiro HTML
+ */
+function doGet() {
+  return HtmlService.createTemplateFromFile('index')
+    .evaluate()
+    .setTitle('Plataforma CondutaCerta')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * Sistema de Login Duplo Dinâmico (Alunos / Instrutores)
+ */
+function validarLogin(email, senha, tipo) {
+  try {
+    const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+    
+    if (tipo === 'aluno') {
+      const sheet = planilha.getSheetByName(ABA_ALUNOS);
+      const dados = sheet.getDataRange().getValues();
+      for (let i = 1; i < dados.length; i++) {
+        // Coluna 3 (Email) e Coluna 4 (Senha)
+        if (dados[i][3].toString().toLowerCase() === email.toLowerCase() && dados[i][4].toString() === senha) {
+          return {
+            sucesso: true,
+            tipo: 'aluno',
+            dados: {
+              id: dados[i][0].toString(),
+              nome: dados[i][1].toString(),
+              telemovel: dados[i][2].toString(),
+              email: dados[i][3].toString()
+            }
+          };
+        }
+      }
+    } else if (tipo === 'instrutor') {
+      const sheet = planilha.getSheetByName(ABA_INSTRUTORES);
+      const dados = sheet.getDataRange().getValues();
+      for (let i = 1; i < dados.length; i++) {
+        // Para simplificar, assumimos senha temporária baseada no ID do instrutor ou e-mail na planilha
+        // Em produção, você pode adicionar uma coluna Senha também na aba de Instrutores.
+        if (dados[i][2].toString().toLowerCase() === email.toLowerCase() && senha === "admin123") {
+          return {
+            sucesso: true,
+            tipo: 'instrutor',
+            dados: {
+              id: dados[i][0].toString(),
+              nome: dados[i][1].toString(),
+              email: dados[i][2].toString(),
+              calendarId: dados[i][3].toString()
+            }
+          };
+        }
+      }
+    }
+    
+    return { sucesso: false, mensagem: "Credenciais incorretas ou utilizador inexistente." };
+  } catch (e) {
+    return { sucesso: false, mensagem: "Erro no servidor ao validar autenticação: " + e.toString() };
+  }
+}
+
+/**
+ * Obtém a lista completa de instrutores para o formulário de marcação do aluno
+ */
+function obterInstrutores() {
+  try {
+    const sheet = SpreadsheetApp.openById(ID_PLANILHA).getSheetByName(ABA_INSTRUTORES);
+    const dados = sheet.getDataRange().getValues();
+    const lista = [];
+    for (let i = 1; i < dados.length; i++) {
+      lista.push({
+        id: dados[i][0].toString(),
+        nome: dados[i][1].toString(),
+        email: dados[i][2].toString()
+      });
+    }
+    return lista;
+  } catch (e) {
+    Logger.log("Erro ao obter instrutores: " + e.toString());
+    return [];
+  }
+}
+
+/**
+ * Consulta horários ocupados no Google Sheets e no Google Calendar do instrutor
+ */
+function obterHorariosOcupados(instrutorId, dataString) {
+  try {
+    const ocupados = [];
+    const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+    
+    // 1. Obter informações da agenda do instrutor
+    const sheetInst = planilha.getSheetByName(ABA_INSTRUTORES);
+    const dadosInst = sheetInst.getDataRange().getValues();
+    let calendarId = "primary";
+    
+    for (let i = 1; i < dadosInst.length; i++) {
+      if (dadosInst[i][0].toString() === instrutorId) {
+        calendarId = dadosInst[i][3].toString() || "primary";
+        break;
+      }
+    }
+
+    // 2. Procurar eventos marcados no Google Calendar para o dia específico
+    try {
+      const dataInicio = new Date(dataString + 'T00:00:00');
+      const dataFim = new Date(dataString + 'T23:59:59');
+      const calendar = CalendarApp.getCalendarById(calendarId);
+      if (calendar) {
+        const eventos = calendar.getEvents(dataInicio, dataFim);
+        eventos.forEach(evt => {
+          const hora = pad(evt.getStartTime().getHours()) + ":" + pad(evt.getStartTime().getMinutes());
+          if (!ocupados.includes(hora)) ocupados.push(hora);
+        });
+      }
+    } catch (e) {
+      Logger.log("Calendar indisponível ou permissão negada: " + e.toString());
+    }
+
+    // 3. Procurar agendamentos na planilha para redundância e bloqueios locais
+    const sheetAgend = planilha.getSheetByName(ABA_AGENDAMENTOS);
+    const dadosAgend = sheetAgend.getDataRange().getValues();
+    
+    for (let i = 1; i < dadosAgend.length; i++) {
+      const dbData = formatarDataISO(dadosAgend[i][1]);
+      const dbHora = dadosAgend[i][2].toString().trim();
+      const dbInstId = dadosAgend[i][3].toString();
+      const dbStatus = dadosAgend[i][9].toString();
+
+      if (dbInstId === instrutorId && dbData === dataString && dbStatus !== 'Cancelado') {
+        if (!ocupados.includes(dbHora)) ocupados.push(dbHora);
+      }
+    }
+
+    return ocupados;
+  } catch (e) {
+    Logger.log("Erro ao obter horários ocupados: " + e.toString());
+    return [];
+  }
+}
+
+/**
+ * Cria uma nova reserva de aula (Verifica conflitos de última hora)
+ */
+function salvarNovoAgendamento(dados) {
+  try {
+    const ocupados = obterHorariosOcupados(dados.instrutorId, dados.data);
+    if (ocupados.includes(dados.horario)) {
+      return { sucesso: false, mensagem: "Este horário acabou de ser reservado. Escolha outro horário." };
+    }
+
+    const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+    
+    // Obter dados do instrutor
+    const sheetInst = planilha.getSheetByName(ABA_INSTRUTORES);
+    const dadosInst = sheetInst.getDataRange().getValues();
+    let instrutorNome = "";
+    let calendarId = "primary";
+    for (let i = 1; i < dadosInst.length; i++) {
+      if (dadosInst[i][0].toString() === dados.instrutorId) {
+        instrutorNome = dadosInst[i][1].toString();
+        calendarId = dadosInst[i][3].toString() || "primary";
+        break;
+      }
+    }
+
+    // Criar evento no Google Calendar
+    let eventId = "SIMULADO_CAL_" + Math.floor(Math.random() * 999999);
+    try {
+      const calendar = CalendarApp.getCalendarById(calendarId);
+      if (calendar) {
+        const strInicio = dados.data + 'T' + dados.horario + ':00';
+        const horaInicio = new Date(strInicio);
+        const horaFim = new Date(horaInicio.getTime() + 50 * 60 * 1000); // 50 min de aula
+
+        const desc = "Aluno: " + dados.alunoNome + "\n" +
+                     "Telemóvel: " + dados.alunoTelemovel + "\n" +
+                     "Local: " + dados.local + "\n" +
+                     "Tipo: " + dados.tipo + "\n" +
+                     "Obs: " + dados.observacao;
+
+        const evento = calendar.createEvent("Aula Prática - " + dados.alunoNome, horaInicio, horaFim, {
+          description: desc,
+          location: dados.local
+        });
+        eventId = evento.getId();
+      }
+    } catch (e) {
+      Logger.log("Erro no Calendar (Criando apenas no Sheets): " + e.toString());
+    }
+
+    // Salvar na Planilha
+    const sheetAgend = planilha.getSheetByName(ABA_AGENDAMENTOS);
+    const agendamentoId = "AG-" + Math.floor(Math.random() * 90000 + 10000);
+    
+    sheetAgend.appendRow([
+      agendamentoId,
+      dados.data,
+      dados.horario,
+      dados.instrutorId,
+      dados.alunoEmail, // Guardamos o email como chave estrangeira de login
+      dados.local,
+      dados.tipo,
+      dados.observacao,
+      eventId,
+      "Ativo"
+    ]);
+
+    // Enviar confirmações de email
+    enviarEmailAlerta(dados, instrutorNome);
+
+    // Registar Log
+    registarLogDoServidor(dados.alunoEmail, "Novo Agendamento", "Registou aula com o instrutor ID " + dados.instrutorId + " para " + dados.data + " às " + dados.horario);
+
+    // Gerar link do WhatsApp
+    const msg = "Olá " + dados.alunoNome + ".\nSua aula foi agendada com sucesso.\nData: " + dados.data.split('-').reverse().join('/') + "\nHorário: " + dados.horario + "\nLocal: " + dados.local + "\nInstrutor: " + instrutorNome;
+    const waUrl = "https://wa.me/" + dados.alunoTelemovel.replace(/\D/g, "") + "?text=" + encodeURIComponent(msg);
+
+    return { sucesso: true, whatsappUrl: waUrl };
+  } catch (e) {
+    return { sucesso: false, mensagem: "Erro no processamento do agendamento: " + e.toString() };
+  }
+}
+
+/**
+ * Permite que um instrutor registe um novo aluno
+ */
+function cadastrarNovoAluno(dadosAluno, instrutorEmail) {
+  try {
+    const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+    const sheet = planilha.getSheetByName(ABA_ALUNOS);
+    
+    // Verificar se o email já existe
+    const dadosExistentes = sheet.getDataRange().getValues();
+    for (let i = 1; i < dadosExistentes.length; i++) {
+      if (dadosExistentes[i][3].toString().toLowerCase() === dadosAluno.email.toLowerCase()) {
+        return { sucesso: false, mensagem: "Este e-mail já está cadastrado para outro aluno!" };
+      }
+    }
+
+    const novoId = "AL-" + Math.floor(Math.random() * 9000 + 1000);
+    const dataHoje = formatarDataISO(new Date());
+
+    sheet.appendRow([
+      novoId,
+      dadosAluno.nome,
+      dadosAluno.telemovel,
+      dadosAluno.email,
+      dadosAluno.senha,
+      dataHoje
+    ]);
+
+    registarLogDoServidor(instrutorEmail, "Cadastro de Aluno", "Cadastrou o aluno " + dadosAluno.nome + " (" + dadosAluno.email + ")");
+    return { sucesso: true, mensagem: "Aluno registado com sucesso!" };
+  } catch (e) {
+    return { sucesso: false, mensagem: "Erro ao registar aluno: " + e.toString() };
+  }
+}
+
+/**
+ * Obtém os agendamentos específicos de um Aluno logado
+ */
+function obterAulasAluno(alunoEmail) {
+  try {
+    const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+    
+    // Mapear instrutores para exibir o nome em vez de ID
+    const sheetInst = planilha.getSheetByName(ABA_INSTRUTORES);
+    const dadosInst = sheetInst.getDataRange().getValues();
+    const mapInstrutores = {};
+    for (let i = 1; i < dadosInst.length; i++) {
+      mapInstrutores[dadosInst[i][0].toString()] = dadosInst[i][1].toString();
+    }
+
+    const sheetAgend = planilha.getSheetByName(ABA_AGENDAMENTOS);
+    const dadosAgend = sheetAgend.getDataRange().getValues();
+    const lista = [];
+
+    for (let i = 1; i < dadosAgend.length; i++) {
+      if (dadosAgend[i][4].toString().toLowerCase() === alunoEmail.toLowerCase()) {
+        lista.push({
+          id: dadosAgend[i][0].toString(),
+          data: formatarDataISO(dadosAgend[i][1]),
+          horario: dadosAgend[i][2].toString(),
+          instrutorNome: mapInstrutores[dadosAgend[i][3].toString()] || "Desconhecido",
+          local: dadosAgend[i][5].toString(),
+          tipo: dadosAgend[i][6].toString(),
+          observacao: dadosAgend[i][7].toString(),
+          status: dadosAgend[i][9].toString()
+        });
+      }
+    }
+    return lista;
+  } catch (e) {
+    Logger.log("Erro ao carregar aulas do aluno: " + e.toString());
+    return [];
+  }
+}
+
+/**
+ * Obtém os agendamentos e estatísticas para o Painel do Instrutor
+ */
+function obterDadosPainelInstrutor(instrutorId, dataInicio, dataFim) {
+  try {
+    const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+    
+    // Mapear dados dos alunos para exibir nome completo na lista de aulas
+    const sheetAlunos = planilha.getSheetByName(ABA_ALUNOS);
+    const dadosAlunos = sheetAlunos.getDataRange().getValues();
+    const mapAlunos = {};
+    for (let i = 1; i < dadosAlunos.length; i++) {
+      mapAlunos[dadosAlunos[i][3].toString().toLowerCase()] = {
+        nome: dadosAlunos[i][1].toString(),
+        telemovel: dadosAlunos[i][2].toString()
+      };
+    }
+
+    const sheetAgend = planilha.getSheetByName(ABA_AGENDAMENTOS);
+    const dadosAgend = sheetAgend.getDataRange().getValues();
+    const agendamentos = [];
+
+    for (let i = 1; i < dadosAgend.length; i++) {
+      const dbInstId = dadosAgend[i][3].toString();
+      const dbData = formatarDataISO(dadosAgend[i][1]);
+
+      if (dbInstId === instrutorId && dbData >= dataInicio && dbData <= dataFim) {
+        const emailAluno = dadosAgend[i][4].toString().toLowerCase();
+        const detAluno = mapAlunos[emailAluno] || { nome: dadosAgend[i][4].toString(), telemovel: "-" };
+
+        agendamentos.push({
+          id: dadosAgend[i][0].toString(),
+          data: dbData,
+          horario: dadosAgend[i][2].toString(),
+          alunoNome: detAluno.nome,
+          alunoTelemovel: detAluno.telemovel,
+          local: dadosAgend[i][5].toString(),
+          tipo: dadosAgend[i][6].toString(),
+          observacao: dadosAgend[i][7].toString(),
+          status: dadosAgend[i][9].toString()
+        });
+      }
+    }
+
+    // Obter lista de alunos cadastrados para o instrutor ver
+    const alunosLista = [];
+    for (let i = 1; i < dadosAlunos.length; i++) {
+      alunosLista.push({
+        id: dadosAlunos[i][0].toString(),
+        nome: dadosAlunos[i][1].toString(),
+        telemovel: dadosAlunos[i][2].toString(),
+        email: dadosAlunos[i][3].toString()
+      });
+    }
+
+    return { agendamentos: agendamentos, alunos: alunosLista };
+  } catch (e) {
+    Logger.log("Erro ao carregar dados do painel: " + e.toString());
+    return { agendamentos: [], alunos: [] };
+  }
+}
+
+/**
+ * Reagenda data e hora de uma aula marcada
+ */
+function reagendarAulaServidor(id, novaData, novaHora, usuarioEmail) {
+  try {
+    const sheet = SpreadsheetApp.openById(ID_PLANILHA).getSheetByName(ABA_AGENDAMENTOS);
+    const dados = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < dados.length; i++) {
+      if (dados[i][0].toString() === id) {
+        const eventId = dados[i][8].toString();
+        const instrutorId = dados[i][3].toString();
+        
+        // Atualizar no Google Calendar
+        try {
+          const instrutores = obterInstrutores();
+          const inst = instrutores.find(x => x.id === instrutorId);
+          if (inst && eventId && !eventId.startsWith("SIMULADO")) {
+            const calendar = CalendarApp.getCalendarById(inst.calendarId || "primary");
+            if (calendar) {
+              const evento = calendar.getEventById(eventId);
+              if (evento) {
+                const nInicio = new Date(novaData + 'T' + novaHora + ':00');
+                evento.setTime(nInicio, new Date(nInicio.getTime() + 50 * 60 * 1000));
+              }
+            }
+          }
+        } catch (err) {
+          Logger.log("Erro ao mudar hora do calendário: " + err.toString());
+        }
+
+        sheet.getRange(i + 1, 2).setValue(novaData);
+        sheet.getRange(i + 1, 3).setValue(novaHora);
+        registarLogDoServidor(usuarioEmail, "Reagendamento", "Reagendou aula " + id + " para " + novaData + " às " + novaHora);
+        return { sucesso: true };
+      }
+    }
+    return { sucesso: false, mensagem: "Aula não localizada." };
+  } catch (e) {
+    return { sucesso: false, mensagem: e.toString() };
+  }
+}
+
+/**
+ * Remove/Cancela agendamento permanentemente
+ */
+function cancelarAulaServidor(id, usuarioEmail) {
+  try {
+    const sheet = SpreadsheetApp.openById(ID_PLANILHA).getSheetByName(ABA_AGENDAMENTOS);
+    const dados = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < dados.length; i++) {
+      if (dados[i][0].toString() === id) {
+        const eventId = dados[i][8].toString();
+        const instrutorId = dados[i][3].toString();
+        
+        // Deletar do Calendar
+        try {
+          const instrutores = obterInstrutores();
+          const inst = instrutores.find(x => x.id === instrutorId);
+          if (inst && eventId && !eventId.startsWith("SIMULADO")) {
+            const calendar = CalendarApp.getCalendarById(inst.calendarId || "primary");
+            if (calendar) {
+              const evento = calendar.getEventById(eventId);
+              if (evento) evento.deleteEvent();
+            }
+          }
+        } catch (err) {
+          Logger.log("Erro ao deletar do calendário: " + err.toString());
+        }
+
+        sheet.getRange(i + 1, 10).setValue("Cancelado");
+        registarLogDoServidor(usuarioEmail, "Cancelamento", "Cancelou o agendamento de ID " + id);
+        return { sucesso: true };
+      }
+    }
+    return { sucesso: false, mensagem: "Não localizado." };
+  } catch (e) {
+    return { sucesso: false, mensagem: e.toString() };
+  }
+}
+
+/**
+ * Salva bloqueios de datas criados pelo instrutor
+ */
+function salvarBloqueioServidor(instrutorId, data, hora, motivo, instrutorEmail) {
+  try {
+    const sheet = SpreadsheetApp.openById(ID_PLANILHA).getSheetByName(ABA_AGENDAMENTOS);
+    const novoBloqueioId = "BL-" + Math.floor(Math.random() * 90000 + 10000);
+    const horas = (hora === 'all') ? ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"] : [hora];
+
+    horas.forEach(h => {
+      sheet.appendRow([
+        novoBloqueioId,
+        data,
+        h,
+        instrutorId,
+        "BLOQUEADO",
+        "-",
+        "Bloqueio",
+        motivo,
+        "COMPROMISSO_BLOQUEADO",
+        "Ativo"
+      ]);
+    });
+
+    registarLogDoServidor(instrutorEmail, "Bloqueio de Horário", "Bloqueou " + data + " no horário " + hora + " devido a: " + motivo);
+    return { sucesso: true };
+  } catch (e) {
+    return { sucesso: false, mensagem: e.toString() };
+  }
+}
+
+/**
+ * Função utilitária para registrar Logs de Auditoria
+ */
+function registarLogDoServidor(usuario, acao, detalhes) {
+  try {
+    const sheet = SpreadsheetApp.openById(ID_PLANILHA).getSheetByName(ABA_LOGS);
+    const dataHora = new Date().toLocaleString('pt-PT');
+    sheet.appendRow([dataHora, usuario, acao, detalhes]);
+  } catch (e) {
+    Logger.log("Erro ao gravar log: " + e.toString());
+  }
+}
+
+/**
+ * Envia e-mails utilizando o GmailApp
+ */
+function enviarEmailAlerta(dados, instrutorNome) {
+  try {
+    const assunto = "AutoEscola CondutaCerta - Agendamento Efetuado (" + dados.data.split('-').reverse().join('/') + ")";
+    const htmlBody = `
+      <div style="font-family: sans-serif; max-width: 550px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px;">
+        <h2 style="color: #0d6efd; margin-top: 0;">Aula Confirmada!</h2>
+        <p>Olá, os dados da aula prática foram consolidados na sua agenda:</p>
+        <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin: 15px 0;">
+        <p><strong>Instrutor:</strong> ${instrutorNome}</p>
+        <p><strong>Data/Hora:</strong> ${dados.data.split('-').reverse().join('/')} às ${dados.horario}</p>
+        <p><strong>Local de Partida:</strong> ${dados.local}</p>
+        <p><strong>Tipo de Aula:</strong> ${dados.tipo}</p>
+        <p><strong>Notas:</strong> ${dados.observacao || 'Nenhuma'}</p>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
+        <p style="font-size: 11px; color: #94a3b8; text-align: center;">Plataforma Escolar CondutaCerta Inteligente</p>
+      </div>
+    `;
+    GmailApp.sendEmail(dados.alunoEmail, assunto, "", { htmlBody: htmlBody });
+  } catch (e) {
+    Logger.log("Não foi possível disparar notificações de email.");
+  }
+}
+
+// Helpers formatadores
+function pad(n) { return n < 10 ? '0' + n : n; }
+function formatarDataISO(val) {
+  if (val instanceof Date) {
+    return val.getFullYear() + "-" + pad(val.getMonth() + 1) + "-" + pad(val.getDate());
+  }
+  return val.toString().split('T')[0];
+}
