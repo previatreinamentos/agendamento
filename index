@@ -5,292 +5,236 @@
     <base target="_top">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-      body { background-color: #f1f3f5; font-family: sans-serif; padding: 10px; }
-      .app-card { max-width: 650px; width: 100%; background: white; padding: 25px; border-radius: 12px; box-shadow: 0px 4px 15px rgba(0,0,0,0.08); margin: 20px auto; }
-      .card-item { background: #fff; border-left: 5px solid #0d6efd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-      .nav-pills .nav-link.active { background-color: #0d6efd; }
+      body { 
+        background-color: #f1f3f5; 
+        font-family: sans-serif; 
+        padding: 15px;
+      }
+      .portal-container { 
+        max-width: 600px; 
+        width: 100%;
+        background: white; 
+        padding: 25px; 
+        border-radius: 10px; 
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.1); 
+        margin: 20px auto; 
+      }
+      .card-agendamento {
+        background-color: #ffffff;
+        border-left: 5px solid #0d6efd;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      }
     </style>
   </head>
   <body>
 
     <div class="container-fluid">
-      
-      <!-- MENU SUPERIOR DE ROTAS (Aparece apenas se nenhum login foi feito ainda para alternar fácil) -->
-      <div id="menu-rotas-inicial" class="text-center my-3">
-        <button class="btn btn-sm btn-primary mx-1" onclick="mostrarTelaInicial('aluno')">👤 Portal do Aluno</button>
-        <button class="btn btn-sm btn-dark mx-1" onclick="mostrarTelaInicial('admin')">🛠️ Área Administrativa</button>
-        <button class="btn btn-sm btn-info text-white mx-1" onclick="mostrarTelaInicial('instrutor')">📅 Área do Instrutor</button>
-      </div>
-
-      <!-- ================================================================= -->
-      <!-- TELA A: AMBIENTE DO ALUNO -->
-      <!-- ================================================================= -->
-      <div id="ambiente-aluno" class="app-card">
-        <!-- Login Aluno -->
-        <div id="aluno-login-box">
-          <h4 class="text-center text-primary mb-4 fw-bold">Portal do Aluno</h4>
-          <div class="mb-3">
-            <label class="form-label fw-bold">CPF do Aluno:</label>
-            <input type="text" class="form-control form-control-lg" id="alunoCpf" placeholder="Apenas números" inputmode="numeric">
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-bold">Senha:</label>
-            <input type="password" class="form-control form-control-lg" id="alunoSenha" placeholder="****">
-          </div>
-          <button class="btn btn-primary btn-lg w-100" id="btnLogarAluno" onclick="logarAluno()">Entrar</button>
-          <div id="erroLoginAluno" class="alert alert-danger mt-3 text-center" style="display:none;"></div>
+      <div class="portal-container">
+        
+        <div id="secao-login">
+          <h3 class="text-center text-primary mb-4 fw-bold">Portal do Aluno</h3>
+          <form id="formLoginAluno">
+            <div class="mb-3">
+              <label class="form-label fw-bold">Digite seu CPF:</label>
+              <input type="text" class="form-control form-control-lg" id="alunoCpf" placeholder="Apenas números" required inputmode="numeric">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Sua Senha:</label>
+              <input type="password" class="form-control form-control-lg" id="alunoSenha" placeholder="Senha inicial (4 dígitos)" required>
+            </div>
+            <button type="button" class="btn btn-primary btn-lg w-100" id="btnLogar" onclick="logarAluno()">Entrar no Portal</button>
+          </form>
+          <div id="erroLogin" class="alert alert-danger mt-3 text-center" style="display:none;"></div>
         </div>
 
-        <!-- Painel Interno Aluno -->
-        <div id="aluno-interno-box" style="display:none;">
-          <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-            <div><small class="text-muted">Aluno:</small><h6 class="m-0 fw-bold" id="lblNomeAluno">...</h6></div>
-            <button class="btn btn-sm btn-outline-danger" onclick="logoutGeral()">Sair</button>
+        <div id="secao-interna" style="display: none;">
+          <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+            <div>
+              <span class="text-muted small d-block">Bem-vindo(a),</span>
+              <h5 class="text-dark m-0 fw-bold" id="nomeUsuarioLogado">Nome do Aluno</h5>
+            </div>
+            <button class="btn btn-sm btn-outline-danger" onclick="logoutAluno()">Sair</button>
           </div>
-          <ul class="nav nav-pills nav-fill mb-3 bg-light p-1 rounded">
-            <li class="nav-item"><button class="nav-link active btn-sm" id="tab-al1" onclick="mudarAbaAluno('agendar')">📅 Agendar</button></li>
-            <li class="nav-item"><button class="nav-link btn-sm" id="tab-al2" onclick="mudarAbaAluno('meus')">📋 Meus Horários</button></li>
+
+          <ul class="nav nav-pills nav-fill mb-4 bg-light p-1 rounded" id="pills-tab">
+            <li class="nav-item">
+              <button class="nav-link active fw-bold" id="btn-tab-agendar" onclick="mudarAba('agendar')">📅 Novo Agendamento</button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link fw-bold" id="btn-tab-treinos" onclick="mudarAba('meus-treinos')">📋 Meus Horários</button>
+            </li>
           </ul>
-          <div id="box-aluno-agendar">
-            <label class="form-label fw-bold">Selecione uma Vaga:</label>
-            <select class="form-select mb-3" id="selectHorarios"><option>Carregando...</option></select>
-            <button class="btn btn-success w-100" id="btnConfirmarAgendamento" onclick="confirmarAgendamento()">Confirmar Vaga</button>
+
+          <div id="conteudo-agendar">
+            <h5 class="text-secondary mb-3 fw-bold">Escolha um Horário Disponível:</h5>
+            <div class="mb-3">
+              <select class="form-select form-select-lg" id="selectHorarios">
+                <option value="">Buscando vagas...</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-success btn-lg w-100" id="btnConfirmarAgendamento" onclick="confirmarAgendamento()" disabled>
+              Confirmar Agendamento
+            </button>
           </div>
-          <div id="box-aluno-meus" style="display:none;">
-            <div id="listaAgendamentos"></div>
+
+          <div id="conteudo-meus-treinos" style="display: none;">
+            <h5 class="text-secondary mb-3 fw-bold">Seus Horários Agendados:</h5>
+            <div id="listaAgendamentos">
+              <p class="text-muted text-center">Nenhum horário reservado.</p>
+            </div>
           </div>
-          <div id="feedAluno" class="alert mt-3 text-center" style="display:none;"></div>
+
+          <div id="msgFeedback" class="alert mt-4 text-center" style="display:none;"></div>
         </div>
+
       </div>
-
-      <!-- ================================================================= -->
-      <!-- TELA B: AMBIENTE ADMINISTRATIVO (CADASTROS) -->
-      <!-- ================================================================= -->
-      <div id="ambiente-admin" class="app-card" style="display:none;">
-        <!-- Login Admin -->
-        <div id="admin-login-box">
-          <h4 class="text-center text-danger mb-4 fw-bold">Painel Administrativo</h4>
-          <div class="mb-3">
-            <label class="form-label fw-bold">Usuário:</label>
-            <input type="text" class="form-control" id="adminUser" placeholder="admin">
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-bold">Senha:</label>
-            <input type="password" class="form-control" id="adminPass" placeholder="****">
-          </div>
-          <button class="btn btn-danger w-100" id="btnLogarAdmin" onclick="logarAdmin()">Acessar Sistema</button>
-          <div id="erroLoginAdmin" class="alert alert-danger mt-3 text-center" style="display:none;"></div>
-        </div>
-
-        <!-- Painel Interno Admin -->
-        <div id="admin-interno-box" style="display:none;">
-          <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-            <h5 class="m-0 text-danger fw-bold">🛠️ Controle de Cadastros</h5>
-            <button class="btn btn-sm btn-outline-danger" onclick="logoutGeral()">Sair</button>
-          </div>
-          <ul class="nav nav-pills nav-fill mb-3 bg-light p-1 rounded">
-            <li class="nav-item"><button class="nav-link active btn-sm" id="tab-ad1" onclick="mudarAbaAdmin('aluno')">👤 Novo Aluno</button></li>
-            <li class="nav-item"><button class="nav-link btn-sm" id="tab-ad2" onclick="mudarAbaAdmin('instrutor')">👔 Novo Instrutor</button></li>
-          </ul>
-          
-          <!-- Form Aluno -->
-          <div id="box-cad-aluno">
-            <div class="mb-2"><label class="small fw-bold">Nome do Aluno:</label><input type="text" class="form-control form-control-sm" id="cadAlunoNome"></div>
-            <div class="mb-2"><label class="small fw-bold">CPF (Apenas números):</label><input type="text" class="form-control form-control-sm" id="cadAlunoCpf"></div>
-            <div class="mb-2"><label class="small fw-bold">Telefone:</label><input type="text" class="form-control form-control-sm" id="cadAlunoTel"></div>
-            <div class="mb-2"><label class="small fw-bold">E-mail:</label><input type="email" class="form-control form-control-sm" id="cadAlunoEmail"></div>
-            <div class="mb-2"><label class="small fw-bold">Endereço:</label><input type="text" class="form-control form-control-sm" id="cadAlunoEnd"></div>
-            <div class="mb-3"><label class="small fw-bold">Vincular Instrutor:</label><select class="form-select form-select-sm" id="cadAlunoInstrutor"><option value="">Carregando instrutores...</option></select></div>
-            <button class="btn btn-primary w-100 btn-sm" onclick="salvarNovoAluno()">Salvar Registro do Aluno</button>
-          </div>
-
-          <!-- Form Instrutor -->
-          <div id="box-cad-instrutor" style="display:none;">
-            <div class="mb-2"><label class="small fw-bold">Nome do Instrutor:</label><input type="text" class="form-control form-control-sm" id="cadProfNome"></div>
-            <div class="mb-2"><label class="small fw-bold">CPF:</label><input type="text" class="form-control form-control-sm" id="cadProfCpf"></div>
-            <div class="mb-2"><label class="small fw-bold">Telefone:</label><input type="text" class="form-control form-control-sm" id="cadProfTel"></div>
-            <div class="mb-2"><label class="small fw-bold">E-mail:</label><input type="email" class="form-control form-control-sm" id="cadProfEmail"></div>
-            <div class="mb-3"><label class="small fw-bold">Endereço:</label><input type="text" class="form-control form-control-sm" id="cadProfEnd"></div>
-            <button class="btn btn-info text-white w-100 btn-sm" onclick="salvarNovoInstrutor()">Salvar Registro do Instrutor</button>
-          </div>
-          <div id="feedAdmin" class="alert mt-3 text-center" style="display:none;"></div>
-        </div>
-      </div>
-
-      <!-- ================================================================= -->
-      <!-- TELA C: AMBIENTE DO PROFESSOR / INSTRUTOR -->
-      <!-- ================================================================= -->
-      <div id="ambiente-instrutor" class="app-card" style="display:none;">
-        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-          <h5 class="m-0 text-info fw-bold">📅 Grade Horária do Instrutor</h5>
-          <button class="btn btn-sm btn-outline-danger" onclick="logoutGeral()">Sair</button>
-        </div>
-        <div class="mb-2"><label class="small fw-bold">Título da Aula/Evento:</label><input type="text" class="form-control form-control-sm" id="profTitulo" placeholder="Ex: Aula Prática B - Carro"></div>
-        <div class="mb-2"><label class="small fw-bold">Data e Hora de Início:</label><input type="datetime-local" class="form-control form-control-sm" id="profInicio"></div>
-        <div class="mb-2"><label class="small fw-bold">Data e Hora de Término:</label><input type="datetime-local" class="form-control form-control-sm" id="profFim"></div>
-        <div class="mb-2"><label class="small fw-bold">Local / Carro / Detalhes:</label><input type="text" class="form-control form-control-sm" id="profLocal" placeholder="Ex: Veículo Ônix Placa ABC-1234"></div>
-        <div class="mb-3"><label class="small fw-bold">Observações Adicionais:</label><textarea class="form-control form-control-sm" id="profDesc" rows="2"></textarea></div>
-        <button class="btn btn-info text-white w-100 btn-sm" onclick="salvarHorarioProf()">Publicar Horário na Nuvem</button>
-        <div id="feedProf" class="alert mt-3 text-center" style="display:none;"></div>
-      </div>
-
     </div>
 
-    <!-- SCRIPT LOGIC INTERNA UNIFICADA -->
     <script>
-      var sAlunoLogado = { nome: "", cpf: "" };
-      var sVagasDisponiveis = [];
+      var alunoLogado = { nome: "", cpf: "" };
+      var dadosHorariosCarregados = [];
 
-      // ALTERNADOR DE AMBIENTES INICIAIS
-      function mostrarTelaInicial(tipo) {
-        document.getElementById("ambiente-aluno").style.display = (tipo === 'aluno') ? 'block' : 'none';
-        document.getElementById("ambiente-admin").style.display = (tipo === 'admin') ? 'block' : 'none';
-        document.getElementById("ambiente-instrutor").style.display = (tipo === 'instrutor') ? 'block' : 'none';
-      }
-
-      function logoutGeral() {
-        sAlunoLogado = { nome: "", cpf: "" };
-        document.getElementById("formLoginAluno").reset();
-        document.getElementById("aluno-login-box").style.display = "block";
-        document.getElementById("aluno-interno-box").style.display = "none";
-        document.getElementById("admin-login-box").style.display = "block";
-        document.getElementById("admin-interno-box").style.display = "none";
-        document.getElementById("menu-rotas-inicial").style.display = "block";
-        mostrarTelaInicial('aluno');
-      }
-
-      // --- LOGICA DO ALUNO ---
       function logarAluno() {
         var cpf = document.getElementById("alunoCpf").value.trim();
         var senha = document.getElementById("alunoSenha").value;
-        if(!cpf || !senha) { alert("Preencha os campos!"); return; }
-        document.getElementById("erroLoginAluno").style.display = "none";
+        var erroDiv = document.getElementById("erroLogin");
+        var btn = document.getElementById("btnLogar");
+
+        if(!cpf || !senha) { alert("Preencha todos os campos."); return; }
+
+        erroDiv.style.display = "none";
+        btn.disabled = true;
+        btn.innerText = "Validando...";
+
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            btn.innerText = "Entrar no Portal";
+            
+            if(res && res.sucesso) {
+              alunoLogado.nome = res.nome;
+              alunoLogado.cpf = res.cpf;
+              
+              document.getElementById("nomeUsuarioLogado").innerText = res.nome;
+              document.getElementById("secao-login").style.display = "none";
+              document.getElementById("secao-interna").style.display = "block";
+              
+              atualizarPainelAluno();
+            } else {
+              erroDiv.innerText = (res && res.mensagem) ? res.mensagem : "CPF ou Senha incorretos.";
+              erroDiv.style.display = "block";
+            }
+          })
+          .realizarLogin(cpf, senha);
+      }
+
+      function atualizarPainelAluno() {
+        document.getElementById("msgFeedback").style.display = "none";
+        carregarVagasDisponiveis();
+        carregarMeusAgendamentos();
+      }
+
+      function mudarAba(aba) {
+        document.getElementById("msgFeedback").style.display = "none";
+        var btnAgendar = document.getElementById("btn-tab-agendar");
+        var btnTreinos = document.getElementById("btn-tab-treinos");
         
-        google.script.run.withSuccessHandler(function(res){
-          if(res && res.sucesso) {
-            sAlunoLogado.nome = res.nome; sAlunoLogado.cpf = res.cpf;
-            document.getElementById("lblNomeAluno").innerText = res.nome;
-            document.getElementById("aluno-login-box").style.display = "none";
-            document.getElementById("aluno-interno-box").style.display = "block";
-            document.getElementById("menu-rotas-inicial").style.display = "none";
-            carregarVagasAluno(); carregarMeusAgendamentosAluno();
-          } else {
-            document.getElementById("erroLoginAluno").innerText = res.mensagem || "Erro de login.";
-            document.getElementById("erroLoginAluno").style.display = "block";
-          }
-        }).realizarLogin(cpf, senha);
+        if(aba === 'agendar') {
+          btnAgendar.className = "nav-link active fw-bold"; 
+          btnTreinos.className = "nav-link fw-bold";
+          document.getElementById("conteudo-agendar").style.display = "block";
+          document.getElementById("conteudo-meus-treinos").style.display = "none";
+        } else {
+          btnAgendar.className = "nav-link fw-bold"; 
+          btnTreinos.className = "nav-link active fw-bold";
+          document.getElementById("conteudo-agendar").style.display = "none";
+          document.getElementById("conteudo-meus-treinos").style.display = "block";
+        }
       }
 
-      function mudarAbaAluno(aba) {
-        document.getElementById("box-aluno-agendar").style.display = (aba === 'agendar') ? 'block' : 'none';
-        document.getElementById("box-aluno-meus").style.display = (aba === 'meus') ? 'block' : 'none';
-        document.getElementById("tab-al1").className = (aba === 'agendar') ? 'nav-link active btn-sm' : 'nav-link btn-sm';
-        document.getElementById("tab-al2").className = (aba === 'meus') ? 'nav-link active btn-sm' : 'nav-link btn-sm';
-      }
-
-      function carregarVagasAluno() {
+      function carregarVagasDisponiveis() {
         var select = document.getElementById("selectHorarios");
-        select.innerHTML = '<option>Buscando vagas...</option>';
-        google.script.run.withSuccessHandler(function(lista){
-          sVagasDisponiveis = lista || [];
-          select.innerHTML = '<option value="">-- Selecione o Horário --</option>';
-          sVagasDisponiveis.forEach(function(h){
-            var op = document.createElement("option"); op.value = h.id; op.textContent = h.texto; select.appendChild(op);
+        var btn = document.getElementById("btnConfirmarAgendamento");
+        select.innerHTML = '<option value="">Carregando horários da nuvem...</option>';
+        btn.disabled = true;
+
+        google.script.run.withSuccessHandler(function(lista) {
+          dadosHorariosCarregados = lista || [];
+          select.innerHTML = '<option value="">-- Selecione uma opção --</option>';
+          if(dadosHorariosCarregados.length === 0) {
+            select.innerHTML = '<option value="">Nenhuma vaga disponível no momento</option>';
+            return;
+          }
+          dadosHorariosCarregados.forEach(function(item) {
+            var opt = document.createElement("option");
+            opt.value = item.id;
+            opt.textContent = item.texto;
+            select.appendChild(opt);
           });
+          btn.disabled = false;
         }).buscarHorariosDisponiveis();
       }
 
       function confirmarAgendamento() {
-        var id = document.getElementById("selectHorarios").value;
-        if(!id) { alert("Escolha uma vaga!"); return; }
-        var h = sVagasDisponiveis.find(function(item){ return item.id == id; });
-        var dados = { titulo: h.titulo, inicio: h.inicio, fim: h.fim, descricao: h.descricao, local: h.local, aluno: sAlunoLogado.nome, cpf: sAlunoLogado.cpf };
-        
-        var f = document.getElementById("feedAluno"); f.className="alert alert-warning"; f.innerText="Processando..."; f.style.display="block";
-        google.script.run.withSuccessHandler(function(res){
-          f.className = res.includes("Sucesso") ? "alert alert-success" : "alert alert-danger";
-          f.innerText = res; carregarVagasAluno(); carregarMeusAgendamentosAluno();
-        }).salvarAgendamento(dados);
-      }
+        var select = document.getElementById("selectHorarios");
+        var idx = select.value;
+        if(idx === "") { alert("Por favor, selecione um horário válido."); return; }
 
-      function carregarMeusAgendamentosAluno() {
-        var box = document.getElementById("listaAgendamentos"); box.innerHTML = "<small>Buscando...</small>";
-        google.script.run.withSuccessHandler(function(lista){
-          box.innerHTML = lista.length === 0 ? "<p class='text-muted text-center small'>Nenhum horário reservado.</p>" : "";
-          lista.forEach(function(item){
-            box.innerHTML += `<div class="card-item p-2 mb-2 bg-light border small"><strong>${item.titulo}</strong><br>📅 ${item.inicio}<br>📍 ${item.local}</div>`;
-          });
-        }).consultarAgendamentosAlunoPorCPF(sAlunoLogado.cpf);
-      }
+        var horarioEscolhido = dadosHorariosCarregados.find(function(h) { return h.id == idx; });
+        if(!horarioEscolhido) return;
 
-      // --- LOGICA DO ADMIN ---
-      function logarAdmin() {
-        var u = document.getElementById("adminUser").value.trim();
-        var s = document.getElementById("adminPass").value;
-        google.script.run.withSuccessHandler(function(res){
-          if(res && res.sucesso) {
-            document.getElementById("admin-login-box").style.display = "none";
-            document.getElementById("admin-interno-box").style.display = "block";
-            document.getElementById("menu-rotas-inicial").style.display = "none";
-            carregarSelectInstrutoresAdmin();
+        var dadosEnvio = {
+          titulo: horarioEscolhido.titulo,
+          inicio: horarioEscolhido.inicio,
+          fim: horarioEscolhido.fim,
+          descricao: horarioEscolhido.descricao,
+          local: horarioEscolhido.local,
+          aluno: alunoLogado.nome,
+          cpf: alunoLogado.cpf
+        };
+
+        var divFeed = document.getElementById("msgFeedback");
+        divFeed.className = "alert alert-warning"; divFeed.innerText = "Reservando sua vaga, aguarde..."; divFeed.style.display = "block";
+
+        google.script.run.withSuccessHandler(function(resultado) {
+          if(resultado && resultado.includes("Sucesso")) {
+            divFeed.className = "alert alert-success"; divFeed.innerText = resultado;
+            atualizarPainelAluno();
           } else {
-            document.getElementById("erroLoginAdmin").innerText = "Acesso negado!"; document.getElementById("erroLoginAdmin").style.display = "block";
+            divFeed.className = "alert alert-danger"; divFeed.innerText = resultado;
           }
-        }).realizarLoginAdmin(u, s);
+        }).salvarAgendamento(dadosEnvio);
       }
 
-      function mudarAbaAdmin(tipo) {
-        document.getElementById("box-cad-aluno").style.display = (tipo === 'aluno') ? 'block' : 'none';
-        document.getElementById("box-cad-instrutor").style.display = (tipo === 'instrutor') ? 'block' : 'none';
-        document.getElementById("tab-ad1").className = (tipo === 'aluno') ? 'nav-link active btn-sm' : 'nav-link btn-sm';
-        document.getElementById("tab-ad2").className = (tipo === 'instrutor') ? 'nav-link active btn-sm' : 'nav-link btn-sm';
+      function carregarMeusAgendamentos() {
+        var container = document.getElementById("listaAgendamentos");
+        container.innerHTML = '<p class="text-muted text-center">Buscando seus registros...</p>';
+
+        google.script.run.withSuccessHandler(function(lista) {
+          var agendamentos = lista || [];
+          if(agendamentos.length === 0) {
+            container.innerHTML = '<p class="text-muted text-center">Você não possui nenhum agendamento futuro.</p>';
+            return;
+          }
+          container.innerHTML = "";
+          agendamentos.forEach(function(item) {
+            var card = document.createElement("div");
+            card.className = "card-agendamento p-3 mb-2 bg-white border";
+            card.innerHTML = "<strong>" + item.titulo + "</strong><br>" +
+                             "<small class='text-primary'>📅 Horário: " + item.inicio + "</small><br>" +
+                             "<small class='text-muted'>📍 Local: " + (item.local || 'Não definido') + "</small>";
+            container.appendChild(card);
+          });
+        }).consultarAgendamentosAlunoPorCPF(alunoLogado.cpf);
       }
 
-      function carregarSelectInstrutoresAdmin() {
-        var sel = document.getElementById("cadAlunoInstrutor");
-        google.script.run.withSuccessHandler(function(res){
-          sel.innerHTML = '<option value="">Nenhum / Escolha</option>';
-          res.forEach(function(i){ var op = document.createElement("option"); op.value=i; op.textContent=i; sel.appendChild(op); });
-        }).listarInstrutores();
-      }
-
-      function salvarNovoAluno() {
-        var dados = {
-          nome: document.getElementById("cadAlunoNome").value, cpf: document.getElementById("cadAlunoCpf").value,
-          telefone: document.getElementById("cadAlunoTel").value, email: document.getElementById("cadAlunoEmail").value,
-          endereco: document.getElementById("cadAlunoEnd").value, instrutor: document.getElementById("cadAlunoInstrutor").value
-        };
-        var f = document.getElementById("feedAdmin"); f.className="alert alert-warning"; f.innerText="Gravando..."; f.style.display="block";
-        google.script.run.withSuccessHandler(function(res){
-          f.className = res.includes("Sucesso") ? "alert alert-success" : "alert alert-danger"; f.innerText = res;
-        }).cadastrarNovoAluno(dados);
-      }
-
-      function salvarNovoInstrutor() {
-        var dados = {
-          nome: document.getElementById("cadProfNome").value, cpf: document.getElementById("cadProfCpf").value,
-          telefone: document.getElementById("cadProfTel").value, email: document.getElementById("cadProfEmail").value,
-          endereco: document.getElementById("cadProfEnd").value
-        };
-        var f = document.getElementById("feedAdmin"); f.className="alert alert-warning"; f.innerText="Gravando..."; f.style.display="block";
-        google.script.run.withSuccessHandler(function(res){
-          f.className = res.includes("Sucesso") ? "alert alert-success" : "alert alert-danger"; f.innerText = res;
-          carregarSelectInstrutoresAdmin();
-        }).cadastrarNovoInstrutor(dados);
-      }
-
-      // --- LOGICA DO PROFESSOR ---
-      function salvarHorarioProf() {
-        var dados = {
-          titulo: document.getElementById("profTitulo").value, inicio: document.getElementById("profInicio").value,
-          fim: document.getElementById("profFim").value, local: document.getElementById("profLocal").value,
-          descricao: document.getElementById("profDesc").value
-        };
-        if(!dados.titulo || !dados.inicio || !dados.fim) { alert("Preencha os campos obrigatórios!"); return; }
-        var f = document.getElementById("feedProf"); f.className="alert alert-warning"; f.innerText="Publicando grade..."; f.style.display="block";
-        google.script.run.withSuccessHandler(function(res){
-          f.className = res.includes("Sucesso") ? "alert alert-success" : "alert alert-danger"; f.innerText = res;
-        }).salvarHorarioProfessor(dados);
+      function logoutAluno() {
+        alunoLogado = { nome: "", cpf: "" };
+        document.getElementById("formLoginAluno").reset();
+        document.getElementById("secao-login").style.display = "block";
+        document.getElementById("secao-interna").style.display = "none";
+        mudarAba('agendar');
       }
     </script>
   </body>
