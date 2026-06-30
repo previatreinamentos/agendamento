@@ -244,7 +244,7 @@
                 <ol class="list-decimal pl-5 space-y-2">
                     <li>Acesse o <a href="https://console.firebase.google.com/" target="_blank" class="text-indigo-600 underline font-semibold">Firebase Console</a> e crie um projeto gratuito.</li>
                     <li>No painel do projeto, adicione um <strong>Aplicativo Web</strong> e copie as credenciais de configuração (o objeto <code class="bg-slate-100 px-1 py-0.5 rounded font-mono text-xs text-rose-600">firebaseConfig</code>).</li>
-                    <li>Substitua os dados no código deste arquivo na <strong>linha 390</strong> pelas suas chaves copiadas.</li>
+                    <li>Substitua os dados no código deste arquivo na <strong>linha 390-405</strong> pelas suas chaves copiadas.</li>
                     <li>No menu lateral esquerdo do Firebase, vá em <strong>Build > Authentication</strong>, selecione <strong>Sign-in method</strong> e ative a opção <strong>Anônimo</strong>.</li>
                     <li>Vá em <strong>Build > Firestore Database</strong>, clique em criar banco de dados. Nas <strong>Regras (Rules)</strong>, permita leitura/gravação temporariamente para que seu app funcione sem restrições complexas:
                         <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg text-xs mt-2 overflow-x-auto">rules_version = '2';
@@ -313,11 +313,14 @@ service cloud.firestore {
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-cadastro-app';
         
-        // Configuração do Firebase
+        // ==========================================
+        //  CONFIGURAÇÃO DO SEU FIREBASE (PASSO 2)
+        // ==========================================
+        // Cole abaixo as credenciais que você copiar do console do Firebase:
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
             : {
-                apiKey: "", // Substitua com sua apiKey real do Firebase
+                apiKey: "", 
                 authDomain: "seu-projeto-id.firebaseapp.com",
                 projectId: "seu-projeto-id",
                 storageBucket: "seu-projeto-id.appspot.com",
@@ -368,7 +371,7 @@ service cloud.firestore {
             }
         };
 
-        // Ativar modo LocalStorage quando houver erros no Firebase
+        // Ativar modo LocalStorage quando houver erros ou timeout no Firebase
         const fallbackToLocalMode = (reason) => {
             if (isFirebaseConnected) {
                 console.warn("Alternando para o modo LocalStorage:", reason);
@@ -389,6 +392,14 @@ service cloud.firestore {
             cachedData = getLocalData(currentTab);
             renderTable(cachedData);
         };
+
+        // Timeout de Segurança: Se o Firebase demorar mais de 4 segundos para conectar/autenticar,
+        // força o modo local temporariamente para que o usuário consiga utilizar o app sem travar.
+        const connectionTimeout = setTimeout(() => {
+            if (isFirebaseConnected && (!auth || !auth.currentUser)) {
+                fallbackToLocalMode("Conexão demorou muito para responder (Timeout). Ativando modo local.");
+            }
+        }, 4000);
 
         // Inicialização de Autenticação do Usuário
         const initAuthentication = async () => {
@@ -413,6 +424,9 @@ service cloud.firestore {
         if (isFirebaseConnected) {
             onAuthStateChanged(auth, (user) => {
                 if (user) {
+                    // Limpar o timeout de segurança porque a conexão deu certo!
+                    clearTimeout(connectionTimeout);
+
                     document.getElementById('user-id-display').textContent = `ID: ${user.uid.substring(0, 6)}...`;
                     document.getElementById('user-badge').classList.remove('hidden');
                     
