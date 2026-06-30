@@ -314,19 +314,20 @@ service cloud.firestore {
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-cadastro-app';
         
         // ==========================================
-        //  CONFIGURAÇÃO DO SEU FIREBASE (PASSO 2)
+        //  CONFIGURAÇÃO DO SEU FIREBASE (ATUALIZADO)
         // ==========================================
-        // Cole abaixo as credenciais que você copiar do console do Firebase:
-       const firebaseConfig = {
-  apiKey: "AIzaSyDqoWO1KLkelprKItEt0jOt26wiBMETV0s",
-  authDomain: "agendamento-de-alunos.firebaseapp.com",
-  databaseURL: "https://agendamento-de-alunos-default-rtdb.firebaseio.com",
-  projectId: "agendamento-de-alunos",
-  storageBucket: "agendamento-de-alunos.firebasestorage.app",
-  messagingSenderId: "240746361279",
-  appId: "1:240746361279:web:1ce121d1e23bb23cb7710a",
-  measurementId: "G-39CZBQ9VR7"
-};
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "AIzaSyDqoWO1KLkelprKItEt0jOt26wiBMETV0s",
+                authDomain: "agendamento-de-alunos.firebaseapp.com",
+                databaseURL: "https://agendamento-de-alunos-default-rtdb.firebaseio.com",
+                projectId: "agendamento-de-alunos",
+                storageBucket: "agendamento-de-alunos.firebasestorage.app",
+                messagingSenderId: "240746361279",
+                appId: "1:240746361279:web:1ce121d1e23bb23cb7710a",
+                measurementId: "G-39CZBQ9VR7"
+            };
 
         // Instanciadores de Serviços do Firebase
         let app, auth, db;
@@ -471,7 +472,7 @@ service cloud.firestore {
             }
         };
 
-        // Atualizar opções do dropdown de seleção de instrutores
+        // dAtualizar opções do dropdown de seleção de instrutores
         window.updateInstrutoresDropdown = () => {
             const select = document.getElementById('instrutor-id');
             if (!select) return;
