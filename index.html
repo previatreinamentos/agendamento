@@ -33,6 +33,19 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
+    <!-- Banner de Aviso de Configuração do Firebase (Aparece apenas quando não configurado) -->
+    <div id="firebase-warning-banner" class="bg-amber-500 text-slate-950 px-4 py-3 shadow-md relative hidden z-50">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-xs md:text-sm">
+            <div class="flex items-center space-x-2 font-medium">
+                <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0"></i>
+                <span><strong>Modo de Demonstração Local:</strong> O Firebase não está conectado. Os dados estão sendo salvos no seu navegador.</span>
+            </div>
+            <button onclick="toggleFirebaseHelp()" class="bg-slate-900 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-800 transition-colors flex items-center gap-1">
+                <i data-lucide="help-circle" class="w-3.5 h-3.5"></i> Como configurar o Firebase?
+            </button>
+        </div>
+    </div>
+
     <!-- Header / Navbar -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -214,7 +227,47 @@
         </div>
     </main>
 
-    <!-- Modal de Confirmação customizado (Substitui confirm() para evitar travamentos) -->
+    <!-- Modal Informativo / Instruções de Configuração do Firebase -->
+    <div id="firebase-help-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 overflow-y-auto max-h-[90vh]">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                <div class="flex items-center space-x-2 text-indigo-600">
+                    <i data-lucide="help-circle" class="w-6 h-6"></i>
+                    <h3 class="font-bold text-lg text-slate-900">Configurando seu Firebase</h3>
+                </div>
+                <button onclick="toggleFirebaseHelp()" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-4 text-sm text-slate-600">
+                <p>Para sincronizar seus dados na nuvem através do Firebase pelo GitHub Pages, siga estes passos:</p>
+                <ol class="list-decimal pl-5 space-y-2">
+                    <li>Acesse o <a href="https://console.firebase.google.com/" target="_blank" class="text-indigo-600 underline font-semibold">Firebase Console</a> e crie um projeto gratuito.</li>
+                    <li>No painel do projeto, adicione um <strong>Aplicativo Web</strong> e copie as credenciais de configuração (o objeto <code class="bg-slate-100 px-1 py-0.5 rounded font-mono text-xs text-rose-600">firebaseConfig</code>).</li>
+                    <li>Substitua os dados no código deste arquivo na <strong>linha 390</strong> pelas suas chaves copiadas.</li>
+                    <li>No menu lateral esquerdo do Firebase, vá em <strong>Build > Authentication</strong>, selecione <strong>Sign-in method</strong> e ative a opção <strong>Anônimo</strong>.</li>
+                    <li>Vá em <strong>Build > Firestore Database</strong>, clique em criar banco de dados. Nas <strong>Regras (Rules)</strong>, permita leitura/gravação temporariamente para que seu app funcione sem restrições complexas:
+                        <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg text-xs mt-2 overflow-x-auto">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+                    </li>
+                </ol>
+                <p class="text-xs text-amber-600 font-medium bg-amber-50 p-3 rounded-lg border border-amber-100">
+                    Dica: Sempre que alterar o código, lembre-se de salvar, commitar e enviar o push (<code class="font-mono text-[10px] bg-amber-100/50 p-0.5 rounded">git push origin main</code>) para atualizar sua página no GitHub Pages!
+                </p>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button onclick="toggleFirebaseHelp()" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">Entendi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação customizado -->
     <div id="confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200 transform scale-95 opacity-0 transition-all duration-200" id="confirm-modal-content">
             <div class="flex items-center space-x-3 text-rose-600 mb-4">
@@ -256,13 +309,15 @@
         let unsubscribeInstrutores = null; 
         let isEditing = false;
         let deleteTargetId = null;
+        let isFirebaseConnected = false;
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-cadastro-app';
         
+        // Configuração do Firebase
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
             : {
-                apiKey: "",
+                apiKey: "", // Substitua com sua apiKey real do Firebase
                 authDomain: "seu-projeto-id.firebaseapp.com",
                 projectId: "seu-projeto-id",
                 storageBucket: "seu-projeto-id.appspot.com",
@@ -270,13 +325,78 @@
                 appId: "1:1234567890:web:123456"
             };
 
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        // Instanciadores de Serviços do Firebase
+        let app, auth, db;
+
+        // Tentar inicializar o Firebase com segurança (sem travar se estiver offline ou sem chaves)
+        try {
+            if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey !== "" && firebaseConfig.projectId !== "seu-projeto-id") {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                isFirebaseConnected = true;
+            } else {
+                console.warn("Chaves do Firebase ausentes ou de exemplo. Rodando em Modo de Demonstração Local.");
+            }
+        } catch (error) {
+            console.error("Falha ao inicializar o Firebase SDK:", error);
+            isFirebaseConnected = false;
+        }
+
+        // Funções Auxiliares para Armazenamento Local (Fallback para evitar travar no GitHub)
+        const getLocalData = (collectionName) => {
+            const data = localStorage.getItem(`cadastro_${appId}_${collectionName}`);
+            return data ? JSON.parse(data) : [];
+        };
+
+        const saveLocalData = (collectionName, data) => {
+            localStorage.setItem(`cadastro_${appId}_${collectionName}`, JSON.stringify(data));
+            triggerLocalUpdate(collectionName);
+        };
+
+        const triggerLocalUpdate = (collectionName) => {
+            if (collectionName === 'instrutores') {
+                cachedInstrutores = getLocalData('instrutores');
+                updateInstrutoresDropdown();
+                if (currentTab === 'alunos') {
+                    renderTable(cachedData);
+                }
+            }
+            if (currentTab === collectionName) {
+                cachedData = getLocalData(collectionName);
+                renderTable(cachedData);
+            }
+        };
+
+        // Ativar modo LocalStorage quando houver erros no Firebase
+        const fallbackToLocalMode = (reason) => {
+            if (isFirebaseConnected) {
+                console.warn("Alternando para o modo LocalStorage:", reason);
+                isFirebaseConnected = false;
+            }
+            
+            // Exibir Banner informando que está no modo Local
+            document.getElementById('firebase-warning-banner').classList.remove('hidden');
+            
+            const statusBadge = document.getElementById('connection-status');
+            statusBadge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800";
+            statusBadge.innerHTML = `<span class="w-2 h-2 mr-1.5 bg-amber-500 rounded-full"></span>Demonstração (Offline)`;
+
+            // Sincronizar dados das listas do armazenamento local
+            cachedInstrutores = getLocalData('instrutores');
+            updateInstrutoresDropdown();
+            
+            cachedData = getLocalData(currentTab);
+            renderTable(cachedData);
+        };
 
         // Inicialização de Autenticação do Usuário
         const initAuthentication = async () => {
+            if (!isFirebaseConnected) {
+                fallbackToLocalMode("Firebase não configurado");
+                return;
+            }
+
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
@@ -285,55 +405,60 @@
                 }
             } catch (error) {
                 console.error("Falha na autenticação do Firebase:", error);
-                showNotification("Erro de Autenticação", "Não foi possível se conectar com segurança ao Firebase.", "error");
+                fallbackToLocalMode("Erro de Login Anônimo. Certifique-se de ativar o Login Anônimo no console do Firebase.");
             }
         };
 
-        // Escutar estado da Autenticação e então iniciar as rotinas
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('user-id-display').textContent = `ID: ${user.uid.substring(0, 6)}...`;
-                document.getElementById('user-badge').classList.remove('hidden');
-                
-                const statusBadge = document.getElementById('connection-status');
-                statusBadge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800";
-                statusBadge.innerHTML = `<span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full"></span>Conectado`;
+        // Escutar estado da Autenticação (apenas se o Firebase estiver ativo)
+        if (isFirebaseConnected) {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    document.getElementById('user-id-display').textContent = `ID: ${user.uid.substring(0, 6)}...`;
+                    document.getElementById('user-badge').classList.remove('hidden');
+                    
+                    const statusBadge = document.getElementById('connection-status');
+                    statusBadge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800";
+                    statusBadge.innerHTML = `<span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full"></span>Conectado`;
 
-                // Iniciar escutas globais e locais
-                startInstrutoresGlobalListener();
-                initRealtimeDatabaseListener();
-            } else {
-                document.getElementById('user-badge').classList.add('hidden');
-            }
-        });
+                    // Iniciar escutas globais nos dados do Firestore
+                    startInstrutoresGlobalListener();
+                    initRealtimeDatabaseListener();
+                } else {
+                    document.getElementById('user-badge').classList.add('hidden');
+                }
+            });
+        }
 
-        // Função para obter o caminho correto de coleção (Regras estritas de caminhos)
+        // Caminhos de Segurança das Coleções
         const getCollectionRef = (collectionName) => {
             return collection(db, 'artifacts', appId, 'public', 'data', collectionName);
         };
 
         // Escuta global para carregar e atualizar a lista de instrutores
         const startInstrutoresGlobalListener = () => {
-            const queryRef = getCollectionRef('instrutores');
-            unsubscribeInstrutores = onSnapshot(queryRef, (snapshot) => {
-                cachedInstrutores = [];
-                snapshot.forEach((doc) => {
-                    cachedInstrutores.push({ id: doc.id, ...doc.data() });
+            if (isFirebaseConnected) {
+                const queryRef = getCollectionRef('instrutores');
+                unsubscribeInstrutores = onSnapshot(queryRef, (snapshot) => {
+                    cachedInstrutores = [];
+                    snapshot.forEach((doc) => {
+                        cachedInstrutores.push({ id: doc.id, ...doc.data() });
+                    });
+                    updateInstrutoresDropdown();
+                    if (currentTab === 'alunos') {
+                        renderTable(cachedData);
+                    }
+                }, (error) => {
+                    console.error("Erro na escuta global de instrutores:", error);
+                    fallbackToLocalMode("Erro de acesso. Verifique suas regras do Firestore.");
                 });
-                // Atualizar o seletor de instrutores no formulário
+            } else {
+                cachedInstrutores = getLocalData('instrutores');
                 updateInstrutoresDropdown();
-                
-                // Se estivermos na aba de alunos, re-renderizar a tabela para garantir nomes atualizados dos instrutores
-                if (currentTab === 'alunos') {
-                    renderTable(cachedData);
-                }
-            }, (error) => {
-                console.error("Erro na escuta global de instrutores:", error);
-            });
+            }
         };
 
         // Atualizar opções do dropdown de seleção de instrutores
-        const updateInstrutoresDropdown = () => {
+        window.updateInstrutoresDropdown = () => {
             const select = document.getElementById('instrutor-id');
             if (!select) return;
 
@@ -347,49 +472,53 @@
                 select.appendChild(option);
             });
 
-            // Tentar restaurar o valor previamente selecionado
             if (selectedValue && cachedInstrutores.some(i => i.id === selectedValue)) {
                 select.value = selectedValue;
             }
         };
 
-        // Listener em tempo real do Firestore para os Dados do painel principal
-        const initRealtimeDatabaseListener = () => {
+        // Listener em tempo real do Firestore ou LocalStorage para os dados
+        window.initRealtimeDatabaseListener = () => {
             if (unsubscribeRealtime) {
                 unsubscribeRealtime();
             }
 
             const collectionName = currentTab === 'alunos' ? 'alunos' : 'instrutores';
-            const queryRef = getCollectionRef(collectionName);
 
-            unsubscribeRealtime = onSnapshot(queryRef, (snapshot) => {
-                const list = [];
-                snapshot.forEach((doc) => {
-                    list.push({ id: doc.id, ...doc.data() });
+            if (isFirebaseConnected) {
+                const queryRef = getCollectionRef(collectionName);
+                unsubscribeRealtime = onSnapshot(queryRef, (snapshot) => {
+                    const list = [];
+                    snapshot.forEach((doc) => {
+                        list.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    cachedData = list;
+                    renderTable(cachedData);
+                }, (error) => {
+                    console.error("Erro ao obter dados em tempo real: ", error);
+                    fallbackToLocalMode("Erro de permissões ou conexão.");
                 });
-                
-                cachedData = list;
+            } else {
+                cachedData = getLocalData(collectionName);
                 renderTable(cachedData);
-            }, (error) => {
-                console.error("Erro ao obter dados em tempo real: ", error);
-                showNotification("Erro ao Sincronizar", "Não foi possível carregar os dados em tempo real.", "error");
-            });
+            }
         };
 
-        // Resolver em tempo real o nome do instrutor a partir do ID
+        // Resolver nome do instrutor a partir do ID em memória
         const getInstrutorName = (id) => {
             const inst = cachedInstrutores.find(i => i.id === id);
             return inst ? inst.nome : null;
         };
 
-        // Renderiza a tabela de dados dinamicamente
+        // Renderizar Tabela
         window.renderTable = (data) => {
             const tbody = document.getElementById('data-table-body');
             if (!data || data.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="6" class="py-8 text-center text-slate-500">
-                            Nenhum registro encontrado.
+                            Nenhum registro encontrado nesta lista.
                         </td>
                     </tr>
                 `;
@@ -400,7 +529,6 @@
                 const extraValue = currentTab === 'instrutores' ? item.especialidade || '-' : '';
                 const extraTd = currentTab === 'instrutores' ? `<td class="py-3 px-4 font-medium text-slate-700">${extraValue}</td>` : '';
                 
-                // Tratar a visualização do instrutor vinculado no aluno
                 let nomeComVinculo = item.nome || '';
                 if (currentTab === 'alunos') {
                     const instNome = item.instrutorId ? getInstrutorName(item.instrutorId) : null;
@@ -445,20 +573,13 @@
                 `;
             }).join('');
 
-            // Recriar ícones gerados dinamicamente
             lucide.createIcons();
         };
 
-        // Função de envio do formulário (Criação ou Atualização)
+        // Salvar / Editar Registro
         window.handleSubmit = async (event) => {
             event.preventDefault();
             
-            const user = auth.currentUser;
-            if (!user) {
-                showNotification("Não autorizado", "Você precisa estar conectado para realizar cadastros.", "error");
-                return;
-            }
-
             const docId = document.getElementById('doc-id').value;
             const nome = document.getElementById('nome').value.trim();
             const cpf = document.getElementById('cpf').value.trim();
@@ -473,39 +594,50 @@
                 updatedAt: new Date().toISOString()
             };
 
-            // Tratar campos específicos baseados na aba atual
             if (currentTab === 'alunos') {
                 const instrutorId = document.getElementById('instrutor-id').value;
-                payload.instrutorId = instrutorId || null; // Salva o ID do instrutor no documento do aluno
+                payload.instrutorId = instrutorId || null;
             } else if (currentTab === 'instrutores') {
                 const especialidade = document.getElementById('especialidade').value.trim();
                 if (!especialidade) {
-                    showNotification("Atenção", "O campo especialidade é obrigatório para Instrutores.", "warning");
+                    showNotification("Atenção", "O campo especialidade é obrigatório.", "warning");
                     return;
                 }
                 payload.especialidade = especialidade;
             }
 
             const collectionName = currentTab === 'alunos' ? 'alunos' : 'instrutores';
-            const collectionRef = getCollectionRef(collectionName);
 
             try {
-                if (isEditing && docId) {
-                    // Modo Edição
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, docId);
-                    await updateDoc(docRef, payload);
-                    showNotification("Sucesso", `${currentTab === 'alunos' ? 'Aluno' : 'Instrutor'} atualizado com sucesso!`, "success");
+                if (isFirebaseConnected) {
+                    if (isEditing && docId) {
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, docId);
+                        await updateDoc(docRef, payload);
+                        showNotification("Sucesso", "Atualizado no Firebase com sucesso!", "success");
+                    } else {
+                        payload.createdAt = new Date().toISOString();
+                        const collectionRef = getCollectionRef(collectionName);
+                        await addDoc(collectionRef, payload);
+                        showNotification("Sucesso", "Cadastrado no Firebase com sucesso!", "success");
+                    }
                 } else {
-                    // Modo Criação
-                    payload.createdAt = new Date().toISOString();
-                    await addDoc(collectionRef, payload);
-                    showNotification("Sucesso", `${currentTab === 'alunos' ? 'Aluno' : 'Instrutor'} cadastrado com sucesso!`, "success");
+                    // Salvar Localmente (Modo Demo Offline)
+                    let localList = getLocalData(collectionName);
+                    if (isEditing && docId) {
+                        localList = localList.map(item => item.id === docId ? { ...item, ...payload } : item);
+                    } else {
+                        payload.id = 'local_' + Date.now();
+                        payload.createdAt = new Date().toISOString();
+                        localList.push(payload);
+                    }
+                    saveLocalData(collectionName, localList);
+                    showNotification("Modo Local", "Dados salvos com sucesso no navegador!", "success");
                 }
                 
                 resetForm();
             } catch (error) {
-                console.error("Erro ao salvar documento: ", error);
-                showNotification("Erro ao salvar", "Ocorreu um erro ao tentar salvar os dados no Firebase.", "error");
+                console.error("Erro ao salvar:", error);
+                showNotification("Erro ao salvar", "Ocorreu uma falha ao registrar as informações.", "error");
             }
         };
 
@@ -535,19 +667,24 @@
             }, 200);
         };
 
-        // Executar Exclusão após confirmação
+        // Executar Exclusão definitiva
         document.getElementById('modal-confirm-btn').addEventListener('click', async () => {
             if (!deleteTargetId) return;
 
-            const user = auth.currentUser;
-            if (!user) return;
-
             const collectionName = currentTab === 'alunos' ? 'alunos' : 'instrutores';
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, deleteTargetId);
 
             try {
-                await deleteDoc(docRef);
-                showNotification("Removido", "Cadastro removido com sucesso.", "success");
+                if (isFirebaseConnected) {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, deleteTargetId);
+                    await deleteDoc(docRef);
+                    showNotification("Excluído", "Removido do Firebase com sucesso.", "success");
+                } else {
+                    let localList = getLocalData(collectionName);
+                    localList = localList.filter(item => item.id !== deleteTargetId);
+                    saveLocalData(collectionName, localList);
+                    showNotification("Excluído", "Removido do armazenamento local.", "success");
+                }
+
                 if (isEditing && document.getElementById('doc-id').value === deleteTargetId) {
                     resetForm();
                 }
@@ -577,8 +714,7 @@
                 document.getElementById('instrutor-id').value = record.instrutorId || '';
             }
 
-            // Mudar UI para Modo Edição
-            const activeColor = currentTab === 'alunos' ? 'text-indigo-600' : 'text-emerald-600';
+            // Mudar visual do formulário para edição
             document.getElementById('form-title').innerHTML = `<i data-lucide="edit" class="text-amber-500 w-5 h-5"></i> Editar Cadastro`;
             document.getElementById('btn-text').textContent = "Atualizar Dados";
             document.getElementById('submit-btn').className = "w-full bg-amber-500 hover:bg-amber-600 text-white font-medium py-2.5 px-4 rounded-lg text-sm shadow-sm hover:shadow-md transition-all duration-150 flex items-center justify-center space-x-2";
@@ -588,7 +724,7 @@
             document.getElementById('cadastro-form').scrollIntoView({ behavior: 'smooth' });
         };
 
-        // Limpar formulário e voltar ao estado padrão
+        // Limpar e restaurar formulário
         window.resetForm = () => {
             isEditing = false;
             document.getElementById('cadastro-form').reset();
@@ -602,7 +738,6 @@
             document.getElementById('submit-btn').className = `w-full ${btnColor} text-white font-medium py-2.5 px-4 rounded-lg text-sm shadow-sm hover:shadow-md transition-all duration-150 flex items-center justify-center space-x-2`;
             document.getElementById('cancel-edit-btn').classList.add('hidden');
             
-            // Garantir que a lista de instrutores volte ao estado limpo
             if (isAluno) {
                 document.getElementById('instrutor-id').value = '';
             }
@@ -651,7 +786,7 @@
             initRealtimeDatabaseListener();
         };
 
-        // Filtro rápido em memória
+        // Filtro de buscas
         window.handleSearch = (queryStr) => {
             if (!queryStr) {
                 renderTable(cachedData);
@@ -679,7 +814,17 @@
             i.value = v;
         };
 
-        // Exibe notificações flutuantes (Toast)
+        // Modal de Ajuda
+        window.toggleFirebaseHelp = () => {
+            const modal = document.getElementById('firebase-help-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        };
+
+        // Toast de Notificações
         window.showNotification = (title, message, type = 'success') => {
             const toast = document.getElementById('toast');
             const iconBg = document.getElementById('toast-icon-bg');
@@ -712,7 +857,7 @@
             }, 4000);
         };
 
-        // Inicializar aplicação
+        // Inicializar aplicação ao carregar a página
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             initAuthentication();
