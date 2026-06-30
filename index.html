@@ -317,16 +317,16 @@ service cloud.firestore {
         //  CONFIGURAÇÃO DO SEU FIREBASE (PASSO 2)
         // ==========================================
         // Cole abaixo as credenciais que você copiar do console do Firebase:
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : {
-                apiKey: "", 
-                authDomain: "seu-projeto-id.firebaseapp.com",
-                projectId: "seu-projeto-id",
-                storageBucket: "seu-projeto-id.appspot.com",
-                messagingSenderId: "1234567890",
-                appId: "1:1234567890:web:123456"
-            };
+       const firebaseConfig = {
+  apiKey: "AIzaSyDqoWO1KLkelprKItEt0jOt26wiBMETV0s",
+  authDomain: "agendamento-de-alunos.firebaseapp.com",
+  databaseURL: "https://agendamento-de-alunos-default-rtdb.firebaseio.com",
+  projectId: "agendamento-de-alunos",
+  storageBucket: "agendamento-de-alunos.firebasestorage.app",
+  messagingSenderId: "240746361279",
+  appId: "1:240746361279:web:1ce121d1e23bb23cb7710a",
+  measurementId: "G-39CZBQ9VR7"
+};
 
         // Instanciadores de Serviços do Firebase
         let app, auth, db;
