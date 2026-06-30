@@ -3,880 +3,695 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Cadastro - Academia & Cursos</title>
+    <title>Portal do Aluno & Agendamento - Previa Treinamentos</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts - Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Custom scrollbar para a tabela */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        .bg-pattern {
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-pattern min-h-screen text-slate-800 flex flex-col">
 
-    <!-- Banner de Aviso de Configuração do Firebase (Aparece apenas quando não configurado) -->
-    <div id="firebase-warning-banner" class="bg-amber-500 text-slate-950 px-4 py-3 shadow-md relative hidden z-50">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-xs md:text-sm">
-            <div class="flex items-center space-x-2 font-medium">
-                <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0"></i>
-                <span><strong>Modo de Demonstração Local:</strong> O Firebase não está conectado. Os dados estão sendo salvos no seu navegador.</span>
-            </div>
-            <button onclick="toggleFirebaseHelp()" class="bg-slate-900 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-800 transition-colors flex items-center gap-1">
-                <i data-lucide="help-circle" class="w-3.5 h-3.5"></i> Como configurar o Firebase?
-            </button>
-        </div>
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="app" class="flex-1 flex flex-col">
+        <!-- O conteúdo será renderizado dinamicamente via JS -->
     </div>
 
-    <!-- Header / Navbar -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="bg-indigo-600 text-white p-2 rounded-lg">
-                    <i data-lucide="graduation-cap" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold text-slate-900 leading-tight">Painel de Cadastros</h1>
-                    <p class="text-xs text-slate-500">Gestão Integrada de Alunos e Instrutores</p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-3">
-                <span id="connection-status" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                    <span class="w-2 h-2 mr-1.5 bg-amber-500 rounded-full animate-ping"></span>
-                    Conectando ao Firebase...
-                </span>
-                <span id="user-badge" class="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                    <i data-lucide="user" class="w-3 h-3 mr-1"></i>
-                    <span id="user-id-display">Anon</span>
-                </span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        <!-- Tab Navigation -->
-        <div class="flex border-b border-slate-200 mb-8 bg-white p-1 rounded-xl shadow-sm max-w-md">
-            <button id="tab-btn-alunos" onclick="switchTab('alunos')" class="flex-1 py-2.5 px-4 text-center rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-sm">
-                <i data-lucide="users" class="w-4 h-4"></i>
-                <span>Alunos</span>
-            </button>
-            <button id="tab-btn-instrutores" onclick="switchTab('instrutores')" class="flex-1 py-2.5 px-4 text-center rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center space-x-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50">
-                <i data-lucide="award" class="w-4 h-4"></i>
-                <span>Instrutores</span>
-            </button>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <!-- Coluna do Formulário (1/3) -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sticky top-24">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 id="form-title" class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                            <i data-lucide="user-plus" class="text-indigo-600 w-5 h-5"></i>
-                            Novo Aluno
-                        </h2>
-                        <button id="cancel-edit-btn" onclick="resetForm()" class="hidden text-xs text-rose-600 hover:text-rose-800 font-medium flex items-center gap-1">
-                            <i data-lucide="x" class="w-3.5 h-3.5"></i> Cancelar Edição
-                        </button>
-                    </div>
-
-                    <form id="cadastro-form" onsubmit="handleSubmit(event)" class="space-y-4">
-                        <input type="hidden" id="doc-id">
-                        
-                        <!-- Nome -->
-                        <div>
-                            <label for="nome" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Nome Completo *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i data-lucide="user" class="text-slate-400 w-4 h-4"></i>
-                                </div>
-                                <input type="text" id="nome" required placeholder="Ex: Maria Oliveira" class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors">
-                            </div>
-                        </div>
-
-                        <!-- CPF -->
-                        <div>
-                            <label for="cpf" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">CPF *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i data-lucide="credit-card" class="text-slate-400 w-4 h-4"></i>
-                                </div>
-                                <input type="text" id="cpf" required placeholder="000.000.000-00" oninput="mascaraCPF(this)" maxlength="14" class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors">
-                            </div>
-                        </div>
-
-                        <!-- Email -->
-                        <div>
-                            <label for="email" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">E-mail *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i data-lucide="mail" class="text-slate-400 w-4 h-4"></i>
-                                </div>
-                                <input type="email" id="email" required placeholder="maria@email.com" class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors">
-                            </div>
-                        </div>
-
-                        <!-- Especialidade (Exclusivo para Instrutores) -->
-                        <div id="field-especialidade" class="hidden">
-                            <label for="especialidade" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Especialidade / Matéria *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i data-lucide="bookmark" class="text-slate-400 w-4 h-4"></i>
-                                </div>
-                                <input type="text" id="especialidade" placeholder="Ex: Pilates, Musculação, Yoga" class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors">
-                            </div>
-                        </div>
-
-                        <!-- Vincular Instrutor (Exclusivo para Alunos) -->
-                        <div id="field-instrutor">
-                            <label for="instrutor-id" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Vincular Instrutor</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i data-lucide="award" class="text-slate-400 w-4 h-4"></i>
-                                </div>
-                                <select id="instrutor-id" class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors bg-white appearance-none cursor-pointer">
-                                    <option value="">Nenhum (Sem instrutor)</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <i data-lucide="chevron-down" class="text-slate-400 w-4 h-4"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Observações -->
-                        <div>
-                            <label for="observacao" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Observações</label>
-                            <textarea id="observacao" rows="3" placeholder="Restrições médicas, horários preferidos, etc." class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors resize-none"></textarea>
-                        </div>
-
-                        <!-- Botão de Ação -->
-                        <button type="submit" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm shadow-sm hover:shadow-md transition-all duration-150 flex items-center justify-center space-x-2">
-                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                            <span id="btn-text">Cadastrar Aluno</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Coluna da Listagem (2/3) -->
-            <div class="lg:col-span-2 space-y-6">
-                <!-- Seção informativa / Filtro rápido -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <h2 id="list-title" class="text-lg font-bold text-slate-900">Alunos Cadastrados</h2>
-                            <p id="list-subtitle" class="text-xs text-slate-500">Listagem de alunos ativos no sistema</p>
-                        </div>
-                        <div class="relative w-full sm:w-64">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i data-lucide="search" class="text-slate-400 w-4 h-4"></i>
-                            </div>
-                            <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="Filtrar por nome ou CPF..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors">
-                        </div>
-                    </div>
-
-                    <!-- Tabela de Registros -->
-                    <div class="mt-6 overflow-x-auto custom-scrollbar border border-slate-100 rounded-xl">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50/75 border-b border-slate-200 text-slate-600">
-                                    <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider">Nome</th>
-                                    <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider">Identificação (CPF)</th>
-                                    <th id="th-extra" class="py-3 px-4 text-xs font-bold uppercase tracking-wider hidden">Especialidade</th>
-                                    <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider">Contato</th>
-                                    <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider max-w-xs">Observação</th>
-                                    <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider text-right">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="data-table-body" class="divide-y divide-slate-100 text-sm">
-                                <tr>
-                                    <td colspan="6" class="py-8 text-center text-slate-500">
-                                        <div class="flex flex-col items-center justify-center">
-                                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-2"></div>
-                                            <span>Carregando dados...</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <!-- Modal Informativo / Instruções de Configuração do Firebase -->
-    <div id="firebase-help-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 overflow-y-auto max-h-[90vh]">
-            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-                <div class="flex items-center space-x-2 text-indigo-600">
-                    <i data-lucide="help-circle" class="w-6 h-6"></i>
-                    <h3 class="font-bold text-lg text-slate-900">Configurando seu Firebase</h3>
-                </div>
-                <button onclick="toggleFirebaseHelp()" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
+    <!-- CONFIGURATION MODAL (FOR EASY SHEETS CONNECTIVITY) -->
+    <div id="config-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 max-w-lg w-full m-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="settings" class="w-5 h-5 text-indigo-600"></i> Conectar com Google Sheets
+                </h3>
+                <button onclick="toggleConfigModal()" class="text-slate-400 hover:text-slate-600">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="space-y-4 text-sm text-slate-600">
-                <p>Para sincronizar seus dados na nuvem através do Firebase pelo GitHub Pages, siga estes passos:</p>
-                <ol class="list-decimal pl-5 space-y-2">
-                    <li>Acesse o <a href="https://console.firebase.google.com/" target="_blank" class="text-indigo-600 underline font-semibold">Firebase Console</a> e crie um projeto gratuito.</li>
-                    <li>No painel do projeto, adicione um <strong>Aplicativo Web</strong> e copie as credenciais de configuração (o objeto <code class="bg-slate-100 px-1 py-0.5 rounded font-mono text-xs text-rose-600">firebaseConfig</code>).</li>
-                    <li>Substitua os dados no código deste arquivo na <strong>linha 390-405</strong> pelas suas chaves copiadas.</li>
-                    <li>No menu lateral esquerdo do Firebase, vá em <strong>Build > Authentication</strong>, selecione <strong>Sign-in method</strong> e ative a opção <strong>Anônimo</strong>.</li>
-                    <li>Vá em <strong>Build > Firestore Database</strong>, clique em criar banco de dados. Nas <strong>Regras (Rules)</strong>, permita leitura/gravação temporariamente para que seu app funcione sem restrições complexas:
-                        <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg text-xs mt-2 overflow-x-auto">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
-    }
-  }
-}</pre>
-                    </li>
-                </ol>
-                <p class="text-xs text-amber-600 font-medium bg-amber-50 p-3 rounded-lg border border-amber-100">
-                    Dica: Sempre que alterar o código, lembre-se de salvar, commitar e enviar o push (<code class="font-mono text-[10px] bg-amber-100/50 p-0.5 rounded">git push origin main</code>) para atualizar sua página no GitHub Pages!
-                </p>
-            </div>
-            <div class="flex justify-end mt-6">
-                <button onclick="toggleFirebaseHelp()" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">Entendi</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Confirmação customizado -->
-    <div id="confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200 transform scale-95 opacity-0 transition-all duration-200" id="confirm-modal-content">
-            <div class="flex items-center space-x-3 text-rose-600 mb-4">
-                <div class="bg-rose-50 p-2 rounded-lg">
-                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            <p class="text-sm text-slate-600 mb-2">
+                Por padrão, o sistema roda em <strong>Modo de Demonstração</strong>. Para conectar com sua nova planilha ativa, cole a URL do seu Web App do Google Apps Script abaixo:
+            </p>
+            <p class="text-xs text-slate-500 mb-4 bg-slate-50 p-2.5 rounded-lg border border-slate-150">
+                <span class="font-semibold block mb-0.5 text-slate-700">Link da sua planilha atual:</span>
+                <a href="https://docs.google.com/spreadsheets/d/1iXBE43gw0TLnG0NSBEmbL6lG-HvxlvlQNHOKsfq8p80/edit?usp=sharing" target="_blank" class="text-indigo-600 hover:text-indigo-800 underline font-medium inline-flex items-center gap-1">
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Abrir Planilha Google Sheets
+                </a>
+            </p>
+            <div class="space-y-3 mb-6">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">https://script.google.com/macros/s/AKfycbx6cDH2N-D5TeYaITp69pjv-jy7Ub6fvP-ADXBZMC_T6OOSDaTwY87qsU1LmyxnGGSRGA/exec</label>
+                    <input type="text" id="api-url-input" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="https://script.google.com/macros/s/.../exec">
                 </div>
-                <h3 class="font-bold text-base text-slate-900">Excluir Cadastro</h3>
+                <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-xs text-indigo-800 space-y-1">
+                    <p class="font-bold">Como obter essa URL?</p>
+                    <ol class="list-decimal pl-4 space-y-1">
+                        <li>Na sua nova planilha do Google, vá em <strong>Extensões > Apps Script</strong>.</li>
+                        <li>Cole o código do Apps Script fornecido.</li>
+                        <li>Clique em <strong>Implantar > Nova implantação</strong>.</li>
+                        <li>Selecione Tipo: <strong>App da Web</strong>, Quem tem acesso: <strong>Qualquer pessoa</strong>.</li>
+                        <li>Copie o link gerado ("URL") e cole no campo acima!</li>
+                    </ol>
+                </div>
             </div>
-            <p class="text-sm text-slate-500 mb-6">Tem certeza que deseja remover este cadastro? Esta ação não poderá ser desfeita e removerá o vínculo se houver.</p>
-            <div class="flex items-center justify-end space-x-3">
-                <button onclick="closeConfirmModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">Cancelar</button>
-                <button id="modal-confirm-btn" class="px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition-colors">Excluir</button>
+            <div class="flex gap-2 justify-end">
+                <button onclick="saveConfig(true)" class="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">Usar Demo</button>
+                <button onclick="saveConfig(false)" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg">Salvar Conexão</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast de Notificação customizado -->
-    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center p-4 space-x-3 bg-white border border-slate-200 rounded-xl shadow-lg max-w-sm">
-        <div id="toast-icon-bg" class="p-2 rounded-lg text-white">
-            <i id="toast-icon" class="w-5 h-5"></i>
-        </div>
-        <div>
-            <h4 id="toast-title" class="font-bold text-slate-950 text-sm">Sucesso</h4>
-            <p id="toast-message" class="text-xs text-slate-500 mt-0.5">Mensagem da notificação</p>
-        </div>
-    </div>
-
-    <!-- Firebase SDK Imports -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, addDoc, collection, query, onSnapshot, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Variáveis de Estado da Aplicação
-        let currentTab = 'alunos'; 
-        let cachedData = []; 
-        let cachedInstrutores = []; // Cache dedicado para vincular instrutores aos alunos
-        let unsubscribeRealtime = null; 
-        let unsubscribeInstrutores = null; 
-        let isEditing = false;
-        let deleteTargetId = null;
-        let isFirebaseConnected = false;
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-cadastro-app';
-        
-        // ==========================================
-        //  CONFIGURAÇÃO DO SEU FIREBASE (ATUALIZADO)
-        // ==========================================
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : {
-                apiKey: "AIzaSyDqoWO1KLkelprKItEt0jOt26wiBMETV0s",
-                authDomain: "agendamento-de-alunos.firebaseapp.com",
-                databaseURL: "https://agendamento-de-alunos-default-rtdb.firebaseio.com",
-                projectId: "agendamento-de-alunos",
-                storageBucket: "agendamento-de-alunos.firebasestorage.app",
-                messagingSenderId: "240746361279",
-                appId: "1:240746361279:web:1ce121d1e23bb23cb7710a",
-                measurementId: "G-39CZBQ9VR7"
-            };
-
-        // Instanciadores de Serviços do Firebase
-        let app, auth, db;
-
-        // Tentar inicializar o Firebase com segurança (sem travar se estiver offline ou sem chaves)
-        try {
-            if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey !== "" && firebaseConfig.projectId !== "seu-projeto-id") {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                isFirebaseConnected = true;
-            } else {
-                console.warn("Chaves do Firebase ausentes ou de exemplo. Rodando em Modo de Demonstração Local.");
-            }
-        } catch (error) {
-            console.error("Falha ao inicializar o Firebase SDK:", error);
-            isFirebaseConnected = false;
-        }
-
-        // Funções Auxiliares para Armazenamento Local (Fallback para evitar travar no GitHub)
-        const getLocalData = (collectionName) => {
-            const data = localStorage.getItem(`cadastro_${appId}_${collectionName}`);
-            return data ? JSON.parse(data) : [];
-        };
-
-        const saveLocalData = (collectionName, data) => {
-            localStorage.setItem(`cadastro_${appId}_${collectionName}`, JSON.stringify(data));
-            triggerLocalUpdate(collectionName);
-        };
-
-        const triggerLocalUpdate = (collectionName) => {
-            if (collectionName === 'instrutores') {
-                cachedInstrutores = getLocalData('instrutores');
-                updateInstrutoresDropdown();
-                if (currentTab === 'alunos') {
-                    renderTable(cachedData);
-                }
-            }
-            if (currentTab === collectionName) {
-                cachedData = getLocalData(collectionName);
-                renderTable(cachedData);
+    <!-- SCRIPT DE EXECUÇÃO -->
+    <script>
+        // --- ESTADO GLOBAL DA APLICAÇÃO ---
+        const state = {
+            isDemo: true,
+            apiUrl: '',
+            currentUser: null,
+            currentView: 'dashboard', // dashboard, agendar, perfil
+            // Dados Mockados baseados diretamente na sua nova planilha
+            demoData: {
+                alunos: [
+                    { nome: "Amauri Silva de Souza", cpf: "36468864801", senha: "3646", telefone: "11968636672", email: "teste@previatreinamentos.com.br", endereco: "endereço teste 1", instrutor: "Amauri Silva de souza" },
+                    { nome: "Aluno Teste 1", cpf: "1234578901", senha: "1234", telefone: "11968636672", email: "teste@previatreinamentos.com.br", endereco: "Rua Geraldo Au", instrutor: "Amauri Silva de souza" },
+                    { nome: "Amauri Silva de Souza (Gmail)", cpf: "98765432101", senha: "9876", telefone: "11968636672", email: "amauri.87souza@gmail.com", endereco: "Rua Geraldo Au", instrutor: "Amauri Silva de souza" },
+                    { nome: "Gleise", cpf: "37051096850", senha: "3705", telefone: "0", email: "previatreinamentos@gmail.com", endereco: "teste", instrutor: "Amauri Silva de souza" },
+                    { nome: "Luis", cpf: "915819429", senha: "9158", telefone: "915819429", email: "915819429@email.com", endereco: "915819429", instrutor: "Amauri Silva de souza" }
+                ],
+                // Histórico de aulas e notas sincronizadas
+                aulas: [
+                    { id: 1, cpf: "36468864801", titulo: "Aula Prática - Balizamento", data: "2026-06-23", inicio: "14:00", fim: "14:20", local: "Local 1", instrutor: "Amauri Silva de Souza", descricao: "Aula teste inicial", nota: "9.5", observacoes: "Excelente controle de embreagem e alinhamento dos retrovisores." },
+                    { id: 2, cpf: "36468864801", titulo: "Aula Prática - Percurso Urbano", data: "2026-06-23", inicio: "14:30", fim: "15:00", local: "Local 1", instrutor: "Amauri Silva de Souza", descricao: "Treino de marchas", nota: "8.0", observacoes: "Atenção necessária ao reduzir para segunda marcha nas conversões." },
+                    { id: 3, cpf: "37051096850", titulo: "Aula Prática - Rampa", data: "2026-06-29", inicio: "16:00", fim: "17:00", local: "Endereço 5", instrutor: "Amauri Silva de Souza", descricao: "rampa", nota: "10", observacoes: "Controle perfeito do freio de mão e ponto de fricção." },
+                    { id: 4, cpf: "915819429", titulo: "Aula Prática - Controle de Embreagem", data: "2026-06-30", inicio: "16:45", fim: "22:45", local: "ASJoiajso", instrutor: "Amauri Silva de Souza", descricao: "sguishiQAS", nota: "Pendente", observacoes: "Aguardando avaliação final do instrutor para lançamento." },
+                    { id: 5, cpf: "1234578901", titulo: "Aula Prática - Simulado Geral", data: "2022-07-02", inicio: "15:25", fim: "16:26", local: "Presencial", instrutor: "Amauri Silva de Souza", descricao: "Treino pré-exame", nota: "8.5", observacoes: "Bom desenvolvimento, manter calma na baliza." }
+                ],
+                // Aulas disponíveis retiradas da grade da sua nova planilha
+                disponiveis: [
+                    { id: 101, titulo: "Aula Prática de Direção - Categoria B", data: "2026-07-05", inicio: "09:00", fim: "10:00", local: "Circuito Prático 1", instrutor: "Amauri Silva de Souza", vagas: 1 },
+                    { id: 102, titulo: "Treinamento em Rodovias", data: "2026-07-06", inicio: "10:30", fim: "12:00", local: "Via Anhanguera Km 18", instrutor: "Claudio Almeida", vagas: 1 },
+                    { id: 103, titulo: "Simulado de Exame Prático", data: "2026-07-07", inicio: "14:00", fim: "15:00", local: "Local de Exame DETRAN", instrutor: "Amauri Silva de Souza", vagas: 1 },
+                    { id: 104, titulo: "Aula Prática de Estacionamento", data: "2026-07-08", inicio: "16:00", fim: "17:00", local: "Shopping Center Norte", instrutor: "Gleise Ramos", vagas: 1 },
+                    { id: 105, titulo: "Primeira Habilitação - Noções Básicas", data: "2026-07-09", inicio: "08:00", fim: "09:30", local: "Autoescola Sede", instrutor: "Amauri Silva de Souza", vagas: 1 }
+                ]
             }
         };
 
-        // Ativar modo LocalStorage quando houver erros ou timeout no Firebase
-        const fallbackToLocalMode = (reason) => {
-            if (isFirebaseConnected) {
-                console.warn("Alternando para o modo LocalStorage:", reason);
-                isFirebaseConnected = false;
-            }
+        // --- SISTEMA DE TOASTS ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `p-4 rounded-xl shadow-lg border text-sm font-medium flex items-center gap-3 transition-all transform translate-y-2 opacity-0 pointer-events-auto max-w-sm bg-white ${
+                type === 'success' ? 'border-emerald-100 text-emerald-800' : 'border-rose-100 text-rose-800'
+            }`;
             
-            // Exibir Banner informando que está no modo Local
-            document.getElementById('firebase-warning-banner').classList.remove('hidden');
+            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+            const iconColor = type === 'success' ? 'text-emerald-500' : 'text-rose-500';
+
+            toast.innerHTML = `
+                <i data-lucide="${icon}" class="w-5 h-5 flex-shrink-0 ${iconColor}"></i>
+                <div class="flex-1">${message}</div>
+                <button class="text-slate-400 hover:text-slate-600 ml-2" onclick="this.parentElement.remove()">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            `;
             
-            const statusBadge = document.getElementById('connection-status');
-            statusBadge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800";
-            statusBadge.innerHTML = `<span class="w-2 h-2 mr-1.5 bg-amber-500 rounded-full"></span>Demonstração (Offline)`;
-
-            // Sincronizar dados das listas do armazenamento local
-            cachedInstrutores = getLocalData('instrutores');
-            updateInstrutoresDropdown();
-            
-            cachedData = getLocalData(currentTab);
-            renderTable(cachedData);
-        };
-
-        // Timeout de Segurança: Se o Firebase demorar mais de 4 segundos para conectar/autenticar,
-        // força o modo local temporariamente para que o usuário consiga utilizar o app sem travar.
-        const connectionTimeout = setTimeout(() => {
-            if (isFirebaseConnected && (!auth || !auth.currentUser)) {
-                fallbackToLocalMode("Conexão demorou muito para responder (Timeout). Ativando modo local.");
-            }
-        }, 4000);
-
-        // Inicialização de Autenticação do Usuário
-        const initAuthentication = async () => {
-            if (!isFirebaseConnected) {
-                fallbackToLocalMode("Firebase não configurado");
-                return;
-            }
-
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Falha na autenticação do Firebase:", error);
-                fallbackToLocalMode("Erro de Login Anônimo. Certifique-se de ativar o Login Anônimo no console do Firebase.");
-            }
-        };
-
-        // Escutar estado da Autenticação (apenas se o Firebase estiver ativo)
-        if (isFirebaseConnected) {
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    // Limpar o timeout de segurança porque a conexão deu certo!
-                    clearTimeout(connectionTimeout);
-
-                    document.getElementById('user-id-display').textContent = `ID: ${user.uid.substring(0, 6)}...`;
-                    document.getElementById('user-badge').classList.remove('hidden');
-                    
-                    const statusBadge = document.getElementById('connection-status');
-                    statusBadge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800";
-                    statusBadge.innerHTML = `<span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full"></span>Conectado`;
-
-                    // Iniciar escutas globais nos dados do Firestore
-                    startInstrutoresGlobalListener();
-                    initRealtimeDatabaseListener();
-                } else {
-                    document.getElementById('user-badge').classList.add('hidden');
-                }
-            });
-        }
-
-        // Caminhos de Segurança das Coleções
-        const getCollectionRef = (collectionName) => {
-            return collection(db, 'artifacts', appId, 'public', 'data', collectionName);
-        };
-
-        // Escuta global para carregar e atualizar a lista de instrutores
-        const startInstrutoresGlobalListener = () => {
-            if (isFirebaseConnected) {
-                const queryRef = getCollectionRef('instrutores');
-                unsubscribeInstrutores = onSnapshot(queryRef, (snapshot) => {
-                    cachedInstrutores = [];
-                    snapshot.forEach((doc) => {
-                        cachedInstrutores.push({ id: doc.id, ...doc.data() });
-                    });
-                    updateInstrutoresDropdown();
-                    if (currentTab === 'alunos') {
-                        renderTable(cachedData);
-                    }
-                }, (error) => {
-                    console.error("Erro na escuta global de instrutores:", error);
-                    fallbackToLocalMode("Erro de acesso. Verifique suas regras do Firestore.");
-                });
-            } else {
-                cachedInstrutores = getLocalData('instrutores');
-                updateInstrutoresDropdown();
-            }
-        };
-
-        // dAtualizar opções do dropdown de seleção de instrutores
-        window.updateInstrutoresDropdown = () => {
-            const select = document.getElementById('instrutor-id');
-            if (!select) return;
-
-            const selectedValue = select.value;
-            select.innerHTML = '<option value="">Nenhum (Sem instrutor)</option>';
-
-            cachedInstrutores.forEach((inst) => {
-                const option = document.createElement('option');
-                option.value = inst.id;
-                option.textContent = inst.especialidade ? `${inst.nome} (${inst.especialidade})` : inst.nome;
-                select.appendChild(option);
-            });
-
-            if (selectedValue && cachedInstrutores.some(i => i.id === selectedValue)) {
-                select.value = selectedValue;
-            }
-        };
-
-        // Listener em tempo real do Firestore ou LocalStorage para os dados
-        window.initRealtimeDatabaseListener = () => {
-            if (unsubscribeRealtime) {
-                unsubscribeRealtime();
-            }
-
-            const collectionName = currentTab === 'alunos' ? 'alunos' : 'instrutores';
-
-            if (isFirebaseConnected) {
-                const queryRef = getCollectionRef(collectionName);
-                unsubscribeRealtime = onSnapshot(queryRef, (snapshot) => {
-                    const list = [];
-                    snapshot.forEach((doc) => {
-                        list.push({ id: doc.id, ...doc.data() });
-                    });
-                    
-                    cachedData = list;
-                    renderTable(cachedData);
-                }, (error) => {
-                    console.error("Erro ao obter dados em tempo real: ", error);
-                    fallbackToLocalMode("Erro de permissões ou conexão.");
-                });
-            } else {
-                cachedData = getLocalData(collectionName);
-                renderTable(cachedData);
-            }
-        };
-
-        // Resolver nome do instrutor a partir do ID em memória
-        const getInstrutorName = (id) => {
-            const inst = cachedInstrutores.find(i => i.id === id);
-            return inst ? inst.nome : null;
-        };
-
-        // Renderizar Tabela
-        window.renderTable = (data) => {
-            const tbody = document.getElementById('data-table-body');
-            if (!data || data.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="py-8 text-center text-slate-500">
-                            Nenhum registro encontrado nesta lista.
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = data.map(item => {
-                const extraValue = currentTab === 'instrutores' ? item.especialidade || '-' : '';
-                const extraTd = currentTab === 'instrutores' ? `<td class="py-3 px-4 font-medium text-slate-700">${extraValue}</td>` : '';
-                
-                let nomeComVinculo = item.nome || '';
-                if (currentTab === 'alunos') {
-                    const instNome = item.instrutorId ? getInstrutorName(item.instrutorId) : null;
-                    const tagClass = instNome ? "bg-indigo-50 text-indigo-700 border-indigo-100" : "bg-slate-50 text-slate-500 border-slate-100";
-                    const tagIcon = instNome ? "award" : "user-minus";
-                    
-                    nomeComVinculo = `
-                        <div>
-                            <div class="font-semibold text-slate-900">${item.nome || ''}</div>
-                            <div class="inline-flex items-center gap-1 mt-1 text-[10px] px-1.5 py-0.5 rounded-md border ${tagClass}">
-                                <i data-lucide="${tagIcon}" class="w-3 h-3"></i>
-                                <span>${instNome ? `Instrutor: ${instNome}` : 'Sem instrutor vinculado'}</span>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    nomeComVinculo = `<div class="font-semibold text-slate-900">${item.nome || ''}</div>`;
-                }
-
-                return `
-                    <tr class="hover:bg-slate-50/50 transition-colors">
-                        <td class="py-3 px-4">
-                            ${nomeComVinculo}
-                        </td>
-                        <td class="py-3 px-4 text-slate-600 font-mono text-xs">${item.cpf || ''}</td>
-                        ${extraTd}
-                        <td class="py-3 px-4 text-slate-600">${item.email || ''}</td>
-                        <td class="py-3 px-4 text-slate-500 max-w-xs truncate" title="${item.observacao || ''}">
-                            ${item.observacao || '-'}
-                        </td>
-                        <td class="py-3 px-4 text-right">
-                            <div class="flex items-center justify-end space-x-2">
-                                <button onclick="startEdit('${item.id}')" class="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Editar">
-                                    <i data-lucide="edit-3" class="w-4.5 h-4.5"></i>
-                                </button>
-                                <button onclick="openConfirmModal('${item.id}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Excluir">
-                                    <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-
+            container.appendChild(toast);
             lucide.createIcons();
-        };
-
-        // Salvar / Editar Registro
-        window.handleSubmit = async (event) => {
-            event.preventDefault();
             
-            const docId = document.getElementById('doc-id').value;
-            const nome = document.getElementById('nome').value.trim();
-            const cpf = document.getElementById('cpf').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const observacao = document.getElementById('observacao').value.trim();
-            
-            const payload = {
-                nome,
-                cpf,
-                email,
-                observacao,
-                updatedAt: new Date().toISOString()
-            };
+            // Animate In
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
 
-            if (currentTab === 'alunos') {
-                const instrutorId = document.getElementById('instrutor-id').value;
-                payload.instrutorId = instrutorId || null;
-            } else if (currentTab === 'instrutores') {
-                const especialidade = document.getElementById('especialidade').value.trim();
-                if (!especialidade) {
-                    showNotification("Atenção", "O campo especialidade é obrigatório.", "warning");
+            // Auto Remove
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // --- INICIALIZAÇÃO E PERSISTÊNCIA ---
+        window.addEventListener('load', () => {
+            const savedUrl = localStorage.getItem('previa_sheets_api_url');
+            if (savedUrl) {
+                state.apiUrl = savedUrl;
+                state.isDemo = false;
+            }
+            renderApp();
+            
+            // Verifica se há sessão ativa
+            const savedSession = sessionStorage.getItem('previa_aluno');
+            if (savedSession) {
+                state.currentUser = JSON.parse(savedSession);
+                state.currentView = 'dashboard';
+                renderApp();
+            }
+        });
+
+        function toggleConfigModal() {
+            const modal = document.getElementById('config-modal');
+            const input = document.getElementById('api-url-input');
+            input.value = state.apiUrl;
+            modal.classList.toggle('hidden');
+        }
+
+        function saveConfig(useDemo) {
+            if (useDemo) {
+                state.isDemo = true;
+                state.apiUrl = '';
+                localStorage.removeItem('previa_sheets_api_url');
+                showToast("Modo de demonstração ativado.");
+            } else {
+                const url = document.getElementById('api-url-input').value.trim();
+                if (!url.startsWith('https://')) {
+                    showToast("Por favor, insira uma URL válida de Web App do Google Script.", "error");
                     return;
                 }
-                payload.especialidade = especialidade;
+                state.apiUrl = url;
+                state.isDemo = false;
+                localStorage.setItem('previa_sheets_api_url', url);
+                showToast("Conexão com a nova planilha configurada com sucesso!");
             }
+            toggleConfigModal();
+            renderApp();
+        }
 
-            const collectionName = currentTab === 'alunos' ? 'alunos' : 'instrutores';
+        // --- MECANISMO DE LOGIN ---
+        async function handleLogin(event) {
+            event.preventDefault();
+            const cpf = document.getElementById('login-cpf').value.replace(/\D/g, '');
+            const senha = document.getElementById('login-senha').value.trim();
 
-            try {
-                if (isFirebaseConnected) {
-                    if (isEditing && docId) {
-                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, docId);
-                        await updateDoc(docRef, payload);
-                        showNotification("Sucesso", "Atualizado no Firebase com sucesso!", "success");
-                    } else {
-                        payload.createdAt = new Date().toISOString();
-                        const collectionRef = getCollectionRef(collectionName);
-                        await addDoc(collectionRef, payload);
-                        showNotification("Sucesso", "Cadastrado no Firebase com sucesso!", "success");
-                    }
-                } else {
-                    // Salvar Localmente (Modo Demo Offline)
-                    let localList = getLocalData(collectionName);
-                    if (isEditing && docId) {
-                        localList = localList.map(item => item.id === docId ? { ...item, ...payload } : item);
-                    } else {
-                        payload.id = 'local_' + Date.now();
-                        payload.createdAt = new Date().toISOString();
-                        localList.push(payload);
-                    }
-                    saveLocalData(collectionName, localList);
-                    showNotification("Modo Local", "Dados salvos com sucesso no navegador!", "success");
-                }
-                
-                resetForm();
-            } catch (error) {
-                console.error("Erro ao salvar:", error);
-                showNotification("Erro ao salvar", "Ocorreu uma falha ao registrar as informações.", "error");
-            }
-        };
-
-        // Abrir Modal de Exclusão
-        window.openConfirmModal = (id) => {
-            deleteTargetId = id;
-            const modal = document.getElementById('confirm-modal');
-            const content = document.getElementById('confirm-modal-content');
-            
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        };
-
-        // Fechar Modal de Exclusão
-        window.closeConfirmModal = () => {
-            const modal = document.getElementById('confirm-modal');
-            const content = document.getElementById('confirm-modal-content');
-            
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                deleteTargetId = null;
-            }, 200);
-        };
-
-        // Executar Exclusão definitiva
-        document.getElementById('modal-confirm-btn').addEventListener('click', async () => {
-            if (!deleteTargetId) return;
-
-            const collectionName = currentTab === 'alunos' ? 'alunos' : 'instrutores';
-
-            try {
-                if (isFirebaseConnected) {
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, deleteTargetId);
-                    await deleteDoc(docRef);
-                    showNotification("Excluído", "Removido do Firebase com sucesso.", "success");
-                } else {
-                    let localList = getLocalData(collectionName);
-                    localList = localList.filter(item => item.id !== deleteTargetId);
-                    saveLocalData(collectionName, localList);
-                    showNotification("Excluído", "Removido do armazenamento local.", "success");
-                }
-
-                if (isEditing && document.getElementById('doc-id').value === deleteTargetId) {
-                    resetForm();
-                }
-                closeConfirmModal();
-            } catch (error) {
-                console.error("Erro ao deletar documento: ", error);
-                showNotification("Erro ao excluir", "Não foi possível remover o registro.", "error");
-                closeConfirmModal();
-            }
-        });
-
-        // Preencher formulário para editar
-        window.startEdit = (id) => {
-            const record = cachedData.find(item => item.id === id);
-            if (!record) return;
-
-            isEditing = true;
-            document.getElementById('doc-id').value = record.id;
-            document.getElementById('nome').value = record.nome;
-            document.getElementById('cpf').value = record.cpf;
-            document.getElementById('email').value = record.email;
-            document.getElementById('observacao').value = record.observacao || '';
-
-            if (currentTab === 'instrutores') {
-                document.getElementById('especialidade').value = record.especialidade || '';
-            } else if (currentTab === 'alunos') {
-                document.getElementById('instrutor-id').value = record.instrutorId || '';
-            }
-
-            // Mudar visual do formulário para edição
-            document.getElementById('form-title').innerHTML = `<i data-lucide="edit" class="text-amber-500 w-5 h-5"></i> Editar Cadastro`;
-            document.getElementById('btn-text').textContent = "Atualizar Dados";
-            document.getElementById('submit-btn').className = "w-full bg-amber-500 hover:bg-amber-600 text-white font-medium py-2.5 px-4 rounded-lg text-sm shadow-sm hover:shadow-md transition-all duration-150 flex items-center justify-center space-x-2";
-            document.getElementById('cancel-edit-btn').classList.remove('hidden');
-            
-            lucide.createIcons();
-            document.getElementById('cadastro-form').scrollIntoView({ behavior: 'smooth' });
-        };
-
-        // Limpar e restaurar formulário
-        window.resetForm = () => {
-            isEditing = false;
-            document.getElementById('cadastro-form').reset();
-            document.getElementById('doc-id').value = '';
-            
-            const isAluno = currentTab === 'alunos';
-            document.getElementById('form-title').innerHTML = `<i data-lucide="user-plus" class="${isAluno ? 'text-indigo-600' : 'text-emerald-600'} w-5 h-5"></i> Novo ${isAluno ? 'Aluno' : 'Instrutor'}`;
-            document.getElementById('btn-text').textContent = `Cadastrar ${isAluno ? 'Aluno' : 'Instrutor'}`;
-            
-            const btnColor = isAluno ? "bg-indigo-600 hover:bg-indigo-700" : "bg-emerald-600 hover:bg-emerald-700";
-            document.getElementById('submit-btn').className = `w-full ${btnColor} text-white font-medium py-2.5 px-4 rounded-lg text-sm shadow-sm hover:shadow-md transition-all duration-150 flex items-center justify-center space-x-2`;
-            document.getElementById('cancel-edit-btn').classList.add('hidden');
-            
-            if (isAluno) {
-                document.getElementById('instrutor-id').value = '';
-            }
-            
-            lucide.createIcons();
-        };
-
-        // Alternar abas (Alunos x Instrutores)
-        window.switchTab = (tab) => {
-            if (currentTab === tab) return;
-            currentTab = tab;
-
-            const btnAlunos = document.getElementById('tab-btn-alunos');
-            const btnInstrutores = document.getElementById('tab-btn-instrutores');
-            const fieldEspecialidade = document.getElementById('field-especialidade');
-            const fieldInstrutor = document.getElementById('field-instrutor');
-            const thExtra = document.getElementById('th-extra');
-
-            if (tab === 'alunos') {
-                btnAlunos.className = "flex-1 py-2.5 px-4 text-center rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-sm";
-                btnInstrutores.className = "flex-1 py-2.5 px-4 text-center rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center space-x-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50";
-                
-                fieldEspecialidade.classList.add('hidden');
-                document.getElementById('especialidade').removeAttribute('required');
-                
-                fieldInstrutor.classList.remove('hidden');
-                thExtra.classList.add('hidden');
-                
-                document.getElementById('list-title').textContent = "Alunos Cadastrados";
-                document.getElementById('list-subtitle').textContent = "Listagem de alunos ativos no sistema";
-            } else {
-                btnInstrutores.className = "flex-1 py-2.5 px-4 text-center rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center space-x-2 bg-emerald-600 text-white shadow-sm";
-                btnAlunos.className = "flex-1 py-2.5 px-4 text-center rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center space-x-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50";
-                
-                fieldEspecialidade.classList.remove('hidden');
-                document.getElementById('especialidade').setAttribute('required', 'required');
-                
-                fieldInstrutor.classList.add('hidden');
-                thExtra.classList.remove('hidden');
-                
-                document.getElementById('list-title').textContent = "Instrutores Cadastrados";
-                document.getElementById('list-subtitle').textContent = "Listagem de professores e instrutores";
-            }
-
-            resetForm();
-            initRealtimeDatabaseListener();
-        };
-
-        // Filtro de buscas
-        window.handleSearch = (queryStr) => {
-            if (!queryStr) {
-                renderTable(cachedData);
+            if (!cpf || !senha) {
+                showToast("Por favor, preencha todos os campos.", "error");
                 return;
             }
-            const normalizedQuery = queryStr.toLowerCase();
-            const filtered = cachedData.filter(item => {
-                const instNome = currentTab === 'alunos' && item.instrutorId ? (getInstrutorName(item.instrutorId) || '') : '';
-                return (item.nome && item.nome.toLowerCase().includes(normalizedQuery)) ||
-                       (item.cpf && item.cpf.includes(normalizedQuery)) ||
-                       (item.email && item.email.toLowerCase().includes(normalizedQuery)) ||
-                       (item.especialidade && item.especialidade.toLowerCase().includes(normalizedQuery)) ||
-                       (instNome.toLowerCase().includes(normalizedQuery));
-            });
-            renderTable(filtered);
-        };
 
-        // Máscara dinâmica de CPF
-        window.mascaraCPF = (i) => {
-            let v = i.value;
-            v = v.replace(/\D/g, ""); 
-            v = v.replace(/(\d{3})(\d)/, "$1.$2"); 
-            v = v.replace(/(\d{3})(\d)/, "$1.$2"); 
-            v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2"); 
-            i.value = v;
-        };
+            setLoading(true);
 
-        // Modal de Ajuda
-        window.toggleFirebaseHelp = () => {
-            const modal = document.getElementById('firebase-help-modal');
-            if (modal.classList.contains('hidden')) {
-                modal.classList.remove('hidden');
+            if (state.isDemo) {
+                // Autenticação local para testes rápidos
+                const aluno = state.demoData.alunos.find(a => {
+                    const cleanCpf = a.cpf.replace(/\D/g, '');
+                    return cleanCpf === cpf && a.senha === senha;
+                });
+
+                if (aluno) {
+                    state.currentUser = aluno;
+                    sessionStorage.setItem('previa_aluno', JSON.stringify(aluno));
+                    state.currentView = 'dashboard';
+                    showToast(`Bem-vindo(a), ${aluno.nome}!`);
+                    renderApp();
+                } else {
+                    showToast("CPF ou Senha incorretos. (Dica: CPF 37051096850 / Senha: 3705)", "error");
+                }
+                setLoading(false);
             } else {
-                modal.classList.add('hidden');
+                // Chamada ativa ao Google Apps Script
+                try {
+                    const response = await fetch(`${state.apiUrl}?action=login&cpf=${cpf}&senha=${senha}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        state.currentUser = data.aluno;
+                        sessionStorage.setItem('previa_aluno', JSON.stringify(data.aluno));
+                        state.currentView = 'dashboard';
+                        showToast(`Bem-vindo(a), ${data.aluno.nome}!`);
+                        renderApp();
+                    } else {
+                        showToast(data.message || "Falha na autenticação.", "error");
+                    }
+                } catch (error) {
+                    showToast("Erro ao conectar ao Apps Script. Verifique se o script foi implantado corretamente.", "error");
+                    console.error(error);
+                } finally {
+                    setLoading(false);
+                }
             }
-        };
+        }
 
-        // Toast de Notificações
-        window.showNotification = (title, message, type = 'success') => {
-            const toast = document.getElementById('toast');
-            const iconBg = document.getElementById('toast-icon-bg');
-            const icon = document.getElementById('toast-icon');
-            const tTitle = document.getElementById('toast-title');
-            const tMessage = document.getElementById('toast-message');
+        function handleLogout() {
+            state.currentUser = null;
+            sessionStorage.removeItem('previa_aluno');
+            state.currentView = 'dashboard';
+            showToast("Sessão encerrada.");
+            renderApp();
+        }
 
-            tTitle.textContent = title;
-            tMessage.textContent = message;
+        function setLoading(isLoading) {
+            const btn = document.getElementById('login-btn');
+            if (btn) {
+                btn.disabled = isLoading;
+                btn.innerHTML = isLoading ? 
+                    `<svg class="animate-spin h-5 w-5 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>` : 
+                    "Entrar no Portal";
+            }
+        }
 
-            if (type === 'success') {
-                iconBg.className = "p-2 rounded-lg bg-emerald-500 text-white";
-                icon.setAttribute('data-lucide', 'check-circle');
-            } else if (type === 'error') {
-                iconBg.className = "p-2 rounded-lg bg-rose-500 text-white";
-                icon.setAttribute('data-lucide', 'alert-circle');
+        // --- AGENDAMENTO E EXPORTAÇÃO (.ICS) ---
+        async function agendarAula(aulaId) {
+            const confirmacao = confirm("Deseja confirmar o agendamento desta aula?");
+            if (!confirmacao) return;
+
+            const aulaMock = state.demoData.disponiveis.find(a => a.id === aulaId);
+            if (!aulaMock) return;
+
+            if (state.isDemo) {
+                const novaAula = {
+                    id: Date.now(),
+                    cpf: state.currentUser.cpf,
+                    titulo: aulaMock.titulo,
+                    data: aulaMock.data,
+                    inicio: aulaMock.inicio,
+                    fim: aulaMock.fim,
+                    local: aulaMock.local,
+                    instrutor: aulaMock.instrutor,
+                    descricao: "Agendado via Portal do Aluno",
+                    nota: "Pendente",
+                    observacoes: "Aguardando a realização da aula prática."
+                };
+
+                state.demoData.aulas.push(novaAula);
+                state.demoData.disponiveis = state.demoData.disponiveis.filter(a => a.id !== aulaId);
+                
+                showToast("Agendamento efetuado com sucesso!");
+                baixarConviteICS(novaAula);
+                state.currentView = 'dashboard';
+                renderApp();
             } else {
-                iconBg.className = "p-2 rounded-lg bg-amber-500 text-white";
-                icon.setAttribute('data-lucide', 'alert-triangle');
+                try {
+                    const response = await fetch(state.apiUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'agendar',
+                            cpf: state.currentUser.cpf,
+                            aulaId: aulaId
+                        })
+                    });
+                    
+                    showToast("Agendamento processado! Verifique seu calendário.");
+                    baixarConviteICS(aulaMock);
+                    state.currentView = 'dashboard';
+                    renderApp();
+                } catch (error) {
+                    showToast("Erro ao processar agendamento. Tente novamente.", "error");
+                }
+            }
+        }
+
+        function baixarConviteICS(aula) {
+            const dataLimpa = aula.data.replace(/-/g, '');
+            const horaInicio = aula.inicio.replace(/:/g, '') + '00';
+            const horaFim = aula.fim.replace(/:/g, '') + '00';
+
+            const icsContent = [
+                "BEGIN:VCALENDAR",
+                "VERSION:2.0",
+                "PRODID:-//Previa Treinamentos//Agendamento Aluno//PT",
+                "BEGIN:VEVENT",
+                `UID:${aula.id}@previatreinamentos.com.br`,
+                `DTSTAMP:${dataLimpa}T${horaInicio}`,
+                `DTSTART:${dataLimpa}T${horaInicio}`,
+                `DTEND:${dataLimpa}T${horaFim}`,
+                `SUMMARY:${aula.titulo}`,
+                `DESCRIPTION:Olá ${state.currentUser.nome}, este é o convite da sua aula prática de direção. Instrutor: ${aula.instrutor}.`,
+                `LOCATION:${aula.local}`,
+                "END:VEVENT",
+                "END:VCALENDAR"
+            ].join("\r\n");
+
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.setAttribute('download', `agendamento-aula-${aula.data}.ics`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast("Convite gerado e salvo no seu calendário!");
+        }
+
+        // --- RENDERIZADORES DE TELA (SPA) ---
+        function renderApp() {
+            const app = document.getElementById('app');
+            
+            let headerHTML = `
+                <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-indigo-600 text-white p-2 rounded-xl shadow-md shadow-indigo-200">
+                                <i data-lucide="navigation" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h1 class="font-bold text-slate-900 leading-tight">Previa Treinamentos</h1>
+                                <p class="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Sistema de Agendamento</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="toggleConfigModal()" class="p-2 text-slate-500 hover:text-indigo-600 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1.5 text-xs font-semibold">
+                                <i data-lucide="database" class="w-4 h-4"></i>
+                                ${state.isDemo ? '<span class="hidden sm:inline text-rose-500 font-bold bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">Modo Demo</span>' : '<span class="hidden sm:inline text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">Planilha Conectada</span>'}
+                            </button>
+                            ${state.currentUser ? `
+                                <button onclick="handleLogout()" class="p-2 text-slate-500 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors flex items-center gap-1 text-xs font-bold">
+                                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                                    <span class="hidden sm:inline">Sair</span>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </header>
+            `;
+
+            if (!state.currentUser) {
+                app.innerHTML = headerHTML + renderLoginScreen();
+            } else {
+                app.innerHTML = headerHTML + `
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 flex flex-col md:flex-row gap-8">
+                        <!-- Navegação Lateral -->
+                        <aside class="md:w-64 flex-shrink-0 flex flex-row md:flex-col gap-2 border-b md:border-b-0 md:border-r border-slate-200 pb-4 md:pb-0 md:pr-6 overflow-x-auto">
+                            <button onclick="changeView('dashboard')" class="flex-1 md:flex-none flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${state.currentView === 'dashboard' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 font-semibold' : 'text-slate-600 hover:bg-white hover:text-indigo-600' }">
+                                <i data-lucide="calendar" class="w-5 h-5"></i>
+                                Minhas Aulas
+                            </button>
+                            <button onclick="changeView('agendar')" class="flex-1 md:flex-none flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${state.currentView === 'agendar' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 font-semibold' : 'text-slate-600 hover:bg-white hover:text-indigo-600' }">
+                                <i data-lucide="calendar-plus" class="w-5 h-5"></i>
+                                Marcar Aula
+                            </button>
+                            <button onclick="changeView('perfil')" class="flex-1 md:flex-none flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${state.currentView === 'perfil' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 font-semibold' : 'text-slate-600 hover:bg-white hover:text-indigo-600' }">
+                                <i data-lucide="user" class="w-5 h-5"></i>
+                                Meu Perfil
+                            </button>
+                        </aside>
+
+                        <!-- Área de Conteúdo -->
+                        <main class="flex-1">
+                            ${state.currentView === 'dashboard' ? renderDashboard() : ''}
+                            ${state.currentView === 'agendar' ? renderAgendamento() : ''}
+                            ${state.currentView === 'perfil' ? renderPerfil() : ''}
+                        </main>
+                    </div>
+                `;
             }
 
             lucide.createIcons();
+        }
 
-            toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
-            toast.classList.add('translate-y-0', 'opacity-100');
+        function changeView(view) {
+            state.currentView = view;
+            renderApp();
+        }
 
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
-            }, 4000);
-        };
+        // --- RENDERIZADOR: TELA DE LOGIN ---
+        function renderLoginScreen() {
+            return `
+                <div class="flex-1 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-3xl shadow-xl border border-slate-200/60 p-8 max-w-md w-full">
+                        <div class="text-center mb-8">
+                            <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-100/50">
+                                <i data-lucide="shield-check" class="w-8 h-8"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-slate-950">Acesse o Portal</h2>
+                            <p class="text-slate-500 text-sm mt-1">Insira seus dados cadastrados na Autoescola</p>
+                        </div>
 
-        // Inicializar aplicação ao carregar a página
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            initAuthentication();
-        });
+                        <form onsubmit="handleLogin(event)" class="space-y-5">
+                            <div>
+                                <label for="login-cpf" class="block text-xs font-semibold uppercase text-slate-500 mb-1.5">CPF do Aluno</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                        <i data-lucide="fingerprint" class="w-5 h-5"></i>
+                                    </span>
+                                    <input type="text" id="login-cpf" required class="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-400" placeholder="Apenas números">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="login-senha" class="block text-xs font-semibold uppercase text-slate-500 mb-1.5">Senha de Acesso</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                        <i data-lucide="lock" class="w-5 h-5"></i>
+                                    </span>
+                                    <input type="password" id="login-senha" required class="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-400" placeholder="4 primeiros dígitos do CPF">
+                                </div>
+                            </div>
+
+                            <button type="submit" id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-2 text-sm mt-2">
+                                Entrar no Portal
+                            </button>
+                        </form>
+
+                        <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col items-center gap-3">
+                            <button onclick="toggleConfigModal()" class="text-xs font-semibold text-slate-500 hover:text-indigo-600 flex items-center gap-1.5">
+                                <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                                Configurações de Conectividade da Planilha
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- RENDERIZADOR: MEUS AGENDAMENTOS E NOTAS ---
+        function renderDashboard() {
+            const minhasAulas = state.demoData.aulas.filter(a => a.cpf.replace(/\D/g, '') === state.currentUser.cpf.replace(/\D/g, ''));
+            const proximasAulas = minhasAulas.filter(a => a.nota === 'Pendente');
+            const aulasFinalizadas = minhasAulas.filter(a => a.nota !== 'Pendente');
+
+            return `
+                <div class="space-y-8">
+                    <!-- Boas-vindas -->
+                    <div class="bg-gradient-to-r from-indigo-900 to-slate-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl">
+                        <div class="relative z-10 max-w-xl">
+                            <span class="bg-indigo-500/30 text-indigo-200 border border-indigo-500/20 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Área do Aluno</span>
+                            <h2 class="text-2xl md:text-3xl font-bold mt-4 mb-2">Olá, ${state.currentUser.nome}!</h2>
+                            <p class="text-indigo-200 text-sm leading-relaxed">Gerencie suas aulas e acompanhe seu rendimento diretamente.</p>
+                        </div>
+                    </div>
+
+                    <!-- SEÇÃO EM DESTAQUE: NOTAS E COMENSÁRIOS -->
+                    <div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="p-1 bg-amber-500/10 text-amber-600 rounded-lg">
+                                <i data-lucide="award" class="w-5 h-5"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900">Suas Notas e Feedbacks Práticos</h3>
+                        </div>
+                        
+                        ${aulasFinalizadas.length === 0 ? `
+                            <div class="bg-slate-50 border border-slate-200/60 rounded-2xl p-6 text-center text-slate-500 text-sm">
+                                <i data-lucide="info" class="w-8 h-8 mx-auto mb-2 text-slate-400"></i>
+                                Suas notas e as avaliações dos instrutores aparecerão aqui assim que as aulas forem concluídas.
+                            </div>
+                        ` : `
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${aulasFinalizadas.map(aula => `
+                                    <div class="bg-white border-2 border-indigo-100 hover:border-indigo-200 rounded-2xl p-5 shadow-sm transition-all relative overflow-hidden">
+                                        <div class="absolute top-0 right-0 bg-indigo-50 border-bl border-indigo-100 px-4 py-2 font-bold text-indigo-700 text-lg flex items-center gap-1">
+                                            <span class="text-xs text-indigo-400 font-normal">Nota:</span> ${aula.nota}
+                                        </div>
+                                        <div class="pr-20">
+                                            <span class="text-xs font-bold text-indigo-600 uppercase tracking-wide bg-indigo-50 px-2.5 py-1 rounded-full inline-block mb-3">Concluída & Avaliada</span>
+                                            <h4 class="font-bold text-slate-900 text-base">${aula.titulo}</h4>
+                                            <p class="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                                                <i data-lucide="calendar" class="w-3 h-3"></i> ${formatDate(aula.data)} às ${aula.inicio}
+                                            </p>
+                                        </div>
+                                        <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                                            <div class="flex items-center gap-2 text-xs text-slate-600">
+                                                <i data-lucide="user-check" class="w-3.5 h-3.5 text-slate-400"></i>
+                                                <span>Instrutor: <strong>${aula.instrutor}</strong></span>
+                                            </div>
+                                            <div class="bg-slate-50 rounded-xl p-3 text-xs text-slate-600 italic border border-slate-100 mt-2">
+                                                <span class="font-bold text-slate-700 not-italic block mb-1 flex items-center gap-1">
+                                                    <i data-lucide="message-square" class="w-3 h-3 text-indigo-500"></i> Comentário do Instrutor:
+                                                </span>
+                                                "${aula.observacoes}"
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+
+                    <!-- PRÓXIMAS AULAS -->
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <div class="p-1 bg-indigo-500/10 text-indigo-600 rounded-lg">
+                                    <i data-lucide="clock" class="w-5 h-5"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-900">Agenda de Aulas Próximas</h3>
+                            </div>
+                            <span class="text-xs text-slate-500 font-medium">${proximasAulas.length} programada(s)</span>
+                        </div>
+
+                        ${proximasAulas.length === 0 ? `
+                            <div class="bg-white border border-slate-200/60 rounded-2xl p-8 text-center">
+                                <i data-lucide="calendar-x" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
+                                <h4 class="font-bold text-slate-800 mb-1">Nenhuma aula pendente</h4>
+                                <p class="text-xs text-slate-500 max-w-sm mx-auto mb-4">Aproveite para reservar uma nova aula prática clicando abaixo.</p>
+                                <button onclick="changeView('agendar')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all">
+                                    <i data-lucide="calendar-plus" class="w-4 h-4"></i> Marcar Aula Prática
+                                </button>
+                            </div>
+                        ` : `
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                ${proximasAulas.map(aula => `
+                                    <div class="bg-white border border-slate-200/60 hover:border-indigo-100 rounded-2xl p-5 shadow-sm transition-all flex flex-col justify-between">
+                                        <div>
+                                            <div class="flex justify-between items-start gap-2 mb-3">
+                                                <span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-emerald-100">Agendada</span>
+                                                <button onclick="baixarConviteICS(${JSON.stringify(aula).replace(/"/g, '&quot;')})" class="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1 text-[10px] font-bold">
+                                                    <i data-lucide="calendar-days" class="w-3.5 h-3.5"></i> Baixar Convite
+                                                </button>
+                                            </div>
+                                            <h4 class="font-bold text-slate-950 text-base line-clamp-2">${aula.titulo}</h4>
+                                            
+                                            <div class="mt-4 space-y-2 text-xs text-slate-600">
+                                                <div class="flex items-center gap-2">
+                                                    <i data-lucide="calendar" class="w-4 h-4 text-slate-400 flex-shrink-0"></i>
+                                                    <span>Data: <strong>${formatDate(aula.data)}</strong></span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <i data-lucide="clock" class="w-4 h-4 text-slate-400 flex-shrink-0"></i>
+                                                    <span>Horário: <strong>${aula.inicio} às ${aula.fim}</strong></span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <i data-lucide="map-pin" class="w-4 h-4 text-slate-400 flex-shrink-0"></i>
+                                                    <span class="truncate">Local: <strong>${aula.local}</strong></span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <i data-lucide="user-check" class="w-4 h-4 text-slate-400 flex-shrink-0"></i>
+                                                    <span>Instrutor: <strong>${aula.instrutor}</strong></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- RENDERIZADOR: MARCAR AULA ---
+        function renderAgendamento() {
+            return `
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900">Agendar Nova Aula</h3>
+                        <p class="text-sm text-slate-500">Escolha o melhor dia, local e horário disponível no catálogo integrado à planilha.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        ${state.demoData.disponiveis.map(aula => `
+                            <div class="bg-white border border-slate-200 hover:border-indigo-500 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                                <div>
+                                    <h4 class="font-bold text-slate-950 text-base mb-3 leading-tight">${aula.titulo}</h4>
+                                    
+                                    <div class="space-y-2 text-xs text-slate-600 mb-6">
+                                        <div class="flex items-center gap-2">
+                                            <i data-lucide="calendar" class="w-4 h-4 text-indigo-500 flex-shrink-0"></i>
+                                            <span>Data: <strong>${formatDate(aula.data)}</strong></span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <i data-lucide="clock" class="w-4 h-4 text-indigo-500 flex-shrink-0"></i>
+                                            <span>Horário: <strong>${aula.inicio} às ${aula.fim}</strong></span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <i data-lucide="map-pin" class="w-4 h-4 text-indigo-500 flex-shrink-0"></i>
+                                            <span class="truncate">Local: <strong>${aula.local}</strong></span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <i data-lucide="user" class="w-4 h-4 text-indigo-500 flex-shrink-0"></i>
+                                            <span>Instrutor: <strong>${aula.instrutor}</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onclick="agendarAula(${aula.id})" class="w-full bg-slate-900 hover:bg-indigo-600 text-white font-medium py-2.5 rounded-xl transition-all text-xs flex items-center justify-center gap-2">
+                                    <i data-lucide="plus" class="w-4 h-4"></i> Agendar Aula
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- RENDERIZADOR: MEU PERFIL ---
+        function renderPerfil() {
+            return `
+                <div class="max-w-2xl bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+                    <div class="flex items-center gap-4 border-b border-slate-100 pb-6">
+                        <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center border border-indigo-100 font-bold text-2xl">
+                            ${state.currentUser.nome.charAt(0)}
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900">${state.currentUser.nome}</h3>
+                            <p class="text-xs text-slate-400">Aluno matriculado na Previa Treinamentos</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <span class="block text-xs text-slate-400 font-medium">CPF</span>
+                            <span class="text-sm font-semibold text-slate-800">${state.currentUser.cpf}</span>
+                        </div>
+                        <div>
+                            <span class="block text-xs text-slate-400 font-medium">Telefone</span>
+                            <span class="text-sm font-semibold text-slate-800">${state.currentUser.telefone || 'Não informado'}</span>
+                        </div>
+                        <div>
+                            <span class="block text-xs text-slate-400 font-medium">Email</span>
+                            <span class="text-sm font-semibold text-slate-800">${state.currentUser.email}</span>
+                        </div>
+                        <div>
+                            <span class="block text-xs text-slate-400 font-medium">Instrutor Vinculado Principal</span>
+                            <span class="text-sm font-semibold text-slate-800">${state.currentUser.instrutor || 'Não vinculado'}</span>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <span class="block text-xs text-slate-400 font-medium">Endereço de Cadastro</span>
+                            <span class="text-sm font-semibold text-slate-800">${state.currentUser.endereco || 'Não informado'}</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex justify-end gap-2">
+                        <button onclick="changeView('dashboard')" class="px-4 py-2.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all">
+                            Voltar ao Painel
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- UTILITÁRIOS ---
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateStr;
+        }
     </script>
 </body>
 </html>
