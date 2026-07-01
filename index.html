@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portal do Aluno - Prévia Treinamentos</title>
+  <title>Portal Unificado - Prévia Treinamentos</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -33,10 +33,6 @@
        CONEXÃO FIXA COM O GOOGLE SHEETS
        ========================================== -->
   <script>
-    /**
-     * IMPORTANTE: Esta é a URL fixa do seu Google Apps Script implantado.
-     * Ela está conectada com as abas "Alunos", "aulas_disponiveis" e "aulas_historico" do seu painel do Sheets.
-     */
     const SCRIPT_URL_PLANILHA = "https://script.google.com/macros/s/AKfycbx6cDH2N-D5TeYaITp69pjv-jy7Ub6fvP-ADXBZMC_T6OOSDaTwY87qsU1LmyxnGGSRGA/exec";
   </script>
 
@@ -50,7 +46,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE CONFIRMAÇÃO CUSTOMIZADO (Substitui confirm do navegador) -->
+  <!-- MODAL DE CONFIRMAÇÃO CUSTOMIZADO -->
   <div id="modal-confirmacao" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
     <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 m-4 transform scale-95 transition-transform duration-200">
       <div class="flex items-center gap-3 mb-4">
@@ -67,30 +63,98 @@
     </div>
   </div>
 
-  <!-- TELA DE LOGIN -->
+  <!-- MODAL DE AVALIAÇÃO DO INSTRUTOR -->
+  <div id="modal-avaliacao" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 m-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="p-2 bg-sky-50 text-sky-600 rounded-xl">
+          <i data-lucide="clipboard-check" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Ficha de Avaliação Prática</h3>
+          <p id="avaliacao-aluno-nome" class="text-xs text-slate-400 font-medium">Aluno: --</p>
+        </div>
+      </div>
+      
+      <!-- Formulário de Avaliação Checklist -->
+      <form id="form-avaliacao-aula" onsubmit="enviarAvaliacao(event)" class="space-y-4">
+        <input type="hidden" id="aval-aula-id">
+        
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Critérios de Avaliação Técnica</h4>
+          
+          <label class="flex items-center justify-between p-2 hover:bg-white rounded-lg transition">
+            <span class="text-sm font-semibold text-slate-700">Controle de Embreagem e Rampa</span>
+            <input type="checkbox" class="w-4 h-4 text-sky-600 rounded focus:ring-sky-500">
+          </label>
+          <label class="flex items-center justify-between p-2 hover:bg-white rounded-lg transition">
+            <span class="text-sm font-semibold text-slate-700">Manobra de Baliza</span>
+            <input type="checkbox" class="w-4 h-4 text-sky-600 rounded focus:ring-sky-500">
+          </label>
+          <label class="flex items-center justify-between p-2 hover:bg-white rounded-lg transition">
+            <span class="text-sm font-semibold text-slate-700">Atenção aos Retrovisores e Sinalização</span>
+            <input type="checkbox" class="w-4 h-4 text-sky-600 rounded focus:ring-sky-500">
+          </label>
+          <label class="flex items-center justify-between p-2 hover:bg-white rounded-lg transition">
+            <span class="text-sm font-semibold text-slate-700">Postura, Troca de Marchas e Velocidade</span>
+            <input type="checkbox" class="w-4 h-4 text-sky-600 rounded focus:ring-sky-500">
+          </label>
+        </div>
+
+        <div>
+          <label for="aval-nota" class="block text-sm font-bold text-slate-700 mb-1">Nota Geral da Aula (0.0 a 10.0)</label>
+          <input type="number" id="aval-nota" step="0.1" min="0" max="10" required placeholder="Digite uma nota"
+            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 transition">
+        </div>
+
+        <div>
+          <label for="aval-obs" class="block text-sm font-bold text-slate-700 mb-1">Feedback do Instrutor / Observações</label>
+          <textarea id="aval-obs" rows="3" required placeholder="Digite os pontos fortes e o que o aluno precisa melhorar..."
+            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 transition text-sm"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" onclick="fecharModalAvaliacao()" class="px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50 rounded-xl transition">Cancelar</button>
+          <button type="submit" id="btn-salvar-avaliacao" class="px-4 py-2 text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-lg transition">Registrar e Concluir</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TELA DE LOGIN DUPLA -->
   <div id="tela-login" class="flex-1 flex flex-col justify-center items-center px-4 py-12 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-slate-100 relative overflow-hidden">
-      <div class="absolute top-0 right-0 w-32 h-32 bg-sky-100 rounded-full filter blur-3xl -mr-10 -mt-10 opacity-60"></div>
-      <div class="absolute bottom-0 left-0 w-32 h-32 bg-indigo-100 rounded-full filter blur-3xl -ml-10 -mb-10 opacity-60"></div>
       
       <div class="relative text-center">
         <div class="mx-auto h-16 w-16 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
           <i data-lucide="graduation-cap" class="h-9 w-9 text-white"></i>
         </div>
-        <h2 class="mt-6 text-3xl font-extrabold text-slate-950">Área do Aluno</h2>
-        <p class="mt-2 text-sm text-slate-500">Prévia Treinamentos • Painel de Controle</p>
+        <h2 class="mt-6 text-3xl font-extrabold text-slate-950">Portal Prévia</h2>
+        <p class="mt-2 text-sm text-slate-500 font-medium">Selecione seu perfil abaixo para acessar o sistema</p>
+      </div>
+
+      <!-- Seletor de Perfil -->
+      <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
+        <button id="perfil-aluno" onclick="mudarPerfilLogin('aluno')" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition bg-white text-slate-950 shadow-sm">
+          Sou Aluno
+        </button>
+        <button id="perfil-instrutor" onclick="mudarPerfilLogin('instrutor')" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition text-slate-500 hover:text-slate-800">
+          Sou Instrutor
+        </button>
       </div>
       
-      <form id="formulario-login" class="mt-8 space-y-6 relative" onsubmit="realizarLogin(event)">
+      <form id="formulario-login" class="space-y-6 relative" onsubmit="realizarLogin(event)">
+        <input type="hidden" id="login-perfil-atual" value="aluno">
+        
         <div class="space-y-4">
           <div>
-            <label for="login-cpf" class="block text-sm font-semibold text-slate-700">Seu CPF</label>
+            <label for="login-cpf" class="block text-sm font-semibold text-slate-700">CPF do Usuário</label>
             <div class="mt-1 relative rounded-md shadow-sm">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                 <i data-lucide="user" class="h-5 w-5"></i>
               </div>
               <input id="login-cpf" name="cpf" type="text" required maxlength="14" placeholder="000.000.000-00" oninput="mascararCPF(this)"
-                class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-slate-900 placeholder-slate-400 sm:text-sm transition duration-150">
+                class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-slate-900 sm:text-sm transition">
             </div>
           </div>
           <div>
@@ -100,9 +164,9 @@
                 <i data-lucide="lock" class="h-5 w-5"></i>
               </div>
               <input id="login-senha" name="senha" type="password" required placeholder="Digite sua senha"
-                class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-slate-900 placeholder-slate-400 sm:text-sm transition duration-150">
+                class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-slate-900 sm:text-sm transition">
             </div>
-            <p class="mt-1.5 text-xs text-slate-400">Dica: Por padrão, a sua senha são os 4 primeiros dígitos do seu CPF.</p>
+            <p id="login-dica" class="mt-1.5 text-xs text-slate-400">Dica: Por padrão, a sua senha são os 4 primeiros dígitos do seu CPF.</p>
           </div>
         </div>
 
@@ -110,7 +174,7 @@
           <button type="submit" id="botao-login"
             class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-lg shadow-indigo-100 transition-all duration-150">
             <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <i data-lucide="arrow-right-to-line" class="h-5 w-5 text-sky-200 group-hover:text-white transition duration-150"></i>
+              <i data-lucide="arrow-right-to-line" class="h-5 w-5 text-sky-200 group-hover:text-white transition"></i>
             </span>
             Acessar o Painel
           </button>
@@ -119,7 +183,7 @@
     </div>
   </div>
 
-  <!-- TELA PRINCIPAL DO PORTAL (DASHBOARD) - Inicialmente Oculta -->
+  <!-- PORTAL PRINCIPAL (DASHBOARD) -->
   <div id="portal-dashboard" class="hidden flex-1 flex flex-col md:flex-row min-h-screen">
     
     <!-- BARRA LATERAL (Sidebar) -->
@@ -130,27 +194,27 @@
         </div>
         <div>
           <h1 class="font-bold text-base leading-none">Prévia</h1>
-          <span class="text-xs text-slate-400">Portal do Aluno</span>
+          <span id="sidebar-subtitulo" class="text-xs text-slate-400">Portal do Aluno</span>
         </div>
       </div>
       
-      <!-- Informações Rápidas do Aluno Logado -->
+      <!-- Informações Rápidas do Usuário Logado -->
       <div class="p-4 mx-4 my-6 bg-slate-800/50 rounded-xl border border-slate-800">
         <div class="flex items-center space-x-3">
           <div class="h-10 w-10 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center font-bold" id="aluno-iniciais">
             --
           </div>
           <div class="overflow-hidden">
-            <h3 class="text-sm font-semibold text-slate-200 truncate" id="aluno-nome">Nome do Aluno</h3>
-            <span class="text-xs text-sky-400 flex items-center mt-0.5">
+            <h3 class="text-sm font-semibold text-slate-200 truncate" id="aluno-nome">Carregando...</h3>
+            <span class="text-xs text-sky-400 flex items-center mt-0.5" id="sidebar-role-badge">
               <i data-lucide="award" class="h-3.5 w-3.5 mr-1 flex-shrink-0"></i> Ativo
             </span>
           </div>
         </div>
       </div>
 
-      <!-- Menu de Navegação -->
-      <nav class="flex-1 px-4 space-y-1.5">
+      <!-- Menu de Navegação do ALUNO -->
+      <nav id="menu-aluno" class="flex-1 px-4 space-y-1.5">
         <button onclick="alternarAba('inicio')" id="btn-menu-inicio"
           class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold bg-slate-800 text-white transition-all duration-150">
           <i data-lucide="layout-dashboard" class="h-5 w-5"></i>
@@ -168,7 +232,16 @@
         </button>
       </nav>
 
-      <!-- Rodapé do Sidebar / Logout -->
+      <!-- Menu de Navegação do INSTRUTOR -->
+      <nav id="menu-instrutor" class="hidden flex-1 px-4 space-y-1.5">
+        <button onclick="alternarAba('agenda-instrutor')" id="btn-menu-agenda-instrutor"
+          class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold bg-slate-800 text-white transition-all duration-150">
+          <i data-lucide="calendar" class="h-5 w-5"></i>
+          <span>Minha Agenda</span>
+        </button>
+      </nav>
+
+      <!-- Rodapé / Logout -->
       <div class="p-4 border-t border-slate-800">
         <button onclick="fazerLogout()"
           class="flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all duration-150">
@@ -187,7 +260,7 @@
           <h2 id="titulo-secao-portal" class="text-xl font-bold text-slate-900">Início</h2>
         </div>
         <div class="flex items-center space-x-4">
-          <div class="hidden sm:flex flex-col items-end text-right">
+          <div class="hidden sm:flex flex-col items-end text-right" id="header-instrutor-box">
             <span class="text-xs text-slate-400 font-medium">Instrutor Vinculado:</span>
             <span class="text-sm font-bold text-indigo-600" id="aluno-instrutor">Não vinculado</span>
           </div>
@@ -201,17 +274,17 @@
         </div>
       </header>
 
-      <!-- CONTEÚDO DAS SEÇÕES -->
+      <!-- SEÇÕES DO ALUNO -->
       <div class="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto space-y-8">
 
-        <!-- ABA 1: INÍCIO (DASHBOARD) -->
+        <!-- ABA 1: INÍCIO (DASHBOARD ALUNO) -->
         <section id="secao-inicio" class="space-y-6">
           <div class="bg-gradient-to-r from-sky-500 to-indigo-600 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden shadow-lg shadow-indigo-100">
             <div class="absolute right-0 top-0 transform translate-x-12 -translate-y-12 w-64 h-64 bg-white/10 rounded-full pointer-events-none"></div>
             <div class="relative z-10 space-y-2">
-              <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-wider">Bem-vindo(a) de Volta</span>
-              <h2 class="text-2xl sm:text-3xl font-extrabold" id="boas-vindas-nome">Olá, Estudante!</h2>
-              <p class="text-sky-100 max-w-lg text-sm sm:text-base">Confira seu progresso, acesse o calendário de aulas práticas disponíveis e gerencie seus agendamentos diretamente pelo sistema oficial.</p>
+              <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-wider">Painel do Aluno</span>
+              <h2 class="text-2xl sm:text-3xl font-extrabold" id="boas-vindas-nome">Olá!</h2>
+              <p class="text-sky-100 max-w-lg text-sm sm:text-base">Gerencie suas aulas práticas, verifique sua nota e controle seus agendamentos diretamente pela internet.</p>
             </div>
           </div>
 
@@ -247,46 +320,14 @@
               </div>
             </div>
           </div>
-
-          <!-- Links de Acesso Rápido -->
-          <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-            <h3 class="text-lg font-bold text-slate-900">Acesso Rápido</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <button onclick="alternarAba('agendar')" class="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-sky-50 transition border border-slate-100 group">
-                <div class="flex items-center space-x-3">
-                  <div class="h-10 w-10 bg-sky-100 text-sky-600 rounded-lg flex items-center justify-center">
-                    <i data-lucide="calendar-plus" class="h-5 w-5"></i>
-                  </div>
-                  <div class="text-left">
-                    <span class="font-bold text-slate-800 text-sm block">Agendar Aula</span>
-                    <span class="text-xs text-slate-400">Ver aulas práticas disponíveis</span>
-                  </div>
-                </div>
-                <i data-lucide="chevron-right" class="h-5 w-5 text-slate-400 group-hover:text-sky-600 transition"></i>
-              </button>
-
-              <button onclick="alternarAba('historico')" class="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-indigo-50 transition border border-slate-100 group">
-                <div class="flex items-center space-x-3">
-                  <div class="h-10 w-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
-                    <i data-lucide="award" class="h-5 w-5"></i>
-                  </div>
-                  <div class="text-left">
-                    <span class="font-bold text-slate-800 text-sm block">Histórico de Aulas</span>
-                    <span class="text-xs text-slate-400">Consultar notas e observações</span>
-                  </div>
-                </div>
-                <i data-lucide="chevron-right" class="h-5 w-5 text-slate-400 group-hover:text-indigo-600 transition"></i>
-              </button>
-            </div>
-          </div>
         </section>
 
-        <!-- ABA 2: AGENDAR AULA -->
+        <!-- ABA 2: AGENDAR AULA (ALUNO) -->
         <section id="secao-agendar" class="hidden space-y-6">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h3 class="text-xl font-bold text-slate-900">Aulas Livres & Disponíveis</h3>
-              <p class="text-sm text-slate-400">Agende abaixo sua próxima aula prática. Mostrando apenas os horários livres com o seu instrutor.</p>
+              <p class="text-sm text-slate-400">Escolha abaixo o melhor horário com o seu instrutor para realizar sua aula.</p>
             </div>
             <button onclick="carregarAulasDisponiveis()" class="inline-flex items-center px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
               <i data-lucide="rotate-cw" class="h-4 w-4 mr-2"></i>
@@ -294,35 +335,35 @@
             </button>
           </div>
 
-          <!-- Estado de Carregamento -->
+          <!-- Loader -->
           <div id="loader-agendar" class="bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-3">
             <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-            <span class="text-slate-500 font-medium text-sm">Carregando horários livres do seu instrutor...</span>
+            <span class="text-slate-500 font-medium text-sm">Buscando aulas com seu instrutor...</span>
           </div>
 
-          <!-- Estado Vazio -->
+          <!-- Vazio -->
           <div id="vazio-agendar" class="hidden bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-4">
             <div class="h-16 w-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center">
               <i data-lucide="calendar" class="h-8 w-8"></i>
             </div>
             <div>
-              <h4 class="text-lg font-bold text-slate-900">Nenhum horário livre com seu instrutor</h4>
-              <p class="text-sm text-slate-400 mt-1">Todos os horários de aulas práticas do seu instrutor já foram reservados ou não há horários lançados.</p>
+              <h4 class="text-lg font-bold text-slate-900">Sem horários livres no momento</h4>
+              <p class="text-sm text-slate-400 mt-1">Todas as vagas com o seu instrutor já foram reservadas.</p>
             </div>
           </div>
 
-          <!-- Grid de Aulas Prontas para Agendamento -->
+          <!-- Grid de Aulas -->
           <div id="grid-aulas-agendar" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Gerado dinamicamente via JS -->
+            <!-- Gerado via JS -->
           </div>
         </section>
 
-        <!-- ABA 3: HISTÓRICO E NOTAS -->
+        <!-- ABA 3: HISTÓRICO E NOTAS (ALUNO) -->
         <section id="secao-historico" class="hidden space-y-6">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h3 class="text-xl font-bold text-slate-900">Meu Histórico Acadêmico</h3>
-              <p class="text-sm text-slate-400">Consulte abaixo suas aulas já agendadas, histórico de realização e feedbacks de instrutores.</p>
+              <h3 class="text-xl font-bold text-slate-900">Histórico de Aulas</h3>
+              <p class="text-sm text-slate-400">Consulte abaixo as aulas marcadas, notas de desempenho e feedbacks.</p>
             </div>
             <button onclick="carregarHistoricoDeAulas()" class="inline-flex items-center px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
               <i data-lucide="rotate-cw" class="h-4 w-4 mr-2"></i>
@@ -330,67 +371,113 @@
             </button>
           </div>
 
-          <!-- Cards de Métricas de Performance -->
+          <!-- Métricas -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-              <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Aulas Totais</span>
+              <span class="text-xs text-slate-400 font-semibold uppercase block">Aulas Práticas Totais</span>
               <span id="total-aulas-num" class="text-3xl font-extrabold text-slate-900 block mt-2">--</span>
-              <span class="text-xs text-indigo-500 font-medium block mt-1">Registradas no sistema</span>
             </div>
-            
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-              <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Aulas Concluídas</span>
+              <span class="text-xs text-slate-400 font-semibold uppercase block">Aulas Concluídas</span>
               <span id="total-aulas-concluidas" class="text-3xl font-extrabold text-emerald-600 block mt-2">--</span>
-              <span class="text-xs text-slate-400 font-medium block mt-1">Com notas aplicadas</span>
             </div>
-
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-              <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Média Geral</span>
+              <span class="text-xs text-slate-400 font-semibold uppercase block">Média de Nota</span>
               <span id="media-notas" class="text-3xl font-extrabold text-sky-600 block mt-2">--</span>
-              <span class="text-xs text-slate-400 font-medium block mt-1">Aproveitamento acadêmico</span>
             </div>
           </div>
 
-          <!-- Estado de Carregamento -->
+          <!-- Loader Histórico -->
           <div id="loader-historico" class="bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-3">
             <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-            <span class="text-slate-500 font-medium text-sm">Carregando dados das aulas do servidor...</span>
+            <span class="text-slate-500 font-medium text-sm">Carregando histórico acadêmico...</span>
           </div>
 
-          <!-- Estado Vazio -->
+          <!-- Vazio Histórico -->
           <div id="vazio-historico" class="hidden bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-4">
             <div class="h-16 w-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center">
               <i data-lucide="folder-open" class="h-8 w-8"></i>
             </div>
             <div>
-              <h4 class="text-lg font-bold text-slate-900">Histórico Limpo</h4>
-              <p class="text-sm text-slate-400 mt-1">Você ainda não agendou nenhuma aula prática. Comece na aba 'Agendar Aula'!</p>
+              <h4 class="text-lg font-bold text-slate-900">Histórico Vazio</h4>
+              <p class="text-sm text-slate-400 mt-1">Você ainda não agendou nenhuma aula de direção prática.</p>
             </div>
           </div>
 
-          <!-- Tabela de Histórico (Visível em Telas Médias/Grandes) -->
+          <!-- Tabela Desktop -->
           <div id="card-tabela-historico" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50 border-b border-slate-100">
-                    <th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Aula</th>
-                    <th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Data & Horário</th>
-                    <th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Instrutor / Local</th>
-                    <th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Descrição / Nota</th>
-                    <th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Avaliação do Instrutor</th>
+                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Aula</th>
+                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Data & Horário</th>
+                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Instrutor / Local</th>
+                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Status / Nota</th>
+                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Ações / Compartilhar</th>
                   </tr>
                 </thead>
                 <tbody id="tabela-linhas-historico" class="divide-y divide-slate-100 text-sm text-slate-700">
-                  <!-- Gerado dinamicamente via JS -->
+                  <!-- JS -->
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- Layout Alternativo de Histórico em formato Card (Visível em Celular) -->
+          <!-- Cards Mobile -->
           <div id="layout-cards-historico" class="hidden grid grid-cols-1 gap-4 md:hidden">
-            <!-- Gerado dinamicamente via JS -->
+            <!-- JS -->
+          </div>
+        </section>
+
+        <!-- SEÇÃO: AGENDA DO INSTRUTOR (NOVO) -->
+        <section id="secao-agenda-instrutor" class="hidden space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 class="text-xl font-bold text-slate-900">Minha Agenda Prática</h3>
+              <p class="text-sm text-slate-400">Confira abaixo as suas aulas marcadas e aplique as avaliações de desempenho.</p>
+            </div>
+            <button onclick="carregarAgendaInstrutor()" class="inline-flex items-center px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
+              <i data-lucide="rotate-cw" class="h-4 w-4 mr-2"></i>
+              Atualizar Agenda
+            </button>
+          </div>
+
+          <!-- Loader Instrutor -->
+          <div id="loader-instrutor" class="bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-3">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+            <span class="text-slate-500 font-medium text-sm">Carregando cronograma diário...</span>
+          </div>
+
+          <!-- Vazio Instrutor -->
+          <div id="vazio-instrutor" class="hidden bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-4">
+            <div class="h-16 w-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center">
+              <i data-lucide="calendar-days" class="h-8 w-8"></i>
+            </div>
+            <div>
+              <h4 class="text-lg font-bold text-slate-900">Nenhum agendamento ativo</h4>
+              <p class="text-sm text-slate-400 mt-1">Você não possui alunos agendados para os próximos horários lançados.</p>
+            </div>
+          </div>
+
+          <!-- Tabela de Alunos do Instrutor -->
+          <div id="card-tabela-instrutor" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-100">
+                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Estudante</th>
+                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Aula / Tipo</th>
+                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Data / Horário</th>
+                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Status Acadêmico</th>
+                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Ações de Avaliação</th>
+                  </tr>
+                </thead>
+                <tbody id="tabela-linhas-instrutor" class="divide-y divide-slate-100 text-sm text-slate-700">
+                  <!-- JS -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 
@@ -398,58 +485,16 @@
     </main>
   </div>
 
-  <!-- SCRIPT DE INTELIGÊNCIA E GERENCIAMENTO -->
+  <!-- SCRIPT DE INTELIGÊNCIA E AGENDAMENTO -->
   <script>
-    let alunoLogado = null;
+    // Configurações Globais
+    let perfilLogado = "aluno"; // 'aluno' ou 'instrutor'
+    let dadosUsuario = null;
 
-    window.onload = function() {
-      lucide.createIcons();
-    };
-
-    /**
-     * Modal de confirmação amigável customizado em Tailwind
-     */
-    function pedirConfirmacao(titulo, mensagem, acaoConfirmar) {
-      const modal = document.getElementById("modal-confirmacao");
-      const txtTitulo = document.getElementById("confirmacao-titulo");
-      const txtMsg = document.getElementById("confirmacao-mensagem");
-      const btnCancelar = document.getElementById("btn-confirmar-cancelar");
-      const btnProsseguir = document.getElementById("btn-confirmar-prosseguir");
-
-      txtTitulo.textContent = titulo;
-      txtMsg.textContent = mensagem;
-
-      modal.classList.remove("hidden");
-      setTimeout(() => {
-        modal.classList.remove("opacity-0");
-        modal.querySelector("div").classList.remove("scale-95");
-      }, 10);
-
-      const fecharModal = () => {
-        modal.classList.add("opacity-0");
-        modal.querySelector("div").classList.add("scale-95");
-        setTimeout(() => {
-          modal.classList.add("hidden");
-        }, 200);
-      };
-
-      btnCancelar.onclick = () => {
-        fecharModal();
-      };
-
-      btnProsseguir.onclick = () => {
-        fecharModal();
-        acaoConfirmar();
-      };
-    }
-
-    /**
-     * Máscara de CPF
-     */
+    // Mascara CPF
     function mascararCPF(input) {
       let valor = input.value.replace(/\D/g, "");
       if (valor.length > 11) valor = valor.substring(0, 11);
-      
       if (valor.length > 9) {
         input.value = `${valor.substring(0, 3)}.${valor.substring(3, 6)}.${valor.substring(6, 9)}-${valor.substring(9)}`;
       } else if (valor.length > 6) {
@@ -461,9 +506,26 @@
       }
     }
 
-    /**
-     * Sistema de notificações customizado
-     */
+    // Toggle entre Perfis de Login
+    function mudarPerfilLogin(perfil) {
+      perfilLogado = perfil;
+      document.getElementById("login-perfil-atual").value = perfil;
+      
+      const btnAluno = document.getElementById("perfil-aluno");
+      const btnInstrutor = document.getElementById("perfil-instrutor");
+      
+      if (perfil === "aluno") {
+        btnAluno.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition bg-white text-slate-950 shadow-sm";
+        btnInstrutor.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition text-slate-500 hover:text-slate-800";
+        document.getElementById("login-dica").classList.remove("hidden");
+      } else {
+        btnInstrutor.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition bg-white text-slate-950 shadow-sm";
+        btnAluno.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition text-slate-500 hover:text-slate-800";
+        document.getElementById("login-dica").classList.add("hidden");
+      }
+    }
+
+    // Notificação Flutuante
     function mostrarNotificacao(mensagem, tipo = "info") {
       const notificacao = document.getElementById("notificacao");
       const corpo = document.getElementById("notificacao-corpo");
@@ -494,37 +556,39 @@
       }, 5000);
     }
 
-    /**
-     * Alternador de Abas do Menu
-     */
-    function alternarAba(abaId) {
-      const secoes = ["inicio", "agendar", "historico"];
-      secoes.forEach(secao => {
-        const elemento = document.getElementById(`secao-${secao}`);
-        const btnMenu = document.getElementById(`btn-menu-${secao}`);
-        
-        if (secao === abaId) {
-          elemento.classList.remove("hidden");
-          btnMenu.className = "menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold bg-slate-800 text-white transition-all duration-150";
-        } else {
-          elemento.classList.add("hidden");
-          btnMenu.className = "menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 transition-all duration-150";
-        }
-      });
+    // Modal de Confirmação Customizado
+    function pedirConfirmacao(titulo, mensagem, acaoConfirmar) {
+      const modal = document.getElementById("modal-confirmacao");
+      const txtTitulo = document.getElementById("confirmacao-titulo");
+      const txtMsg = document.getElementById("confirmacao-mensagem");
+      const btnCancelar = document.getElementById("btn-confirmar-cancelar");
+      const btnProsseguir = document.getElementById("btn-confirmar-prosseguir");
 
-      const titulos = { inicio: "Dashboard Inicial", agendar: "Agendar Nova Aula", historico: "Meu Histórico de Aulas" };
-      document.getElementById("titulo-secao-portal").textContent = titulos[abaId] || "Portal";
+      txtTitulo.textContent = titulo;
+      txtMsg.textContent = mensagem;
 
-      if (abaId === "agendar") {
-        carregarAulasDisponiveis();
-      } else if (abaId === "historico") {
-        carregarHistoricoDeAulas();
-      }
+      modal.classList.remove("hidden");
+      setTimeout(() => {
+        modal.classList.remove("opacity-0");
+        modal.querySelector("div").classList.remove("scale-95");
+      }, 10);
+
+      const fecharModal = () => {
+        modal.classList.add("opacity-0");
+        modal.querySelector("div").classList.add("scale-95");
+        setTimeout(() => {
+          modal.classList.add("hidden");
+        }, 200);
+      };
+
+      btnCancelar.onclick = () => fecharModal();
+      btnProsseguir.onclick = () => {
+        fecharModal();
+        acaoConfirmar();
+      };
     }
 
-    /**
-     * Realizar Login
-     */
+    // Login Unificado
     async function realizarLogin(event) {
       event.preventDefault();
       
@@ -534,28 +598,36 @@
       const cpfLimpo = cpfOriginal.replace(/\D/g, "");
 
       if (cpfLimpo.length !== 11) {
-        mostrarNotificacao("Por favor, digite um CPF válido contendo 11 dígitos.", "erro");
+        mostrarNotificacao("Por favor, digite um CPF válido.", "erro");
         return;
       }
 
       botao.disabled = true;
-      botao.innerHTML = `<span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span> Efetuando Login...`;
+      botao.innerHTML = `<span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span> Entrando...`;
 
       try {
-        const urlLogin = `${SCRIPT_URL_PLANILHA}?action=login&cpf=${cpfLimpo}&senha=${encodeURIComponent(senha)}`;
+        const actionParam = (perfilLogado === "aluno") ? "login" : "loginInstrutor";
+        const urlLogin = `${SCRIPT_URL_PLANILHA}?action=${actionParam}&cpf=${cpfLimpo}&senha=${encodeURIComponent(senha)}`;
+        
         const resposta = await fetch(urlLogin);
         const json = await resposta.json();
 
-        if (json.success && json.aluno) {
-          alunoLogado = json.aluno;
-          mostrarNotificacao(`Olá, ${alunoLogado.nome}! Login realizado com sucesso.`, "sucesso");
-          inicializarInterfaceDashboard();
+        if (json.success) {
+          if (perfilLogado === "aluno") {
+            dadosUsuario = json.aluno;
+            mostrarNotificacao(`Olá, ${dadosUsuario.nome}! Login realizado com sucesso.`, "sucesso");
+            inicializarInterfaceDashboard();
+          } else {
+            dadosUsuario = json.instrutor;
+            mostrarNotificacao(`Olá, Instrutor ${dadosUsuario.nome}! Acessando agenda...`, "sucesso");
+            inicializarInterfaceDashboardInstrutor();
+          }
         } else {
           mostrarNotificacao(json.message || "Dados de acesso não conferem.", "erro");
         }
       } catch (error) {
-        console.error("Erro de conexão:", error);
-        mostrarNotificacao("Falha ao tentar conectar com o servidor. Verifique se o Google Apps Script está ativo.", "erro");
+        console.error("Erro no login:", error);
+        mostrarNotificacao("Falha de conexão com o servidor da planilha.", "erro");
       } finally {
         botao.disabled = false;
         botao.innerHTML = `
@@ -568,32 +640,105 @@
       }
     }
 
-    /**
-     * Inicializar o Painel
-     */
+    // Inicializa Painel do ALUNO
     function inicializarInterfaceDashboard() {
       document.getElementById("tela-login").classList.add("hidden");
       document.getElementById("portal-dashboard").classList.remove("hidden");
-
-      document.getElementById("aluno-nome").textContent = alunoLogado.nome;
-      document.getElementById("boas-vindas-nome").textContent = `Olá, ${alunoLogado.nome.split(" ")[0]}!`;
       
-      const partesNome = alunoLogado.nome.trim().split(" ");
+      // Adaptando sidebar e cabeçalho para Aluno
+      document.getElementById("sidebar-subtitulo").textContent = "Portal do Aluno";
+      document.getElementById("sidebar-role-badge").innerHTML = `<i data-lucide="award" class="h-3.5 w-3.5 mr-1 flex-shrink-0"></i> Aluno Ativo`;
+      document.getElementById("menu-aluno").classList.remove("hidden");
+      document.getElementById("menu-instrutor").classList.add("hidden");
+      document.getElementById("header-instrutor-box").classList.remove("hidden");
+      
+      // Seções visíveis
+      document.getElementById("secao-inicio").classList.remove("hidden");
+      document.getElementById("secao-agendar").classList.add("hidden");
+      document.getElementById("secao-historico").classList.add("hidden");
+      document.getElementById("secao-agenda-instrutor").classList.add("hidden");
+
+      // Setando dados do Aluno
+      document.getElementById("aluno-nome").textContent = dadosUsuario.nome;
+      document.getElementById("boas-vindas-nome").textContent = `Olá, ${dadosUsuario.nome.split(" ")[0]}!`;
+      
+      const partesNome = dadosUsuario.nome.trim().split(" ");
       const iniciais = partesNome.length > 1 ? (partesNome[0][0] + partesNome[partesNome.length - 1][0]).toUpperCase() : partesNome[0][0].toUpperCase();
       document.getElementById("aluno-iniciais").textContent = iniciais;
 
-      document.getElementById("aluno-instrutor").textContent = alunoLogado.instrutor || "Não vinculado";
-      document.getElementById("card-telefone").textContent = alunoLogado.telefone || "Não informado";
-      document.getElementById("card-email").textContent = alunoLogado.email || "Não informado";
-      document.getElementById("card-endereco").textContent = alunoLogado.endereco || "Não cadastrado";
+      document.getElementById("aluno-instrutor").textContent = dadosUsuario.instrutor || "Não vinculado";
+      document.getElementById("card-telefone").textContent = dadosUsuario.telefone || "Não informado";
+      document.getElementById("card-email").textContent = dadosUsuario.email || "Não informado";
+      document.getElementById("card-endereco").textContent = dadosUsuario.endereco || "Não cadastrado";
 
       alternarAba("inicio");
     }
 
-    /**
-     * Carrega as aulas disponíveis buscando da planilha (aba aulas_disponiveis)
-     * Filtra e exibe APENAS as aulas do instrutor vinculado ao aluno logado
-     */
+    // Inicializa Painel do INSTRUTOR
+    function inicializarInterfaceDashboardInstrutor() {
+      document.getElementById("tela-login").classList.add("hidden");
+      document.getElementById("portal-dashboard").classList.remove("hidden");
+      
+      // Adaptando sidebar e cabeçalho para Instrutor
+      document.getElementById("sidebar-subtitulo").textContent = "Painel do Instrutor";
+      document.getElementById("sidebar-role-badge").innerHTML = `<i data-lucide="user-cog" class="h-3.5 w-3.5 mr-1 flex-shrink-0"></i> Instrutor Credenciado`;
+      document.getElementById("menu-aluno").classList.add("hidden");
+      document.getElementById("menu-instrutor").classList.remove("hidden");
+      document.getElementById("header-instrutor-box").classList.add("hidden");
+
+      // Seções visíveis
+      document.getElementById("secao-inicio").classList.add("hidden");
+      document.getElementById("secao-agendar").classList.add("hidden");
+      document.getElementById("secao-historico").classList.add("hidden");
+      document.getElementById("secao-agenda-instrutor").classList.remove("hidden");
+
+      // Setando dados do Instrutor
+      document.getElementById("aluno-nome").textContent = dadosUsuario.nome;
+      
+      const partesNome = dadosUsuario.nome.trim().split(" ");
+      const iniciais = partesNome.length > 1 ? (partesNome[0][0] + partesNome[partesNome.length - 1][0]).toUpperCase() : partesNome[0][0].toUpperCase();
+      document.getElementById("aluno-iniciais").textContent = iniciais;
+
+      alternarAba("agenda-instrutor");
+    }
+
+    // Alternador de Abas do Menu
+    function alternarAba(abaId) {
+      const secoes = ["inicio", "agendar", "historico", "agenda-instrutor"];
+      
+      secoes.forEach(secao => {
+        const elemento = document.getElementById(`secao-${secao}`);
+        const btnMenu = document.getElementById(`btn-menu-${secao}`);
+        
+        if (elemento) {
+          if (secao === abaId) {
+            elemento.classList.remove("hidden");
+            if (btnMenu) btnMenu.className = "menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold bg-slate-800 text-white transition-all duration-150";
+          } else {
+            elemento.classList.add("hidden");
+            if (btnMenu) btnMenu.className = "menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 transition-all duration-150";
+          }
+        }
+      });
+
+      const titulos = { 
+        inicio: "Dashboard Inicial", 
+        agendar: "Agendar Nova Aula Prática", 
+        historico: "Meu Histórico de Aulas",
+        "agenda-instrutor": "Agenda de Direção Prática"
+      };
+      document.getElementById("titulo-secao-portal").textContent = titulos[abaId] || "Portal";
+
+      if (abaId === "agendar") {
+        carregarAulasDisponiveis();
+      } else if (abaId === "historico") {
+        carregarHistoricoDeAulas();
+      } else if (abaId === "agenda-instrutor") {
+        carregarAgendaInstrutor();
+      }
+    }
+
+    // Buscar Aulas Disponíveis
     async function carregarAulasDisponiveis() {
       const loader = document.getElementById("loader-agendar");
       const vazio = document.getElementById("vazio-agendar");
@@ -604,18 +749,16 @@
       grid.classList.add("hidden");
       grid.innerHTML = "";
 
-      const instrutorAluno = alunoLogado && alunoLogado.instrutor ? alunoLogado.instrutor : "";
+      const instrutorAluno = dadosUsuario && dadosUsuario.instrutor ? dadosUsuario.instrutor : "";
 
       try {
-        // Passa o instrutor do aluno logado como parâmetro para o servidor filtrar na origem
         const urlObterDados = `${SCRIPT_URL_PLANILHA}?action=buscarAulasDisponiveis&instrutor=${encodeURIComponent(instrutorAluno)}`;
         const res = await fetch(urlObterDados);
         const aulas = await res.json();
 
-        // Filtro local extra para garantir que não apareçam aulas com status 'agendada' ou 'concluída'
         const aulasDisponiveis = aulas.filter(aula => {
           const statusVal = String(aula.status || "").trim().toLowerCase();
-          return statusVal !== "agendada" && statusVal !== "concluída" && statusVal !== "concluida";
+          return statusVal !== "agendada" && statusVal !== "concluída";
         });
 
         if (aulasDisponiveis && aulasDisponiveis.length > 0) {
@@ -653,7 +796,7 @@
                   </div>
                 </div>
                 <button onclick="confirmarAgendamento('${aula.id}', '${aula.titulo}', '${dataFormatada}', '${aula.inicio}')"
-                  class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white shadow-sm flex items-center justify-center space-x-2 transition duration-150">
+                  class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white shadow-sm flex items-center justify-center space-x-2 transition">
                   <i data-lucide="calendar-check" class="h-4 w-4"></i>
                   <span>Confirmar Agendamento</span>
                 </button>
@@ -667,38 +810,31 @@
           vazio.classList.remove("hidden");
         }
       } catch (err) {
-        console.error("Erro ao buscar aulas livres:", err);
+        console.error("Erro ao buscar aulas:", err);
         loader.classList.add("hidden");
         vazio.classList.remove("hidden");
       }
     }
 
-    /**
-     * Pop-up de confirmação de agendamento
-     */
+    // Confirmar Agendamento
     function confirmarAgendamento(aulaId, tituloAula, dataStr, horaStr) {
       pedirConfirmacao(
         "Confirmar Agendamento",
-        `Deseja agendar a aula "${tituloAula}" no dia ${dataStr} às ${horaStr}? Essa ação é registrada instantaneamente e enviada para o seu histórico.`,
+        `Deseja agendar a aula "${tituloAula}" no dia ${dataStr} às ${horaStr}? Um e-mail de notificação será enviado para você e seu instrutor automaticamente.`,
         () => realizarAgendamentoNaPlanilha(aulaId, tituloAula)
       );
     }
 
-    /**
-     * Envia o agendamento de volta à planilha
-     * Define o status como 'agendada' em aulas_disponiveis e insere uma nova linha em aulas_historico
-     */
     async function realizarAgendamentoNaPlanilha(aulaId, tituloAula) {
-      mostrarNotificacao("Enviando agendamento para o servidor da planilha...", "info");
+      mostrarNotificacao("Efetuando o seu agendamento no sistema...", "info");
 
       try {
-        const urlAgendamento = `${SCRIPT_URL_PLANILHA}?action=agendar&cpf=${alunoLogado.cpf}&aulaId=${aulaId}`;
-        
+        const urlAgendamento = `${SCRIPT_URL_PLANILHA}?action=agendar&cpf=${dadosUsuario.cpf}&aulaId=${aulaId}`;
         const resposta = await fetch(urlAgendamento);
         const resJSON = await resposta.json();
 
         if (resJSON.success) {
-          mostrarNotificacao(`Parabéns! Aula "${tituloAula}" agendada com sucesso!`, "sucesso");
+          mostrarNotificacao(`Excelente! Aula "${tituloAula}" agendada. Notificações por e-mail disparadas.`, "sucesso");
           setTimeout(() => {
             alternarAba("historico");
           }, 1500);
@@ -707,13 +843,11 @@
         }
       } catch (err) {
         console.error("Falha ao salvar agendamento:", err);
-        mostrarNotificacao("Falha de conexão com a planilha. Verifique a rede.", "erro");
+        mostrarNotificacao("Erro de comunicação ao salvar agendamento.", "erro");
       }
     }
 
-    /**
-     * Carrega histórico de aulas do aluno logado buscando da aba "aulas_historico"
-     */
+    // Carregar histórico
     async function carregarHistoricoDeAulas() {
       const loader = document.getElementById("loader-historico");
       const vazio = document.getElementById("vazio-historico");
@@ -730,16 +864,143 @@
       listagemCards.innerHTML = "";
 
       try {
-        const urlListarHist = `${SCRIPT_URL_PLANILHA}?action=buscarHistorico&cpf=${alunoLogado.cpf}`;
+        const urlListarHist = `${SCRIPT_URL_PLANILHA}?action=buscarHistorico&cpf=${dadosUsuario.cpf}`;
         const res = await fetch(urlListarHist);
         const dados = await res.json();
 
         if (dados && dados.length > 0) {
-          processarERenderizarHistorico(dados);
+          loader.classList.add("hidden");
+          tabela.classList.remove("hidden");
+          listagemCards.classList.remove("hidden");
+
+          let totalAulas = dados.length;
+          let concluidas = 0;
+          let somaNotas = 0;
+          let notasContador = 0;
+
+          dados.forEach(item => {
+            const dataFormatada = formatarData(item.data);
+            const notaNum = parseFloat(item.nota);
+            let statusBadge = "";
+
+            const statusLower = String(item.descricao || "").trim().toLowerCase();
+            const isConcluida = item.nota && item.nota !== "Pendente" && !isNaN(notaNum);
+
+            if (isConcluida) {
+              concluidas++;
+              somaNotas += notaNum;
+              notasContador++;
+              statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">Concluída</span>`;
+            } else {
+              statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-100">Agendada</span>`;
+            }
+
+            let notaDisplay = isConcluida ? `${notaNum.toFixed(1)} / 10.0` : "Pendente";
+
+            // Regra dos 3 Dias para Cancelamento (Diferença de tempo para a aula)
+            const hoje = new Date();
+            const dataAulaObj = new Date(item.data + "T00:00:00");
+            const diffTempo = dataAulaObj - hoje;
+            const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+            
+            // Botão Cancelar ou Info
+            let acaoHTML = "";
+            if (!isConcluida) {
+              if (diffDias >= 3) {
+                acaoHTML = `
+                  <button onclick="confirmarCancelamento('${item.id}', '${item.titulo}', '${dataFormatada}')" 
+                    class="px-3 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold rounded-lg border border-rose-100 transition mr-2 flex items-center gap-1">
+                    <i data-lucide="calendar-x" class="w-3.5 h-3.5"></i> Cancelar
+                  </button>
+                `;
+              } else {
+                acaoHTML = `
+                  <span class="text-[10px] font-bold text-slate-400 block mb-1 italic max-w-[120px]" title="Só é permitido cancelar com 3 dias ou mais de antecedência">
+                    Prazo excedido (< 3 dias)
+                  </span>
+                `;
+              }
+            }
+
+            // Geração de links de Compartilhamento WhatsApp
+            const textoWhats = `Olá! Seguem os detalhes da minha próxima aula prática na Prévia Treinamentos:\n\n` +
+              `🚗 Aula: *${item.titulo}*\n` +
+              `📆 Data: *${dataFormatada}*\n` +
+              `⏰ Horário: *${item.inicio} às ${item.fim}*\n` +
+              `📍 Local: *${item.local || "Não especificado"}*\n` +
+              `👨‍🏫 Instrutor: *Prof. ${item.instrutor}*`;
+            const linkWhats = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoWhats)}`;
+
+            // Desktop Tabela
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-slate-50/50 transition";
+            tr.innerHTML = `
+              <td class="p-4">
+                <div class="font-bold text-slate-900 text-sm">${item.titulo}</div>
+              </td>
+              <td class="p-4">
+                <div class="font-semibold text-slate-800">${dataFormatada}</div>
+                <div class="text-xs text-slate-400 font-semibold">${item.inicio} às ${item.fim}</div>
+              </td>
+              <td class="p-4">
+                <div class="font-bold text-indigo-600 text-xs">Prof. ${item.instrutor}</div>
+                <div class="text-xs text-slate-400 mt-0.5">${item.local || 'Não especificado'}</div>
+              </td>
+              <td class="p-4 space-y-1">
+                <div>${statusBadge}</div>
+                <div class="text-xs font-bold text-slate-600">Nota: ${notaDisplay}</div>
+              </td>
+              <td class="p-4">
+                <div class="flex items-center gap-2">
+                  ${acaoHTML}
+                  <a href="${linkWhats}" target="_blank" class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition border border-emerald-100" title="Compartilhar no WhatsApp">
+                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                  </a>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(tr);
+
+            // Mobile Cards
+            const cardMobile = `
+              <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-3">
+                <div class="flex items-center justify-between">
+                  ${statusBadge}
+                  <span class="text-xs font-extrabold text-slate-700">Nota: ${notaDisplay}</span>
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-900 text-sm">${item.titulo}</h4>
+                  <p class="text-xs text-slate-400 mt-1">${dataFormatada} • ${item.inicio} às ${item.fim}</p>
+                </div>
+                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                  <span>Local: <strong>${item.local || 'Sede'}</strong></span>
+                  <span class="text-indigo-600 font-bold">Prof. ${item.instrutor}</span>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Feedback do Instrutor:</span>
+                  <p class="text-xs italic text-slate-600">"${item.obs || 'Nenhuma observação lançada.'}"</p>
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-2">
+                  ${acaoHTML}
+                  <a href="${linkWhats}" target="_blank" class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition border border-emerald-100 text-xs font-bold flex items-center gap-1">
+                    <i data-lucide="share-2" class="w-3.5 h-3.5"></i> Compartilhar
+                  </a>
+                </div>
+              </div>
+            `;
+            listagemCards.innerHTML += cardMobile;
+          });
+
+          document.getElementById("total-aulas-num").textContent = totalAulas;
+          document.getElementById("total-aulas-concluidas").textContent = concluidas;
+          
+          const mediaFinal =高度 = notasContador > 0 ? (somaNotas / notasContador).toFixed(1) : "N/A";
+          document.getElementById("media-notas").textContent = mediaFinal;
+
+          lucide.createIcons();
         } else {
           loader.classList.add("hidden");
           vazio.classList.remove("hidden");
-          
           document.getElementById("total-aulas-num").textContent = "0";
           document.getElementById("total-aulas-concluidas").textContent = "0";
           document.getElementById("media-notas").textContent = "N/A";
@@ -751,109 +1012,181 @@
       }
     }
 
-    /**
-     * Desenha a tabela e os cards do histórico de agendamentos
-     */
-    function processarERenderizarHistorico(dados) {
-      const loader = document.getElementById("loader-historico");
-      const tabela = document.getElementById("card-tabela-historico");
-      const listagemCards = document.getElementById("layout-cards-historico");
-      const tbody = document.getElementById("tabela-linhas-historico");
-
-      loader.classList.add("hidden");
-      tabela.classList.remove("hidden");
-      listagemCards.classList.remove("hidden");
-
-      let totalAulas = dados.length;
-      let concluidas = 0;
-      let somaNotas = 0;
-      let notasContador = 0;
-
-      dados.forEach(item => {
-        const dataFormatada = formatarData(item.data);
-        const notaNum = parseFloat(item.nota);
-        let statusBadge = "";
-
-        // O status implícito do histórico é "Agendada" por padrão, ou "Concluída" se já possuir nota aplicada
-        let isConcluida = item.nota && item.nota !== "Pendente" && !isNaN(notaNum);
-
-        if (!isConcluida) {
-          statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-100">Agendada</span>`;
-        } else {
-          statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">Concluída</span>`;
-        }
-
-        let notaDisplay = "Pendente";
-        if (isConcluida) {
-          concluidas++;
-          somaNotas += notaNum;
-          notasContador++;
-          notaDisplay = `${notaNum.toFixed(1)} / 10.0`;
-        }
-
-        // Tabela Desktop
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-50/50 transition";
-        tr.innerHTML = `
-          <td class="p-4">
-            <div class="font-bold text-slate-900 text-sm">${item.titulo}</div>
-          </td>
-          <td class="p-4">
-            <div class="font-semibold text-slate-800">${dataFormatada}</div>
-            <div class="text-xs text-slate-400 font-semibold">${item.inicio} às ${item.fim}</div>
-          </td>
-          <td class="p-4">
-            <div class="font-bold text-indigo-600 text-xs">Prof. ${item.instrutor}</div>
-            <div class="text-xs text-slate-400 mt-0.5">${item.local || 'Não especificado'}</div>
-          </td>
-          <td class="p-4 space-y-1">
-            <div>${statusBadge}</div>
-            <div class="text-xs font-bold text-slate-600">Nota: ${notaDisplay}</div>
-          </td>
-          <td class="p-4 max-w-xs">
-            <div class="text-xs text-slate-500 italic leading-relaxed line-clamp-2" title="${item.obs}">
-              "${item.obs || 'Nenhuma observação ou feedback registrado.'}"
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-
-        // Cards Mobile
-        const cardMobile = `
-          <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-3">
-            <div class="flex items-center justify-between">
-              ${statusBadge}
-              <span class="text-xs font-extrabold text-slate-700">Nota: ${notaDisplay}</span>
-            </div>
-            <div>
-              <h4 class="font-bold text-slate-900 text-sm">${item.titulo}</h4>
-              <p class="text-xs text-slate-400 mt-1">${dataFormatada} • ${item.inicio} às ${item.fim}</p>
-            </div>
-            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span>Local: <strong>${item.local || 'Sede'}</strong></span>
-              <span class="text-indigo-600 font-bold">Prof. ${item.instrutor}</span>
-            </div>
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Feedback do Instrutor:</span>
-              <p class="text-xs italic text-slate-600">"${item.obs || 'Nenhuma observação lançada.'}"</p>
-            </div>
-          </div>
-        `;
-        listagemCards.innerHTML += cardMobile;
-      });
-
-      document.getElementById("total-aulas-num").textContent = totalAulas;
-      document.getElementById("total-aulas-concluidas").textContent = concluidas;
-      
-      const mediaFinal = notasContador > 0 ? (somaNotas / notasContador).toFixed(1) : "N/A";
-      document.getElementById("media-notas").textContent = mediaFinal;
-
-      lucide.createIcons();
+    // Confirmar Cancelamento
+    function confirmarCancelamento(aulaId, tituloAula, dataStr) {
+      pedirConfirmacao(
+        "Confirmar Cancelamento",
+        `Você realmente deseja cancelar a aula "${tituloAula}" marcada para o dia ${dataStr}? O horário será reaberto para novos agendamentos e uma notificação de e-mail será enviada ao seu instrutor.`,
+        () => processarCancelamentoNaPlanilha(aulaId, tituloAula)
+      );
     }
 
-    /**
-     * Formata datas de ISO (YYYY-MM-DD) para brasileiro (DD/MM/YYYY)
-     */
+    async function processarCancelamentoNaPlanilha(aulaId, tituloAula) {
+      mostrarNotificacao("Efetuando o cancelamento da aula...", "info");
+
+      try {
+        const urlCancelamento = `${SCRIPT_URL_PLANILHA}?action=cancelar&cpf=${dadosUsuario.cpf}&aulaId=${aulaId}`;
+        const resposta = await fetch(urlCancelamento);
+        const resJSON = await resposta.json();
+
+        if (resJSON.success) {
+          mostrarNotificacao(`Aula "${tituloAula}" cancelada com sucesso! Notificações enviadas.`, "sucesso");
+          carregarHistoricoDeAulas();
+        } else {
+          mostrarNotificacao(resJSON.message || "Erro ao efetuar cancelamento.", "erro");
+        }
+      } catch (err) {
+        console.error("Falha ao cancelar aula:", err);
+        mostrarNotificacao("Erro de comunicação ao cancelar aula.", "erro");
+      }
+    }
+
+    // Carregar Agenda do Instrutor
+    async function carregarAgendaInstrutor() {
+      const loader = document.getElementById("loader-instrutor");
+      const vazio = document.getElementById("vazio-instrutor");
+      const tabela = document.getElementById("card-tabela-instrutor");
+      const tbody = document.getElementById("tabela-linhas-instrutor");
+
+      loader.classList.remove("hidden");
+      vazio.classList.add("hidden");
+      tabela.classList.add("hidden");
+      tbody.innerHTML = "";
+
+      try {
+        const urlAgenda = `${SCRIPT_URL_PLANILHA}?action=buscarAgendaInstrutor&instrutor=${encodeURIComponent(dadosUsuario.nome)}`;
+        const res = await fetch(urlAgenda);
+        const aulas = await res.json();
+
+        if (aulas && aulas.length > 0) {
+          loader.classList.add("hidden");
+          tabela.classList.remove("hidden");
+
+          aulas.forEach(aula => {
+            const dataFormatada = formatarData(aula.data);
+            const statusLower = String(aula.descricao || "").trim().toLowerCase();
+            const isConcluida = aula.nota && aula.nota !== "Pendente";
+            
+            let statusBadge = "";
+            let acaoBotao = "";
+
+            if (isConcluida) {
+              statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">Concluída (${aula.nota})</span>`;
+              acaoBotao = `<span class="text-xs font-bold text-slate-400 block italic">Avaliada</span>`;
+            } else {
+              statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-100">Agendada</span>`;
+              acaoBotao = `
+                <button onclick="abrirModalAvaliacao('${aula.id}', '${aula.alunoNome}')"
+                  class="px-4 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-lg shadow-sky-100 transition flex items-center gap-1.5">
+                  <i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i> Iniciar Avaliação
+                </button>
+              `;
+            }
+
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-slate-50/50 transition";
+            tr.innerHTML = `
+              <td class="p-4">
+                <div class="font-bold text-slate-900 text-sm">${aula.alunoNome}</div>
+                <div class="text-xs text-slate-400 font-semibold mt-0.5">F: ${aula.telefone}</div>
+              </td>
+              <td class="p-4">
+                <div class="font-semibold text-slate-800 text-sm">${aula.titulo}</div>
+                <div class="text-xs text-slate-400 font-medium">📍 ${aula.local || "Não informado"}</div>
+              </td>
+              <td class="p-4">
+                <div class="font-semibold text-slate-800">${dataFormatada}</div>
+                <div class="text-xs text-slate-400 font-semibold">${aula.inicio} às ${aula.fim}</div>
+              </td>
+              <td class="p-4">
+                ${statusBadge}
+              </td>
+              <td class="p-4">
+                ${acaoBotao}
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+          lucide.createIcons();
+        } else {
+          loader.classList.add("hidden");
+          vazio.classList.remove("hidden");
+        }
+      } catch (err) {
+        console.error("Erro ao buscar agenda:", err);
+        loader.classList.add("hidden");
+        vazio.classList.remove("hidden");
+      }
+    }
+
+    // Modal de Avaliação do Instrutor
+    function abrirModalAvaliacao(aulaId, alunoNome) {
+      document.getElementById("aval-aula-id").value = aulaId;
+      document.getElementById("avaliacao-aluno-nome").textContent = `Aluno: ${alunoNome}`;
+      document.getElementById("aval-nota").value = "";
+      document.getElementById("aval-obs").value = "";
+      
+      const modal = document.getElementById("modal-avaliacao");
+      modal.classList.remove("hidden");
+      setTimeout(() => {
+        modal.classList.remove("opacity-0");
+        modal.querySelector("div").classList.remove("scale-95");
+      }, 10);
+    }
+
+    function fecharModalAvaliacao() {
+      const modal = document.getElementById("modal-avaliacao");
+      modal.classList.add("opacity-0");
+      modal.querySelector("div").classList.add("scale-95");
+      setTimeout(() => {
+        modal.classList.add("hidden");
+      }, 200);
+    }
+
+    // Salvar Avaliação (POST)
+    async function enviarAvaliacao(event) {
+      event.preventDefault();
+      
+      const aulaId = document.getElementById("aval-aula-id").value;
+      const nota = document.getElementById("aval-nota").value;
+      const feedback = document.getElementById("aval-obs").value;
+      const botao = document.getElementById("btn-salvar-avaliacao");
+
+      botao.disabled = true;
+      botao.innerHTML = `<span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span> Registrando...`;
+
+      try {
+        const payload = {
+          action: "avaliarAula",
+          aulaId: aulaId,
+          nota: nota,
+          feedback: feedback
+        };
+
+        const resposta = await fetch(SCRIPT_URL_PLANILHA, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: JSON.stringify(payload)
+        });
+        const resJSON = await resposta.json();
+
+        if (resJSON.success) {
+          mostrarNotificacao("Ficha de avaliação cadastrada e salva com sucesso!", "sucesso");
+          fecharModalAvaliacao();
+          carregarAgendaInstrutor();
+        } else {
+          mostrarNotificacao(resJSON.message || "Erro ao gravar feedback.", "erro");
+        }
+      } catch (err) {
+        console.error("Falha ao salvar avaliação:", err);
+        mostrarNotificacao("Erro de comunicação ao salvar avaliação.", "erro");
+      } finally {
+        botao.disabled = false;
+        botao.innerHTML = `Registrar e Concluir`;
+      }
+    }
+
+    // Utilitário de formatação de data
     function formatarData(dataString) {
       if (!dataString) return "--/--/----";
       const dataLimpa = dataString.split("T")[0];
@@ -865,20 +1198,18 @@
       return `${partes[2]}/${partes[1]}/${partes[0]}`;
     }
 
-    /**
-     * Realiza o log-out com segurança
-     */
+    // Logout
     function fazerLogout() {
       pedirConfirmacao(
-        "Sair da Conta",
-        "Você realmente deseja encerrar sua sessão no portal?",
+        "Encerrar Sessão",
+        "Você realmente deseja sair do Portal?",
         () => {
-          alunoLogado = null;
+          dadosUsuario = null;
           document.getElementById("login-cpf").value = "";
           document.getElementById("login-senha").value = "";
           document.getElementById("portal-dashboard").classList.add("hidden");
           document.getElementById("tela-login").classList.remove("hidden");
-          mostrarNotificacao("Sessão finalizada com sucesso.", "info");
+          mostrarNotificacao("Sessão encerrada com sucesso.", "info");
         }
       );
     }
