@@ -38,21 +38,6 @@
      * Ela está oculta do aluno e definida diretamente no código.
      */
     const SCRIPT_URL_PLANILHA = "https://script.google.com/macros/s/AKfycbx6cDH2N-D5TeYaITp69pjv-jy7Ub6fvP-ADXBZMC_T6OOSDaTwY87qsU1LmyxnGGSRGA/exec";
-
-    // =========================================================================
-    // CONFIGURAÇÃO DOS NÚMEROS DE WHATSAPP DOS INSTRUTORES (CAMPO DE CONFIGURAÇÃO)
-    // =========================================================================
-    // Insira aqui os telefones reais de cada instrutor cadastrado em sua autoescola.
-    // O formato deve conter DDI (55) + DDD (ex: 11) + Número sem espaços ou traços.
-    // O sistema usará esses contatos ao gerar os links de compartilhamento do aluno.
-    // =========================================================================
-    const WHATSAPP_INSTRUTORES = {
-      "Amauri Silva de Souza": "5511999999999", 
-      "Amauri Silva": "5511999999999", 
-      "Carlos Eduardo": "5511988888888",
-      "Ana Maria": "5511977777777",
-      "Padrão": "5511999999999" // Número padrão utilizado caso o instrutor não esteja na lista
-    };
   </script>
 
   <!-- NOTIFICAÇÃO DO SISTEMA -->
@@ -99,14 +84,11 @@
         <div>
           <label for="select-modelo-aula" class="block text-sm font-bold text-slate-700 mb-1">Qual aula gostaria de ter?</label>
           <select id="select-modelo-aula" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
-            <option value="Aula Trânsito Intenso" selected>Aula Trânsito Intenso (Padrão)</option>
-            <option value="Aula Prática de Baliza">Aula Prática de Baliza</option>
-            <option value="Aula Prática de Rodovia">Aula Prática de Rodovia</option>
-            <option value="Aula Prática de Garagem">Aula Prática de Garagem</option>
+            <!-- Será populado dinamicamente via API (Aba Avaliação) -->
           </select>
         </div>
         <p class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100 italic">
-          Nota: O modelo selecionado estruturará o relatório que seu instrutor preencherá após a aula prática.
+          Nota: O modelo selecionado estruturará o relatório técnico dinâmico que seu instrutor preencherá após a aula prática.
         </p>
       </div>
 
@@ -117,7 +99,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE VISUALIZAÇÃO DE AVALIAÇÃO DETALHADA (Aluno & Instrutor - idêntico à imagem_17c2f8.png) -->
+  <!-- MODAL DE VISUALIZAÇÃO DE AVALIAÇÃO DETALHADA (Aluno & Instrutor - idêntico à image_1a1f58.png) -->
   <div id="modal-avaliacao-detalhada" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
     <div class="bg-white rounded-2xl shadow-xl max-w-5xl w-full p-6 m-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col">
       <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
@@ -127,7 +109,7 @@
           </div>
           <div>
             <h3 class="text-lg font-bold text-slate-900">Ficha de Avaliação Prática</h3>
-            <p id="detalhes-aluno-sub" class="text-xs text-slate-500">Modelo: Aula Trânsito Intenso</p>
+            <p id="detalhes-aluno-sub" class="text-xs text-slate-500">Modelo: --</p>
           </div>
         </div>
         <button onclick="fecharModalAvaliacaoDetalhada()" class="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-lg">
@@ -148,7 +130,7 @@
             </tr>
           </thead>
           <tbody id="linhas-avaliacao-tabela" class="divide-y divide-slate-200">
-            <!-- Injetado dinamicamente -->
+            <!-- Injetado dinamicamente de acordo com as colunas B-Z da aba Avaliação -->
           </tbody>
         </table>
 
@@ -190,7 +172,7 @@
           </div>
           <div>
             <h3 class="text-lg font-bold text-slate-900">Aplicar Avaliação Prática</h3>
-            <p id="preencher-aluno-sub" class="text-xs text-slate-500">Aluno: -- | Modelo: Aula Trânsito Intenso</p>
+            <p id="preencher-aluno-sub" class="text-xs text-slate-500">Aluno: -- | Modelo: --</p>
           </div>
         </div>
         <button onclick="fecharModalPreencherAvaliacao()" class="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-lg">
@@ -200,6 +182,7 @@
 
       <form id="form-aplicar-avaliacao" onsubmit="enviarAvaliacaoPratica(event)" class="space-y-6 flex-1">
         <input type="hidden" id="preencher-aula-id">
+        <input type="hidden" id="preencher-aula-titulo">
         
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs border border-slate-200">
@@ -214,7 +197,7 @@
               </tr>
             </thead>
             <tbody id="preencher-pedagogico-corpo" class="divide-y divide-slate-200">
-              <!-- Injetado dinamicamente -->
+              <!-- Injetado dinamicamente com base nas colunas da aba Avaliação -->
             </tbody>
           </table>
 
@@ -238,9 +221,11 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="md:col-span-1">
-            <label for="campo-nota-final" class="block text-sm font-bold text-slate-700 mb-1">Nota Geral (0.0 a 10.0)</label>
-            <input type="number" id="campo-nota-final" step="0.1" min="0" max="10" required placeholder="Ex: 8.5"
-              class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 transition">
+            <label class="block text-sm font-bold text-slate-700 mb-1">Nota Geral (Média Calculada)</label>
+            <div id="campo-nota-final-preview" class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-slate-900 font-extrabold text-lg text-center">
+              --
+            </div>
+            <p class="text-[10px] text-slate-400 mt-1">A nota final J é a média aritmética ponderada dos itens pedagógicos acima.</p>
           </div>
           <div class="md:col-span-2">
             <label for="campo-feedback-final" class="block text-sm font-bold text-slate-700 mb-1">Observações / Feedback Geral do Instrutor</label>
@@ -623,35 +608,6 @@
 
   <!-- SCRIPT DE INTELIGÊNCIA E AGENDAMENTO -->
   <script>
-    // Dados fiéis extraídos do modelo da imagem_17c2f8.png
-    const ITENS_PEDAGOGICOS = [
-      { categoria: "Verificação de Segurança", item: "Cuidados ao entrar e sair do veículo." },
-      { categoria: "Ergonomia", item: "Regulagem banco" },
-      { categoria: "Ergonomia", item: "Regulagem dos retrovisores" },
-      { categoria: "Ergonomia", item: "Ajuste cinto de segurança" },
-      { categoria: "Atenção e habilidade técnica", item: "Uso do painel de instrumentos." },
-      { categoria: "Atenção e habilidade técnica", item: "Uso dos retrovisores." },
-      { categoria: "Atenção e habilidade técnica", item: "Volante (posição das mãos)." },
-      { categoria: "Atenção e habilidade técnica", item: "Controle dos pedais." },
-      { categoria: "Atenção e habilidade técnica", item: "Trocas / marchas e reduções." },
-      { categoria: "Direção defensiva", item: "Velocidade adequada" },
-      { categoria: "Direção defensiva", item: "Distância de segurança." },
-      { categoria: "Circulação e conduta", item: "Atenção nos cruzamentos." },
-      { categoria: "Circulação e conduta", item: "Mudança de faixas/direção." },
-      { categoria: "Direção defensiva", item: "Ultrapassagens." },
-      { categoria: "Direção defensiva", item: "Atenção as condições adversas" },
-      { categoria: "Circulação e conduta", item: "Sinalização luzes de seta" },
-      { categoria: "Circulação e conduta", item: "Sinalizações horizontais e verticais." },
-      { categoria: "Circulação e conduta", item: "Parada obrigatória." },
-      { categoria: "Circulação e conduta", item: "Faixas de pedestres." },
-      { categoria: "Direção defensiva", item: "Manobras" },
-      { categoria: "Direção defensiva", item: "Motociclistas, ciclistas, pedestres e demais partícipes do trânsito." },
-      { categoria: "Atenção e habilidade técnica", item: "Sinalização, observação da movimentação da via, domínio do veículo", destacar: true },
-      { categoria: "Verificação de Segurança", item: "Faróis, limpador de para-brisa, extintor, etc." },
-      { categoria: "Circulação e conduta", item: "Parada e/ou estacionamento." },
-      { categoria: "Verificação de Segurança", item: "Finalização" }
-    ];
-
     const ITENS_COMPORTAMENTAIS = [
       "Ansioso",
       "Atento",
@@ -761,6 +717,30 @@
       };
     }
 
+    /**
+     * Mapeia qualquer item vindo dinamicamente da aba "Avaliação" para uma categoria pedagógica adequada.
+     * Isso assegura robustez total caso o administrador cadastre novos itens nas colunas B a Z da planilha.
+     */
+    function obterCategoriaDoItem(nomeItem) {
+      const txt = nomeItem.toLowerCase();
+      if (txt.includes("segurança") || txt.includes("entrar") || txt.includes("sair") || txt.includes("limpador") || txt.includes("faróis") || txt.includes("finalização")) {
+        return "Verificação de Segurança";
+      }
+      if (txt.includes("banco") || txt.includes("retrovisores") || txt.includes("cinto")) {
+        return "Ergonomia";
+      }
+      if (txt.includes("painel") || txt.includes("volante") || txt.includes("pedais") || txt.includes("marchas") || txt.includes("reduções") || txt.includes("domínio")) {
+        return "Atenção e habilidade técnica";
+      }
+      if (txt.includes("velocidade") || txt.includes("distância") || txt.includes("ultrapassagens") || txt.includes("adversas") || txt.includes("manobras") || txt.includes("pedestres") || txt.includes("motociclistas")) {
+        return "Direção defensiva";
+      }
+      if (txt.includes("cruzamentos") || txt.includes("faixas") || txt.includes("seta") || txt.includes("sinalização") || txt.includes("sinalizações") || txt.includes("parada") || txt.includes("estacionamento")) {
+        return "Circulação e conduta";
+      }
+      return "Geral";
+    }
+
     // Login Unificado
     async function realizarLogin(event) {
       event.preventDefault();
@@ -818,20 +798,17 @@
       document.getElementById("tela-login").classList.add("hidden");
       document.getElementById("portal-dashboard").classList.remove("hidden");
       
-      // Adaptando sidebar e cabeçalho para Aluno
       document.getElementById("sidebar-subtitulo").textContent = "Portal do Aluno";
       document.getElementById("sidebar-role-badge").innerHTML = `<i data-lucide="award" class="h-3.5 w-3.5 mr-1 flex-shrink-0"></i> Aluno Ativo`;
       document.getElementById("menu-aluno").classList.remove("hidden");
       document.getElementById("menu-instrutor").classList.add("hidden");
       document.getElementById("header-instrutor-box").classList.remove("hidden");
       
-      // Seções visíveis
       document.getElementById("secao-inicio").classList.remove("hidden");
       document.getElementById("secao-agendar").classList.add("hidden");
       document.getElementById("secao-historico").classList.add("hidden");
       document.getElementById("secao-agenda-instrutor").classList.add("hidden");
 
-      // Setando dados do Aluno
       document.getElementById("aluno-nome").textContent = dadosUsuario.nome;
       document.getElementById("boas-vindas-nome").textContent = `Olá, ${dadosUsuario.nome.split(" ")[0]}!`;
       
@@ -852,20 +829,17 @@
       document.getElementById("tela-login").classList.add("hidden");
       document.getElementById("portal-dashboard").classList.remove("hidden");
       
-      // Adaptando sidebar e cabeçalho para Instrutor
       document.getElementById("sidebar-subtitulo").textContent = "Painel do Instrutor";
       document.getElementById("sidebar-role-badge").innerHTML = `<i data-lucide="user-cog" class="h-3.5 w-3.5 mr-1 flex-shrink-0"></i> Instrutor Credenciado`;
       document.getElementById("menu-aluno").classList.add("hidden");
       document.getElementById("menu-instrutor").classList.remove("hidden");
       document.getElementById("header-instrutor-box").classList.add("hidden");
 
-      // Seções visíveis
       document.getElementById("secao-inicio").classList.add("hidden");
       document.getElementById("secao-agendar").classList.add("hidden");
       document.getElementById("secao-historico").classList.add("hidden");
       document.getElementById("secao-agenda-instrutor").classList.remove("hidden");
 
-      // Setando dados do Instrutor
       document.getElementById("aluno-nome").textContent = dadosUsuario.nome;
       
       const partesNome = dadosUsuario.nome.trim().split(" ");
@@ -990,12 +964,15 @@
     }
 
     // Abrir Modal de Seleção de Modelo de Aula
-    function abrirModalSelecaoAula(aulaId, tituloOriginal, dataFormatada, inicio) {
+    async function abrirModalSelecaoAula(aulaId, tituloOriginal, dataFormatada, inicio) {
       const modal = document.getElementById("modal-selecao-aula");
       const btnConfirmar = document.getElementById("btn-confirmar-selecao");
       const btnCancelar = document.getElementById("btn-cancelar-selecao");
       const selectModelo = document.getElementById("select-modelo-aula");
 
+      selectModelo.innerHTML = `<option value="">Carregando modelos de aula...</option>`;
+
+      // Abre modal com transição
       modal.classList.remove("hidden");
       setTimeout(() => {
         modal.classList.remove("opacity-0");
@@ -1010,8 +987,32 @@
 
       btnCancelar.onclick = () => fecharModal();
       
+      // Busca dinamicamente os modelos de aula da aba "Avaliação"
+      try {
+        const response = await fetch(`${SCRIPT_URL_PLANILHA}?action=buscarModelosDeAula`);
+        const modelos = await response.json();
+        
+        selectModelo.innerHTML = "";
+        modelos.forEach(modelo => {
+          const opt = document.createElement("option");
+          opt.value = modelo;
+          opt.textContent = modelo;
+          if (modelo === "Aula Trânsito Intenso") {
+            opt.selected = true; // Pré-seleciona a de Trânsito Intenso
+          }
+          selectModelo.appendChild(opt);
+        });
+      } catch (err) {
+        console.warn("Erro ao buscar modelos de aula dinâmicos, usando padrão.");
+        selectModelo.innerHTML = `<option value="Aula Trânsito Intenso" selected>Aula Trânsito Intenso</option>`;
+      }
+
       btnConfirmar.onclick = () => {
         const modeloSelecionado = selectModelo.value;
+        if (!modeloSelecionado) {
+          mostrarNotificacao("Por favor, selecione um modelo de aula.", "erro");
+          return;
+        }
         fecharModal();
         realizarAgendamentoNaPlanilha(aulaId, modeloSelecionado, dataFormatada, inicio);
       };
@@ -1091,7 +1092,6 @@
 
             // Regra de Cancelamento de 3 Dias
             const hoje = new Date();
-            // Limpa horários para comparar apenas a data
             hoje.setHours(0,0,0,0);
             
             const dataAulaObj = new Date(item.data + "T00:00:00");
@@ -1099,7 +1099,6 @@
             const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
             
             let acaoHTML = "";
-            let acaoMobileHTML = "";
 
             if (!isConcluida) {
               if (diffDias >= 3) {
@@ -1119,16 +1118,15 @@
             } else {
               // Aula Concluída: Pode ver a avaliação técnica detalhada
               acaoHTML = `
-                <button onclick="abrirModalAvaliacaoDetalhada('${item.id}', '${item.titulo}', '${dataFormatada}', '${item.nota}', '${item.obs}', '${encodeURIComponent(item.detalhes)}')"
+                <button onclick="obterEDetalharAvaliacao('${item.id}', '${item.titulo}', '${dataFormatada}', '${item.nota}', '${item.obs}', '${encodeURIComponent(item.detalhes)}')"
                   class="px-3 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-xs font-bold rounded-lg border border-indigo-100 transition flex items-center gap-1">
                   <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Ver Avaliação
                 </button>
               `;
             }
 
-            // Gerar link do WhatsApp para o INSTRUTOR (Destaque do telefone do instrutor solicitado)
-            const instrutorNome = item.instrutor || "Padrão";
-            const numeroWhats = WHATSAPP_INSTRUTORES[instrutorNome] || WHATSAPP_INSTRUTORES["Padrão"];
+            // Telefones e WhatsApp dinâmicos direto do instrutor da planilha!
+            const numeroWhats = item.telefoneInstrutor || "5511999999999";
 
             const textoWhats = `Olá! Seguem os detalhes do meu agendamento na Prévia Treinamentos:\n\n` +
               `🚗 Aula: *${item.titulo}*\n` +
@@ -1137,7 +1135,6 @@
               `📍 Local: *${item.local || "Não especificado"}*\n` +
               `👨‍🏫 Instrutor: *Prof. ${item.instrutor}*`;
             
-            // Direciona direto para o número configurado do Instrutor!
             const linkWhats = `https://api.whatsapp.com/send?phone=${numeroWhats}&text=${encodeURIComponent(textoWhats)}`;
 
             // Desktop Tabela
@@ -1250,62 +1247,78 @@
       }
     }
 
-    // Exibe o modal detalhado com a ficha estruturada exatamente como na imagem_17c2f8.png
-    function abrirModalAvaliacaoDetalhada(aulaId, titulo, data, nota, obs, detalhesEscapados) {
+    // Exibe o modal detalhado buscando as questões específicas do modelo e preenchendo as notas salvas no histórico
+    async function obterEDetalharAvaliacao(aulaId, titulo, data, nota, obs, detalhesEscapados) {
+      mostrarNotificacao("Carregando ficha de avaliação...", "info");
+      
       const modal = document.getElementById("modal-avaliacao-detalhada");
       document.getElementById("detalhes-aluno-sub").textContent = `Aula: ${titulo} • Data: ${data}`;
-      document.getElementById("detalhes-nota-geral").textContent = `Nota Geral: ${nota}`;
+      document.getElementById("detalhes-nota-geral").textContent = `Nota Geral: ${parseFloat(nota).toFixed(1)}`;
       document.getElementById("detalhes-feedback-texto").textContent = obs || "Nenhum feedback registrado.";
 
       const tbodyPedagogico = document.getElementById("linhas-avaliacao-tabela");
       const tbodyComportamental = document.getElementById("linhas-comportamental-tabela");
       
-      tbodyPedagogico.innerHTML = "";
+      tbodyPedagogico.innerHTML = `<tr><td colspan="6" class="p-4 text-center">Buscando critérios do servidor...</td></tr>`;
       tbodyComportamental.innerHTML = "";
 
       let detalhesObj = {};
       try {
         detalhesObj = JSON.parse(decodeURIComponent(detalhesEscapados));
       } catch (err) {
-        console.warn("Nenhum detalhe de avaliação anterior cadastrado. Exibindo em branco.");
+        console.warn("Nenhum detalhe de avaliação anterior cadastrado.");
       }
 
-      // Preenche os itens pedagógicos
-      ITENS_PEDAGOGICOS.forEach((meta, idx) => {
-        const valorSelecionado = detalhesObj[`pedagogico_${idx}`] || ""; // "insuficiente", "regular", "bom", "muitobom"
-        const tr = document.createElement("tr");
-        if (meta.destacar) {
-          tr.className = "bg-yellow-100 font-bold border-b"; // Destaca em amarelo igual na imagem
-        }
+      try {
+        // Busca os critérios específicos da aba Avaliação correspondentes ao título da aula
+        const response = await fetch(`${SCRIPT_URL_PLANILHA}?action=buscarQuestoesDeAula&titulo=${encodeURIComponent(titulo)}`);
+        const criterios = await response.json();
 
-        tr.innerHTML = `
-          <td class="p-2 border-r border-slate-200">${meta.categoria}</td>
-          <td class="p-2 border-r border-slate-200">${meta.item}</td>
-          <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "insuficiente" ? "❌" : ""}</td>
-          <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "regular" ? "⚠️" : ""}</td>
-          <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "bom" ? "✔️" : ""}</td>
-          <td class="p-2 text-center text-sm">${valorSelecionado === "muitobom" ? "⭐" : ""}</td>
-        `;
-        tbodyPedagogico.appendChild(tr);
-      });
+        tbodyPedagogico.innerHTML = "";
 
-      // Preenche comportamental
-      ITENS_COMPORTAMENTAIS.forEach((item, idx) => {
-        const valorSelecionado = detalhesObj[`comportamental_${idx}`] || ""; // "sim", "nao"
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="p-2 border-r border-slate-200">${item}</td>
-          <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "sim" ? "✔️" : ""}</td>
-          <td class="p-2 text-center text-sm">${valorSelecionado === "nao" ? "❌" : ""}</td>
-        `;
-        tbodyComportamental.appendChild(tr);
-      });
+        criterios.forEach((item, idx) => {
+          const categoria = obterCategoriaDoItem(item);
+          const valorSelecionado = detalhesObj[`pedagogico_${idx}`] || ""; // "insuficiente", "regular", "bom", "muitobom"
+          const tr = document.createElement("tr");
 
-      modal.classList.remove("hidden");
-      setTimeout(() => {
-        modal.classList.remove("opacity-0");
-        modal.querySelector("div").classList.remove("scale-95");
-      }, 10);
+          // Destaca em amarelo o item especial correspondente ao modelo de Trânsito Intenso da imagem_1a1f58.png
+          if (item.includes("Sinalização, observação da movimentação da via")) {
+            tr.className = "bg-yellow-100 font-bold border-b";
+          }
+
+          tr.innerHTML = `
+            <td class="p-2 border-r border-slate-200">${categoria}</td>
+            <td class="p-2 border-r border-slate-200">${item}</td>
+            <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "insuficiente" ? "❌" : ""}</td>
+            <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "regular" ? "⚠️" : ""}</td>
+            <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "bom" ? "✔️" : ""}</td>
+            <td class="p-2 text-center text-sm">${valorSelecionado === "muitobom" ? "⭐" : ""}</td>
+          `;
+          tbodyPedagogico.appendChild(tr);
+        });
+
+        // Preenche comportamental
+        ITENS_COMPORTAMENTAIS.forEach((item, idx) => {
+          const valorSelecionado = detalhesObj[`comportamental_${idx}`] || ""; // "sim", "nao"
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="p-2 border-r border-slate-200">${item}</td>
+            <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "sim" ? "✔️" : ""}</td>
+            <td class="p-2 text-center text-sm">${valorSelecionado === "nao" ? "❌" : ""}</td>
+          `;
+          tbodyComportamental.appendChild(tr);
+        });
+
+        modal.classList.remove("hidden");
+        setTimeout(() => {
+          modal.classList.remove("opacity-0");
+          modal.querySelector("div").classList.remove("scale-95");
+        }, 10);
+
+      } catch (err) {
+        console.error("Erro ao carregar avaliação detalhada:", err);
+        mostrarNotificacao("Houve uma falha ao renderizar a avaliação técnica.", "erro");
+      }
     }
 
     function fecharModalAvaliacaoDetalhada() {
@@ -1344,9 +1357,9 @@
             let acaoBotao = "";
 
             if (isConcluida) {
-              statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">Concluída (${aula.nota})</span>`;
+              statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">Concluída (${parseFloat(aula.nota).toFixed(1)})</span>`;
               acaoBotao = `
-                <button onclick="abrirModalAvaliacaoDetalhada('${aula.id}', '${aula.titulo}', '${dataFormatada}', '${aula.nota}', '${aula.obs}', '${encodeURIComponent(aula.detalhes)}')"
+                <button onclick="obterEDetalharAvaliacao('${aula.id}', '${aula.titulo}', '${dataFormatada}', '${aula.nota}', '${aula.obs}', '${encodeURIComponent(aula.detalhes)}')"
                   class="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-xs font-bold rounded-xl border border-indigo-100 transition flex items-center gap-1">
                   <i data-lucide="eye" class="w-3.5 h-3.5"></i> Ver Avaliação
                 </button>
@@ -1397,67 +1410,110 @@
       }
     }
 
-    // Abre a ficha técnica vazia para preenchimento do instrutor
-    function abrirModalPreencherAvaliacao(aulaId, alunoNome, tituloAula) {
+    // Abre a ficha técnica baseada na aba Avaliação para preenchimento em tempo real do instrutor
+    async function abrirModalPreencherAvaliacao(aulaId, alunoNome, tituloAula) {
+      mostrarNotificacao("Buscando critérios avaliativos...", "info");
+
       document.getElementById("preencher-aula-id").value = aulaId;
+      document.getElementById("preencher-aula-titulo").value = tituloAula;
       document.getElementById("preencher-aluno-sub").textContent = `Aluno: ${alunoNome} | Modelo: ${tituloAula}`;
       
-      document.getElementById("campo-nota-final").value = "";
+      document.getElementById("campo-nota-final-preview").textContent = "--";
       document.getElementById("campo-feedback-final").value = "";
 
       const pedagogicoCorpo = document.getElementById("preencher-pedagogico-corpo");
       const comportamentalCorpo = document.getElementById("preencher-comportamental-corpo");
 
-      pedagogicoCorpo.innerHTML = "";
+      pedagogicoCorpo.innerHTML = `<tr><td colspan="6" class="p-4 text-center">Buscando critérios do servidor...</td></tr>`;
       comportamentalCorpo.innerHTML = "";
 
-      // Injeta os critérios de direção pedagógicos (Modelo Aula Trânsito Intenso - imagem_17c2f8.png)
-      ITENS_PEDAGOGICOS.forEach((meta, idx) => {
-        const tr = document.createElement("tr");
-        if (meta.destacar) {
-          tr.className = "bg-yellow-100 font-bold border-b"; // Destaca o item solicitado em amarelo
+      try {
+        // Busca dinamicamente os itens cadastrados para esta aula específica
+        const response = await fetch(`${SCRIPT_URL_PLANILHA}?action=buscarQuestoesDeAula&titulo=${encodeURIComponent(tituloAula)}`);
+        const criterios = await response.json();
+
+        pedagogicoCorpo.innerHTML = "";
+
+        criterios.forEach((item, idx) => {
+          const categoria = obterCategoriaDoItem(item);
+          const tr = document.createElement("tr");
+
+          // Destaque em amarelo do item especial solicitado na imagem_1a1f58.png
+          if (item.includes("Sinalização, observação da movimentação da via")) {
+            tr.className = "bg-yellow-100 font-bold border-b";
+          }
+          
+          tr.innerHTML = `
+            <td class="p-2 border-r border-slate-200">${categoria}</td>
+            <td class="p-2 border-r border-slate-200">${item}</td>
+            <td class="p-2 border-r border-slate-200 text-center">
+              <input type="radio" name="pedagogico_${idx}" value="insuficiente" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+            </td>
+            <td class="p-2 border-r border-slate-200 text-center">
+              <input type="radio" name="pedagogico_${idx}" value="regular" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+            </td>
+            <td class="p-2 border-r border-slate-200 text-center">
+              <input type="radio" name="pedagogico_${idx}" value="bom" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+            </td>
+            <td class="p-2 text-center">
+              <input type="radio" name="pedagogico_${idx}" value="muitobom" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+            </td>
+          `;
+          pedagogicoCorpo.appendChild(tr);
+        });
+
+        // Injeta comportamentais
+        ITENS_COMPORTAMENTAIS.forEach((item, idx) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="p-2 border-r border-slate-200">${item}</td>
+            <td class="p-2 border-r border-slate-200 text-center">
+              <input type="radio" name="comportamental_${idx}" value="sim" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+            </td>
+            <td class="p-2 text-center">
+              <input type="radio" name="comportamental_${idx}" value="nao" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+            </td>
+          `;
+          comportamentalCorpo.appendChild(tr);
+        });
+
+        const modal = document.getElementById("modal-preencher-avaliacao");
+        modal.classList.remove("hidden");
+        setTimeout(() => {
+          modal.classList.remove("opacity-0");
+          modal.querySelector("div").classList.remove("scale-95");
+        }, 10);
+
+      } catch (err) {
+        console.error("Erro ao montar formulário dinâmico:", err);
+        mostrarNotificacao("Erro ao carregar critérios. Verifique a aba Avaliação.", "erro");
+      }
+    }
+
+    /**
+     * Calcula dinamicamente a média matemática conforme o instrutor vai marcando as notas
+     * Muito bom = 10.0 | Bom = 8.0 | Regular = 5.0 | Insuficiente = 2.0
+     */
+    function calcularNotaMediaDinamica(totalItens) {
+      let soma = 0;
+      let preenchidos = 0;
+
+      for (let idx = 0; idx < totalItens; idx++) {
+        const selecionado = document.querySelector(`input[name="pedagogico_${idx}"]:checked`);
+        if (selecionado) {
+          preenchidos++;
+          const val = selecionado.value;
+          if (val === "muitobom") soma += 10;
+          else if (val === "bom") soma += 8;
+          else if (val === "regular") soma += 5;
+          else if (val === "insuficiente") soma += 2;
         }
-        
-        tr.innerHTML = `
-          <td class="p-2 border-r border-slate-200">${meta.categoria}</td>
-          <td class="p-2 border-r border-slate-200">${meta.item}</td>
-          <td class="p-2 border-r border-slate-200 text-center">
-            <input type="radio" name="pedagogico_${idx}" value="insuficiente" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
-          </td>
-          <td class="p-2 border-r border-slate-200 text-center">
-            <input type="radio" name="pedagogico_${idx}" value="regular" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
-          </td>
-          <td class="p-2 border-r border-slate-200 text-center">
-            <input type="radio" name="pedagogico_${idx}" value="bom" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
-          </td>
-          <td class="p-2 text-center">
-            <input type="radio" name="pedagogico_${idx}" value="muitobom" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
-          </td>
-        `;
-        pedagogicoCorpo.appendChild(tr);
-      });
+      }
 
-      // Injeta comportamentais
-      ITENS_COMPORTAMENTAIS.forEach((item, idx) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="p-2 border-r border-slate-200">${item}</td>
-          <td class="p-2 border-r border-slate-200 text-center">
-            <input type="radio" name="comportamental_${idx}" value="sim" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
-          </td>
-          <td class="p-2 text-center">
-            <input type="radio" name="comportamental_${idx}" value="nao" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
-          </td>
-        `;
-        comportamentalCorpo.appendChild(tr);
-      });
-
-      const modal = document.getElementById("modal-preencher-avaliacao");
-      modal.classList.remove("hidden");
-      setTimeout(() => {
-        modal.classList.remove("opacity-0");
-        modal.querySelector("div").classList.remove("scale-95");
-      }, 10);
+      if (preenchidos > 0) {
+        const media = (soma / preenchidos).toFixed(1);
+        document.getElementById("campo-nota-final-preview").textContent = `${media} / 10.0`;
+      }
     }
 
     function fecharModalPreencherAvaliacao() {
@@ -1472,23 +1528,48 @@
       event.preventDefault();
 
       const aulaId = document.getElementById("preencher-aula-id").value;
-      const nota = document.getElementById("campo-nota-final").value;
+      const tituloAula = document.getElementById("preencher-aula-titulo").value;
       const feedback = document.getElementById("campo-feedback-final").value;
       const botao = document.getElementById("btn-salvar-form-avaliacao");
 
-      // Serializa os inputs selecionados da ficha para salvar no histórico
       const detalhesObj = {};
       
-      // Coletando pedagógicos
-      ITENS_PEDAGOGICOS.forEach((_, idx) => {
+      // Coleta dinâmica com base nas questões da página
+      let idx = 0;
+      let somaNotas = 0;
+      let contadorNotas = 0;
+
+      while (true) {
         const selecionado = document.querySelector(`input[name="pedagogico_${idx}"]:checked`);
-        detalhesObj[`pedagogico_${idx}`] = selecionado ? selecionado.value : "";
-      });
+        if (!selecionado) {
+          // Se não houver mais inputs sequenciais, encerra a busca
+          if (document.querySelectorAll(`input[name^="pedagogico_"]`).length <= idx) {
+            break;
+          }
+          idx++;
+          continue;
+        }
+        
+        detalhesObj[`pedagogico_${idx}`] = selecionado.value;
+        
+        // Mapeamento matemático
+        const val = selecionado.value;
+        if (val === "muitobom") somaNotas += 10.0;
+        else if (val === "bom") somaNotas += 8.0;
+        else if (val === "regular") somaNotas += 5.0;
+        else if (val === "insuficiente") somaNotas += 2.0;
+
+        contadorNotas++;
+        idx++;
+      }
+
+      // Calcula média aritmética
+      const notaCalculada = contadorNotas > 0 ? (somaNotas / contadorNotas).toFixed(1) : "10.0";
 
       // Coletando comportamentais
-      ITENS_COMPORTAMENTAIS.forEach((_, idx) => {
-        const selecionado = document.querySelector(`input[name="comportamental_${idx}"]:checked`);
-        detalhesObj[`comportamental_${idx}`] = selecionado ? selecionado.value : "";
+      ITENS_COMPORTAMENTAIS.forEach((_, cIdx) => {
+        const selecionado = document.querySelector(`input[name="comportamental_${cIdx}"]:checked`);
+        detalhesObj[`comportamental_${cIdx}`] = selecionado ? selecionado.value : "";
       });
 
       botao.disabled = true;
@@ -1498,7 +1579,7 @@
         const payload = {
           action: "avaliarAula",
           aulaId: aulaId,
-          nota: nota,
+          nota: notaCalculada,
           feedback: feedback,
           detalhes: JSON.stringify(detalhesObj) // Serializado como string JSON limpa
         };
@@ -1511,7 +1592,7 @@
         const resJSON = await resposta.json();
 
         if (resJSON.success) {
-          mostrarNotificacao("Ficha de avaliação do aluno gravada com sucesso!", "sucesso");
+          mostrarNotificacao(`Ficha avaliada com sucesso! Nota Média: ${notaCalculada}`, "sucesso");
           fecharModalPreencherAvaliacao();
           carregarAgendaInstrutor();
         } else {
