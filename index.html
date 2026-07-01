@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portal Unificado - Previa Treinamentos</title>
+  <title>Portal Unificado - Prévia Treinamentos</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -33,7 +33,26 @@
        CONEXÃO FIXA COM O GOOGLE SHEETS
        ========================================== -->
   <script>
+    /**
+     * IMPORTANTE: Esta é a URL fixa da planilha conectada ao portal do aluno.
+     * Ela está oculta do aluno e definida diretamente no código.
+     */
     const SCRIPT_URL_PLANILHA = "https://script.google.com/macros/s/AKfycbx6cDH2N-D5TeYaITp69pjv-jy7Ub6fvP-ADXBZMC_T6OOSDaTwY87qsU1LmyxnGGSRGA/exec";
+
+    // =========================================================================
+    // CONFIGURAÇÃO DOS NÚMEROS DE WHATSAPP DOS INSTRUTORES (CAMPO DE CONFIGURAÇÃO)
+    // =========================================================================
+    // Insira aqui os telefones reais de cada instrutor cadastrado em sua autoescola.
+    // O formato deve conter DDI (55) + DDD (ex: 11) + Número sem espaços ou traços.
+    // O sistema usará esses contatos ao gerar os links de compartilhamento do aluno.
+    // =========================================================================
+    const WHATSAPP_INSTRUTORES = {
+      "Amauri Silva de Souza": "5511999999999", 
+      "Amauri Silva": "5511999999999", 
+      "Carlos Eduardo": "5511988888888",
+      "Ana Maria": "5511977777777",
+      "Padrão": "5511999999999" // Número padrão utilizado caso o instrutor não esteja na lista
+    };
   </script>
 
   <!-- NOTIFICAÇÃO DO SISTEMA -->
@@ -63,59 +82,176 @@
     </div>
   </div>
 
-  <!-- MODAL DE AVALIAÇÃO DO INSTRUTOR -->
-  <div id="modal-avaliacao" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
-    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 m-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
+  <!-- MODAL DE SELEÇÃO DE MODELO DE AULA (Agendamento do Aluno) -->
+  <div id="modal-selecao-aula" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 m-4 transform scale-95 transition-transform duration-200">
       <div class="flex items-center gap-3 mb-4">
-        <div class="p-2 bg-sky-50 text-sky-600 rounded-xl">
-          <i data-lucide="clipboard-check" class="w-6 h-6"></i>
+        <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+          <i data-lucide="book-open" class="w-6 h-6"></i>
         </div>
         <div>
-          <h3 class="text-lg font-bold text-slate-900">Ficha de Avaliação Prática</h3>
-          <p id="avaliacao-aluno-nome" class="text-xs text-slate-400 font-medium">Aluno: --</p>
+          <h3 class="text-lg font-bold text-slate-900">Agendar Aula</h3>
+          <p class="text-xs text-slate-400">Personalize o conteúdo da sua próxima aula prática.</p>
         </div>
       </div>
       
-      <!-- Formulário de Avaliação Checklist -->
-      <form id="form-avaliacao-aula" onsubmit="enviarAvaliacao(event)" class="space-y-4">
-        <input type="hidden" id="aval-aula-id">
+      <div class="space-y-4">
+        <div>
+          <label for="select-modelo-aula" class="block text-sm font-bold text-slate-700 mb-1">Qual aula gostaria de ter?</label>
+          <select id="select-modelo-aula" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
+            <option value="Aula Trânsito Intenso" selected>Aula Trânsito Intenso (Padrão)</option>
+            <option value="Aula Prática de Baliza">Aula Prática de Baliza</option>
+            <option value="Aula Prática de Rodovia">Aula Prática de Rodovia</option>
+            <option value="Aula Prática de Garagem">Aula Prática de Garagem</option>
+          </select>
+        </div>
+        <p class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100 italic">
+          Nota: O modelo selecionado estruturará o relatório que seu instrutor preencherá após a aula prática.
+        </p>
+      </div>
+
+      <div class="flex justify-end gap-3 mt-6">
+        <button id="btn-cancelar-selecao" class="px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors">Cancelar</button>
+        <button id="btn-confirmar-selecao" class="px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-lg transition-colors">Confirmar Agendamento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE VISUALIZAÇÃO DE AVALIAÇÃO DETALHADA (Aluno & Instrutor - idêntico à imagem_17c2f8.png) -->
+  <div id="modal-avaliacao-detalhada" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white rounded-2xl shadow-xl max-w-5xl w-full p-6 m-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+            <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Ficha de Avaliação Prática</h3>
+            <p id="detalhes-aluno-sub" class="text-xs text-slate-500">Modelo: Aula Trânsito Intenso</p>
+          </div>
+        </div>
+        <button onclick="fecharModalAvaliacaoDetalhada()" class="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs border border-slate-200">
+          <thead>
+            <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
+              <th class="p-2 font-bold border-r border-slate-200 w-1/4">Categoria</th>
+              <th class="p-2 font-bold border-r border-slate-200 w-1/2">Conteúdo Pedagógico</th>
+              <th class="p-2 font-bold border-r border-slate-200 text-center">Insuficiente</th>
+              <th class="p-2 font-bold border-r border-slate-200 text-center">Regular</th>
+              <th class="p-2 font-bold border-r border-slate-200 text-center">Bom</th>
+              <th class="p-2 font-bold text-center">Muito bom</th>
+            </tr>
+          </thead>
+          <tbody id="linhas-avaliacao-tabela" class="divide-y divide-slate-200">
+            <!-- Injetado dinamicamente -->
+          </tbody>
+        </table>
+
+        <!-- Seção Comportamental -->
+        <div class="mt-6">
+          <h4 class="font-bold text-sm text-slate-900 mb-2 border-b pb-1">Avaliação Comportamental</h4>
+          <table class="w-full text-left border-collapse text-xs border border-slate-200">
+            <thead>
+              <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
+                <th class="p-2 font-bold border-r border-slate-200 w-3/4">Comportamental</th>
+                <th class="p-2 font-bold border-r border-slate-200 text-center w-1/8">Sim</th>
+                <th class="p-2 font-bold text-center w-1/8">Não</th>
+              </tr>
+            </thead>
+            <tbody id="linhas-comportamental-tabela" class="divide-y divide-slate-200">
+              <!-- Injetado dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-6 border-t pt-4 bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-bold text-slate-700">Feedback Final & Observações</span>
+          <span id="detalhes-nota-geral" class="text-sm font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">Nota Geral: --</span>
+        </div>
+        <p id="detalhes-feedback-texto" class="text-xs text-slate-600 italic">--</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE FORMULÁRIO DE AVALIAÇÃO (Apenas para o Instrutor - preencher) -->
+  <div id="modal-preencher-avaliacao" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white rounded-2xl shadow-xl max-w-5xl w-full p-6 m-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-sky-50 text-sky-600 rounded-xl">
+            <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Aplicar Avaliação Prática</h3>
+            <p id="preencher-aluno-sub" class="text-xs text-slate-500">Aluno: -- | Modelo: Aula Trânsito Intenso</p>
+          </div>
+        </div>
+        <button onclick="fecharModalPreencherAvaliacao()" class="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-aplicar-avaliacao" onsubmit="enviarAvaliacaoPratica(event)" class="space-y-6 flex-1">
+        <input type="hidden" id="preencher-aula-id">
         
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Critérios de Avaliação Técnica</h4>
-          
-          <label class="flex items-center justify-between p-2 hover:bg-white rounded-lg transition">
-            <span class="text-sm font-semibold text-slate-700">Controle de Embreagem e Rampa</span>
-            <input type="checkbox" class="w-4 h-4 text-sky-600 rounded focus:ring-sky-500">
-          </label>
-          <label class="flex items-center justify-between p-2 hover:bg-white rounded-lg transition">
-            <span class="text-sm font-semibold text-slate-700">Manobra de Baliza</span>
-            <input type="checkbox" class="w-4 h-4 text-sky-600 rounded focus:ring-sky-500">
-          </label>
-          <label class="flex items-center justify-between p-2 hover:bg-white rounded-lg transition">
-            <span class="text-sm font-semibold text-slate-700">Atenção aos Retrovisores e Sinalização</span>
-            <input type="checkbox" class="w-4 h-4 text-sky-600 rounded focus:ring-sky-500">
-          </label>
-          <label class="flex items-center justify-between p-2 hover:bg-white rounded-lg transition">
-            <span class="text-sm font-semibold text-slate-700">Postura, Troca de Marchas e Velocidade</span>
-            <input type="checkbox" class="w-4 h-4 text-sky-600 rounded focus:ring-sky-500">
-          </label>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs border border-slate-200">
+            <thead>
+              <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
+                <th class="p-2 font-bold border-r border-slate-200 w-1/4">Categoria</th>
+                <th class="p-2 font-bold border-r border-slate-200 w-1/2">Conteúdo Pedagógico</th>
+                <th class="p-2 font-bold border-r border-slate-200 text-center">Insuficiente</th>
+                <th class="p-2 font-bold border-r border-slate-200 text-center">Regular</th>
+                <th class="p-2 font-bold border-r border-slate-200 text-center">Bom</th>
+                <th class="p-2 font-bold text-center">Muito bom</th>
+              </tr>
+            </thead>
+            <tbody id="preencher-pedagogico-corpo" class="divide-y divide-slate-200">
+              <!-- Injetado dinamicamente -->
+            </tbody>
+          </table>
+
+          <!-- Comportamental Form -->
+          <div class="mt-6">
+            <h4 class="font-bold text-sm text-slate-900 mb-2 border-b pb-1">Avaliação Comportamental</h4>
+            <table class="w-full text-left border-collapse text-xs border border-slate-200">
+              <thead>
+                <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
+                  <th class="p-2 font-bold border-r border-slate-200 w-3/4">Comportamental</th>
+                  <th class="p-2 font-bold border-r border-slate-200 text-center w-1/8">Sim</th>
+                  <th class="p-2 font-bold text-center w-1/8">Não</th>
+                </tr>
+              </thead>
+              <tbody id="preencher-comportamental-corpo" class="divide-y divide-slate-200">
+                <!-- Injetado dinamicamente -->
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div>
-          <label for="aval-nota" class="block text-sm font-bold text-slate-700 mb-1">Nota Geral da Aula (0.0 a 10.0)</label>
-          <input type="number" id="aval-nota" step="0.1" min="0" max="10" required placeholder="Digite uma nota"
-            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 transition">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="md:col-span-1">
+            <label for="campo-nota-final" class="block text-sm font-bold text-slate-700 mb-1">Nota Geral (0.0 a 10.0)</label>
+            <input type="number" id="campo-nota-final" step="0.1" min="0" max="10" required placeholder="Ex: 8.5"
+              class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 transition">
+          </div>
+          <div class="md:col-span-2">
+            <label for="campo-feedback-final" class="block text-sm font-bold text-slate-700 mb-1">Observações / Feedback Geral do Instrutor</label>
+            <textarea id="campo-feedback-final" rows="2" required placeholder="Digite os pontos fortes e de melhoria do aluno..."
+              class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 transition text-sm"></textarea>
+          </div>
         </div>
 
-        <div>
-          <label for="aval-obs" class="block text-sm font-bold text-slate-700 mb-1">Feedback do Instrutor / Observações</label>
-          <textarea id="aval-obs" rows="3" required placeholder="Digite os pontos fortes e o que o aluno precisa melhorar..."
-            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 transition text-sm"></textarea>
-        </div>
-
-        <div class="flex justify-end gap-3 pt-2">
-          <button type="button" onclick="fecharModalAvaliacao()" class="px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50 rounded-xl transition">Cancelar</button>
-          <button type="submit" id="btn-salvar-avaliacao" class="px-4 py-2 text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-lg transition">Registrar e Concluir</button>
+        <div class="flex justify-end gap-3 border-t pt-4">
+          <button type="button" onclick="fecharModalPreencherAvaliacao()" class="px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50 rounded-xl transition">Cancelar</button>
+          <button type="submit" id="btn-salvar-form-avaliacao" class="px-5 py-2 text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-lg transition">Finalizar e Registrar Aula</button>
         </div>
       </form>
     </div>
@@ -129,7 +265,7 @@
         <div class="mx-auto h-16 w-16 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
           <i data-lucide="graduation-cap" class="h-9 w-9 text-white"></i>
         </div>
-        <h2 class="mt-6 text-3xl font-extrabold text-slate-950">Portal Previa</h2>
+        <h2 class="mt-6 text-3xl font-extrabold text-slate-950">Portal Prévia</h2>
         <p class="mt-2 text-sm text-slate-500 font-medium">Selecione seu perfil abaixo para acessar o sistema</p>
       </div>
 
@@ -218,7 +354,7 @@
         <button onclick="alternarAba('inicio')" id="btn-menu-inicio"
           class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold bg-slate-800 text-white transition-all duration-150">
           <i data-lucide="layout-dashboard" class="h-5 w-5"></i>
-          <span>Dashboard</span>
+          <span>Relatório Geral</span>
         </button>
         <button onclick="alternarAba('agendar')" id="btn-menu-agendar"
           class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 transition-all duration-150">
@@ -257,7 +393,7 @@
       <!-- Cabeçalho Superior -->
       <header class="bg-white border-b border-slate-100 py-4 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-40">
         <div class="flex items-center space-x-4">
-          <h2 id="titulo-secao-portal" class="text-xl font-bold text-slate-900">Início</h2>
+          <h2 id="titulo-secao-portal" class="text-xl font-bold text-slate-900">Relatório Geral</h2>
         </div>
         <div class="flex items-center space-x-4">
           <div class="hidden sm:flex flex-col items-end text-right" id="header-instrutor-box">
@@ -277,14 +413,14 @@
       <!-- SEÇÕES DO ALUNO -->
       <div class="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto space-y-8">
 
-        <!-- ABA 1: INÍCIO (DASHBOARD ALUNO) -->
+        <!-- ABA 1: RELATÓRIO GERAL (DASHBOARD ALUNO) -->
         <section id="secao-inicio" class="space-y-6">
           <div class="bg-gradient-to-r from-sky-500 to-indigo-600 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden shadow-lg shadow-indigo-100">
             <div class="absolute right-0 top-0 transform translate-x-12 -translate-y-12 w-64 h-64 bg-white/10 rounded-full pointer-events-none"></div>
             <div class="relative z-10 space-y-2">
               <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-wider">Painel do Aluno</span>
               <h2 class="text-2xl sm:text-3xl font-extrabold" id="boas-vindas-nome">Olá!</h2>
-              <p class="text-sky-100 max-w-lg text-sm sm:text-base">Gerencie suas aulas práticas, verifique sua nota e controle seus agendamentos diretamente pela internet.</p>
+              <p class="text-sky-100 max-w-lg text-sm sm:text-base">Gerencie suas aulas práticas, verifique seus agendamentos e consulte seu Relatório Geral de desempenho em tempo real.</p>
             </div>
           </div>
 
@@ -327,7 +463,7 @@
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h3 class="text-xl font-bold text-slate-900">Aulas Livres & Disponíveis</h3>
-              <p class="text-sm text-slate-400">Escolha abaixo o melhor horário com o seu instrutor para realizar sua aula.</p>
+              <p class="text-sm text-slate-400">Escolha abaixo o melhor horário para realizar sua aula prática com o seu instrutor.</p>
             </div>
             <button onclick="carregarAulasDisponiveis()" class="inline-flex items-center px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
               <i data-lucide="rotate-cw" class="h-4 w-4 mr-2"></i>
@@ -363,7 +499,7 @@
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h3 class="text-xl font-bold text-slate-900">Histórico de Aulas</h3>
-              <p class="text-sm text-slate-400">Consulte abaixo as aulas marcadas, notas de desempenho e feedbacks.</p>
+              <p class="text-sm text-slate-400">Consulte abaixo as aulas marcadas, notas de desempenho e feedbacks detalhados.</p>
             </div>
             <button onclick="carregarHistoricoDeAulas()" class="inline-flex items-center px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
               <i data-lucide="rotate-cw" class="h-4 w-4 mr-2"></i>
@@ -382,7 +518,7 @@
               <span id="total-aulas-concluidas" class="text-3xl font-extrabold text-emerald-600 block mt-2">--</span>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-              <span class="text-xs text-slate-400 font-semibold uppercase block">Média de Nota</span>
+              <span class="text-xs text-slate-400 font-semibold uppercase block">Média Geral</span>
               <span id="media-notas" class="text-3xl font-extrabold text-sky-600 block mt-2">--</span>
             </div>
           </div>
@@ -414,7 +550,7 @@
                     <th class="p-4 text-xs font-bold uppercase text-slate-500">Data & Horário</th>
                     <th class="p-4 text-xs font-bold uppercase text-slate-500">Instrutor / Local</th>
                     <th class="p-4 text-xs font-bold uppercase text-slate-500">Status / Nota</th>
-                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Ações / Compartilhar</th>
+                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Ações / Detalhes</th>
                   </tr>
                 </thead>
                 <tbody id="tabela-linhas-historico" class="divide-y divide-slate-100 text-sm text-slate-700">
@@ -430,12 +566,12 @@
           </div>
         </section>
 
-        <!-- SEÇÃO: AGENDA DO INSTRUTOR (NOVO) -->
+        <!-- SEÇÃO: AGENDA DO INSTRUTOR -->
         <section id="secao-agenda-instrutor" class="hidden space-y-6">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h3 class="text-xl font-bold text-slate-900">Minha Agenda Prática</h3>
-              <p class="text-sm text-slate-400">Confira abaixo as suas aulas marcadas e aplique as avaliações de desempenho.</p>
+              <p class="text-sm text-slate-400">Confira abaixo as suas aulas marcadas do dia e realize as avaliações técnicas.</p>
             </div>
             <button onclick="carregarAgendaInstrutor()" class="inline-flex items-center px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
               <i data-lucide="rotate-cw" class="h-4 w-4 mr-2"></i>
@@ -456,7 +592,7 @@
             </div>
             <div>
               <h4 class="text-lg font-bold text-slate-900">Nenhum agendamento ativo</h4>
-              <p class="text-sm text-slate-400 mt-1">Você não possui alunos agendados para os próximos horários lançados.</p>
+              <p class="text-sm text-slate-400 mt-1">Você não possui alunos agendados para os seus horários.</p>
             </div>
           </div>
 
@@ -487,6 +623,43 @@
 
   <!-- SCRIPT DE INTELIGÊNCIA E AGENDAMENTO -->
   <script>
+    // Dados fiéis extraídos do modelo da imagem_17c2f8.png
+    const ITENS_PEDAGOGICOS = [
+      { categoria: "Verificação de Segurança", item: "Cuidados ao entrar e sair do veículo." },
+      { categoria: "Ergonomia", item: "Regulagem banco" },
+      { categoria: "Ergonomia", item: "Regulagem dos retrovisores" },
+      { categoria: "Ergonomia", item: "Ajuste cinto de segurança" },
+      { categoria: "Atenção e habilidade técnica", item: "Uso do painel de instrumentos." },
+      { categoria: "Atenção e habilidade técnica", item: "Uso dos retrovisores." },
+      { categoria: "Atenção e habilidade técnica", item: "Volante (posição das mãos)." },
+      { categoria: "Atenção e habilidade técnica", item: "Controle dos pedais." },
+      { categoria: "Atenção e habilidade técnica", item: "Trocas / marchas e reduções." },
+      { categoria: "Direção defensiva", item: "Velocidade adequada" },
+      { categoria: "Direção defensiva", item: "Distância de segurança." },
+      { categoria: "Circulação e conduta", item: "Atenção nos cruzamentos." },
+      { categoria: "Circulação e conduta", item: "Mudança de faixas/direção." },
+      { categoria: "Direção defensiva", item: "Ultrapassagens." },
+      { categoria: "Direção defensiva", item: "Atenção as condições adversas" },
+      { categoria: "Circulação e conduta", item: "Sinalização luzes de seta" },
+      { categoria: "Circulação e conduta", item: "Sinalizações horizontais e verticais." },
+      { categoria: "Circulação e conduta", item: "Parada obrigatória." },
+      { categoria: "Circulação e conduta", item: "Faixas de pedestres." },
+      { categoria: "Direção defensiva", item: "Manobras" },
+      { categoria: "Direção defensiva", item: "Motociclistas, ciclistas, pedestres e demais partícipes do trânsito." },
+      { categoria: "Atenção e habilidade técnica", item: "Sinalização, observação da movimentação da via, domínio do veículo", destacar: true },
+      { categoria: "Verificação de Segurança", item: "Faróis, limpador de para-brisa, extintor, etc." },
+      { categoria: "Circulação e conduta", item: "Parada e/ou estacionamento." },
+      { categoria: "Verificação de Segurança", item: "Finalização" }
+    ];
+
+    const ITENS_COMPORTAMENTAIS = [
+      "Ansioso",
+      "Atento",
+      "Seguro",
+      "Condução defensiva",
+      "Segue as orientações do instrutor"
+    ];
+
     // Configurações Globais
     let perfilLogado = "aluno"; // 'aluno' ou 'instrutor'
     let dadosUsuario = null;
@@ -615,7 +788,7 @@
         if (json.success) {
           if (perfilLogado === "aluno") {
             dadosUsuario = json.aluno;
-            mostrarNotificacao(`Olá, ${dadosUsuario.nome}! Login realizado com sucesso.`, "sucesso");
+            mostrarNotificacao(`Olá, ${dadosUsuario.nome}! Login efetuado com sucesso.`, "sucesso");
             inicializarInterfaceDashboard();
           } else {
             dadosUsuario = json.instrutor;
@@ -722,7 +895,7 @@
       });
 
       const titulos = { 
-        inicio: "Dashboard Inicial", 
+        inicio: "Relatório Geral", 
         agendar: "Agendar Nova Aula Prática", 
         historico: "Meu Histórico de Aulas",
         "agenda-instrutor": "Agenda de Direção Prática"
@@ -758,7 +931,7 @@
 
         const aulasDisponiveis = aulas.filter(aula => {
           const statusVal = String(aula.status || "").trim().toLowerCase();
-          return statusVal !== "agendada" && statusVal !== "concluída";
+          return statusVal !== "agendada" && statusVal !== "concluída" && statusVal !== "concluida";
         });
 
         if (aulasDisponiveis && aulasDisponiveis.length > 0) {
@@ -795,10 +968,10 @@
                     </div>
                   </div>
                 </div>
-                <button onclick="confirmarAgendamento('${aula.id}', '${aula.titulo}', '${dataFormatada}', '${aula.inicio}')"
+                <button onclick="abrirModalSelecaoAula('${aula.id}', '${aula.titulo}', '${dataFormatada}', '${aula.inicio}')"
                   class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white shadow-sm flex items-center justify-center space-x-2 transition">
                   <i data-lucide="calendar-check" class="h-4 w-4"></i>
-                  <span>Confirmar Agendamento</span>
+                  <span>Agendar Aula</span>
                 </button>
               </div>
             `;
@@ -816,25 +989,45 @@
       }
     }
 
-    // Confirmar Agendamento
-    function confirmarAgendamento(aulaId, tituloAula, dataStr, horaStr) {
-      pedirConfirmacao(
-        "Confirmar Agendamento",
-        `Deseja agendar a aula "${tituloAula}" no dia ${dataStr} às ${horaStr}? Um e-mail de notificação será enviado para você e seu instrutor automaticamente.`,
-        () => realizarAgendamentoNaPlanilha(aulaId, tituloAula)
-      );
+    // Abrir Modal de Seleção de Modelo de Aula
+    function abrirModalSelecaoAula(aulaId, tituloOriginal, dataFormatada, inicio) {
+      const modal = document.getElementById("modal-selecao-aula");
+      const btnConfirmar = document.getElementById("btn-confirmar-selecao");
+      const btnCancelar = document.getElementById("btn-cancelar-selecao");
+      const selectModelo = document.getElementById("select-modelo-aula");
+
+      modal.classList.remove("hidden");
+      setTimeout(() => {
+        modal.classList.remove("opacity-0");
+        modal.querySelector("div").classList.remove("scale-95");
+      }, 10);
+
+      const fecharModal = () => {
+        modal.classList.add("opacity-0");
+        modal.querySelector("div").classList.add("scale-95");
+        setTimeout(() => modal.classList.add("hidden"), 200);
+      };
+
+      btnCancelar.onclick = () => fecharModal();
+      
+      btnConfirmar.onclick = () => {
+        const modeloSelecionado = selectModelo.value;
+        fecharModal();
+        realizarAgendamentoNaPlanilha(aulaId, modeloSelecionado, dataFormatada, inicio);
+      };
     }
 
-    async function realizarAgendamentoNaPlanilha(aulaId, tituloAula) {
+    // Gravar Agendamento Real
+    async function realizarAgendamentoNaPlanilha(aulaId, tituloAula, dataStr, horaStr) {
       mostrarNotificacao("Efetuando o seu agendamento no sistema...", "info");
 
       try {
-        const urlAgendamento = `${SCRIPT_URL_PLANILHA}?action=agendar&cpf=${dadosUsuario.cpf}&aulaId=${aulaId}`;
+        const urlAgendamento = `${SCRIPT_URL_PLANILHA}?action=agendar&cpf=${dadosUsuario.cpf}&aulaId=${aulaId}&tituloAula=${encodeURIComponent(tituloAula)}`;
         const resposta = await fetch(urlAgendamento);
         const resJSON = await resposta.json();
 
         if (resJSON.success) {
-          mostrarNotificacao(`Excelente! Aula "${tituloAula}" agendada. Notificações por e-mail disparadas.`, "sucesso");
+          mostrarNotificacao(`Excelente! Aula "${tituloAula}" agendada com sucesso.`, "sucesso");
           setTimeout(() => {
             alternarAba("historico");
           }, 1500);
@@ -883,7 +1076,6 @@
             const notaNum = parseFloat(item.nota);
             let statusBadge = "";
 
-            const statusLower = String(item.descricao || "").trim().toLowerCase();
             const isConcluida = item.nota && item.nota !== "Pendente" && !isNaN(notaNum);
 
             if (isConcluida) {
@@ -897,39 +1089,56 @@
 
             let notaDisplay = isConcluida ? `${notaNum.toFixed(1)} / 10.0` : "Pendente";
 
-            // Regra dos 3 Dias para Cancelamento (Diferença de tempo para a aula)
+            // Regra de Cancelamento de 3 Dias
             const hoje = new Date();
+            // Limpa horários para comparar apenas a data
+            hoje.setHours(0,0,0,0);
+            
             const dataAulaObj = new Date(item.data + "T00:00:00");
             const diffTempo = dataAulaObj - hoje;
             const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
             
-            // Botão Cancelar ou Info
             let acaoHTML = "";
+            let acaoMobileHTML = "";
+
             if (!isConcluida) {
               if (diffDias >= 3) {
                 acaoHTML = `
                   <button onclick="confirmarCancelamento('${item.id}', '${item.titulo}', '${dataFormatada}')" 
-                    class="px-3 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold rounded-lg border border-rose-100 transition mr-2 flex items-center gap-1">
+                    class="px-3 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold rounded-lg border border-rose-100 transition flex items-center gap-1">
                     <i data-lucide="calendar-x" class="w-3.5 h-3.5"></i> Cancelar
                   </button>
                 `;
               } else {
                 acaoHTML = `
-                  <span class="text-[10px] font-bold text-slate-400 block mb-1 italic max-w-[120px]" title="Só é permitido cancelar com 3 dias ou mais de antecedência">
-                    Prazo excedido (< 3 dias)
+                  <span class="text-[10px] font-bold text-slate-400 block mb-1 italic max-w-[120px]" title="Só é permitido cancelar com 3 dias de antecedência">
+                    Prazo bloqueado (< 3 dias)
                   </span>
                 `;
               }
+            } else {
+              // Aula Concluída: Pode ver a avaliação técnica detalhada
+              acaoHTML = `
+                <button onclick="abrirModalAvaliacaoDetalhada('${item.id}', '${item.titulo}', '${dataFormatada}', '${item.nota}', '${item.obs}', '${encodeURIComponent(item.detalhes)}')"
+                  class="px-3 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-xs font-bold rounded-lg border border-indigo-100 transition flex items-center gap-1">
+                  <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Ver Avaliação
+                </button>
+              `;
             }
 
-            // Geração de links de Compartilhamento WhatsApp
-            const textoWhats = `Olá! Seguem os detalhes da minha próxima aula prática na Prévia Treinamentos:\n\n` +
+            // Gerar link do WhatsApp para o INSTRUTOR (Destaque do telefone do instrutor solicitado)
+            const instrutorNome = item.instrutor || "Padrão";
+            const numeroWhats = WHATSAPP_INSTRUTORES[instrutorNome] || WHATSAPP_INSTRUTORES["Padrão"];
+
+            const textoWhats = `Olá! Seguem os detalhes do meu agendamento na Prévia Treinamentos:\n\n` +
               `🚗 Aula: *${item.titulo}*\n` +
               `📆 Data: *${dataFormatada}*\n` +
               `⏰ Horário: *${item.inicio} às ${item.fim}*\n` +
               `📍 Local: *${item.local || "Não especificado"}*\n` +
               `👨‍🏫 Instrutor: *Prof. ${item.instrutor}*`;
-            const linkWhats = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoWhats)}`;
+            
+            // Direciona direto para o número configurado do Instrutor!
+            const linkWhats = `https://api.whatsapp.com/send?phone=${numeroWhats}&text=${encodeURIComponent(textoWhats)}`;
 
             // Desktop Tabela
             const tr = document.createElement("tr");
@@ -953,7 +1162,7 @@
               <td class="p-4">
                 <div class="flex items-center gap-2">
                   ${acaoHTML}
-                  <a href="${linkWhats}" target="_blank" class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition border border-emerald-100" title="Compartilhar no WhatsApp">
+                  <a href="${linkWhats}" target="_blank" class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition border border-emerald-100" title="Compartilhar com Instrutor pelo WhatsApp">
                     <i data-lucide="share-2" class="w-4 h-4"></i>
                   </a>
                 </div>
@@ -977,7 +1186,7 @@
                   <span class="text-indigo-600 font-bold">Prof. ${item.instrutor}</span>
                 </div>
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Feedback do Instrutor:</span>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Feedback Geral:</span>
                   <p class="text-xs italic text-slate-600">"${item.obs || 'Nenhuma observação lançada.'}"</p>
                 </div>
                 <div class="flex items-center justify-end gap-2 pt-2">
@@ -994,7 +1203,7 @@
           document.getElementById("total-aulas-num").textContent = totalAulas;
           document.getElementById("total-aulas-concluidas").textContent = concluidas;
           
-          const mediaFinal =高度 = notasContador > 0 ? (somaNotas / notasContador).toFixed(1) : "N/A";
+          const mediaFinal = notasContador > 0 ? (somaNotas / notasContador).toFixed(1) : "N/A";
           document.getElementById("media-notas").textContent = mediaFinal;
 
           lucide.createIcons();
@@ -1012,11 +1221,11 @@
       }
     }
 
-    // Confirmar Cancelamento
+    // Cancelamento
     function confirmarCancelamento(aulaId, tituloAula, dataStr) {
       pedirConfirmacao(
         "Confirmar Cancelamento",
-        `Você realmente deseja cancelar a aula "${tituloAula}" marcada para o dia ${dataStr}? O horário será reaberto para novos agendamentos e uma notificação de e-mail será enviada ao seu instrutor.`,
+        `Você realmente deseja cancelar a aula "${tituloAula}" no dia ${dataStr}? O horário será reaberto imediatamente para agendamento.`,
         () => processarCancelamentoNaPlanilha(aulaId, tituloAula)
       );
     }
@@ -1030,7 +1239,7 @@
         const resJSON = await resposta.json();
 
         if (resJSON.success) {
-          mostrarNotificacao(`Aula "${tituloAula}" cancelada com sucesso! Notificações enviadas.`, "sucesso");
+          mostrarNotificacao(`Aula "${tituloAula}" cancelada com sucesso!`, "sucesso");
           carregarHistoricoDeAulas();
         } else {
           mostrarNotificacao(resJSON.message || "Erro ao efetuar cancelamento.", "erro");
@@ -1041,7 +1250,72 @@
       }
     }
 
-    // Carregar Agenda do Instrutor
+    // Exibe o modal detalhado com a ficha estruturada exatamente como na imagem_17c2f8.png
+    function abrirModalAvaliacaoDetalhada(aulaId, titulo, data, nota, obs, detalhesEscapados) {
+      const modal = document.getElementById("modal-avaliacao-detalhada");
+      document.getElementById("detalhes-aluno-sub").textContent = `Aula: ${titulo} • Data: ${data}`;
+      document.getElementById("detalhes-nota-geral").textContent = `Nota Geral: ${nota}`;
+      document.getElementById("detalhes-feedback-texto").textContent = obs || "Nenhum feedback registrado.";
+
+      const tbodyPedagogico = document.getElementById("linhas-avaliacao-tabela");
+      const tbodyComportamental = document.getElementById("linhas-comportamental-tabela");
+      
+      tbodyPedagogico.innerHTML = "";
+      tbodyComportamental.innerHTML = "";
+
+      let detalhesObj = {};
+      try {
+        detalhesObj = JSON.parse(decodeURIComponent(detalhesEscapados));
+      } catch (err) {
+        console.warn("Nenhum detalhe de avaliação anterior cadastrado. Exibindo em branco.");
+      }
+
+      // Preenche os itens pedagógicos
+      ITENS_PEDAGOGICOS.forEach((meta, idx) => {
+        const valorSelecionado = detalhesObj[`pedagogico_${idx}`] || ""; // "insuficiente", "regular", "bom", "muitobom"
+        const tr = document.createElement("tr");
+        if (meta.destacar) {
+          tr.className = "bg-yellow-100 font-bold border-b"; // Destaca em amarelo igual na imagem
+        }
+
+        tr.innerHTML = `
+          <td class="p-2 border-r border-slate-200">${meta.categoria}</td>
+          <td class="p-2 border-r border-slate-200">${meta.item}</td>
+          <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "insuficiente" ? "❌" : ""}</td>
+          <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "regular" ? "⚠️" : ""}</td>
+          <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "bom" ? "✔️" : ""}</td>
+          <td class="p-2 text-center text-sm">${valorSelecionado === "muitobom" ? "⭐" : ""}</td>
+        `;
+        tbodyPedagogico.appendChild(tr);
+      });
+
+      // Preenche comportamental
+      ITENS_COMPORTAMENTAIS.forEach((item, idx) => {
+        const valorSelecionado = detalhesObj[`comportamental_${idx}`] || ""; // "sim", "nao"
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="p-2 border-r border-slate-200">${item}</td>
+          <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "sim" ? "✔️" : ""}</td>
+          <td class="p-2 text-center text-sm">${valorSelecionado === "nao" ? "❌" : ""}</td>
+        `;
+        tbodyComportamental.appendChild(tr);
+      });
+
+      modal.classList.remove("hidden");
+      setTimeout(() => {
+        modal.classList.remove("opacity-0");
+        modal.querySelector("div").classList.remove("scale-95");
+      }, 10);
+    }
+
+    function fecharModalAvaliacaoDetalhada() {
+      const modal = document.getElementById("modal-avaliacao-detalhada");
+      modal.classList.add("opacity-0");
+      modal.querySelector("div").classList.add("scale-95");
+      setTimeout(() => modal.classList.add("hidden"), 200);
+    }
+
+    // Carrega Agenda do Instrutor
     async function carregarAgendaInstrutor() {
       const loader = document.getElementById("loader-instrutor");
       const vazio = document.getElementById("vazio-instrutor");
@@ -1064,7 +1338,6 @@
 
           aulas.forEach(aula => {
             const dataFormatada = formatarData(aula.data);
-            const statusLower = String(aula.descricao || "").trim().toLowerCase();
             const isConcluida = aula.nota && aula.nota !== "Pendente";
             
             let statusBadge = "";
@@ -1072,11 +1345,16 @@
 
             if (isConcluida) {
               statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">Concluída (${aula.nota})</span>`;
-              acaoBotao = `<span class="text-xs font-bold text-slate-400 block italic">Avaliada</span>`;
+              acaoBotao = `
+                <button onclick="abrirModalAvaliacaoDetalhada('${aula.id}', '${aula.titulo}', '${dataFormatada}', '${aula.nota}', '${aula.obs}', '${encodeURIComponent(aula.detalhes)}')"
+                  class="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-xs font-bold rounded-xl border border-indigo-100 transition flex items-center gap-1">
+                  <i data-lucide="eye" class="w-3.5 h-3.5"></i> Ver Avaliação
+                </button>
+              `;
             } else {
               statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-100">Agendada</span>`;
               acaoBotao = `
-                <button onclick="abrirModalAvaliacao('${aula.id}', '${aula.alunoNome}')"
+                <button onclick="abrirModalPreencherAvaliacao('${aula.id}', '${aula.alunoNome}', '${aula.titulo}')"
                   class="px-4 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-lg shadow-sky-100 transition flex items-center gap-1.5">
                   <i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i> Iniciar Avaliação
                 </button>
@@ -1088,7 +1366,7 @@
             tr.innerHTML = `
               <td class="p-4">
                 <div class="font-bold text-slate-900 text-sm">${aula.alunoNome}</div>
-                <div class="text-xs text-slate-400 font-semibold mt-0.5">F: ${aula.telefone}</div>
+                <div class="text-xs text-slate-400 font-semibold mt-0.5">Contato: ${aula.telefone}</div>
               </td>
               <td class="p-4">
                 <div class="font-semibold text-slate-800 text-sm">${aula.titulo}</div>
@@ -1113,20 +1391,68 @@
           vazio.classList.remove("hidden");
         }
       } catch (err) {
-        console.error("Erro ao buscar agenda:", err);
+        console.error("Erro ao buscar agenda do instrutor:", err);
         loader.classList.add("hidden");
         vazio.classList.remove("hidden");
       }
     }
 
-    // Modal de Avaliação do Instrutor
-    function abrirModalAvaliacao(aulaId, alunoNome) {
-      document.getElementById("aval-aula-id").value = aulaId;
-      document.getElementById("avaliacao-aluno-nome").textContent = `Aluno: ${alunoNome}`;
-      document.getElementById("aval-nota").value = "";
-      document.getElementById("aval-obs").value = "";
+    // Abre a ficha técnica vazia para preenchimento do instrutor
+    function abrirModalPreencherAvaliacao(aulaId, alunoNome, tituloAula) {
+      document.getElementById("preencher-aula-id").value = aulaId;
+      document.getElementById("preencher-aluno-sub").textContent = `Aluno: ${alunoNome} | Modelo: ${tituloAula}`;
       
-      const modal = document.getElementById("modal-avaliacao");
+      document.getElementById("campo-nota-final").value = "";
+      document.getElementById("campo-feedback-final").value = "";
+
+      const pedagogicoCorpo = document.getElementById("preencher-pedagogico-corpo");
+      const comportamentalCorpo = document.getElementById("preencher-comportamental-corpo");
+
+      pedagogicoCorpo.innerHTML = "";
+      comportamentalCorpo.innerHTML = "";
+
+      // Injeta os critérios de direção pedagógicos (Modelo Aula Trânsito Intenso - imagem_17c2f8.png)
+      ITENS_PEDAGOGICOS.forEach((meta, idx) => {
+        const tr = document.createElement("tr");
+        if (meta.destacar) {
+          tr.className = "bg-yellow-100 font-bold border-b"; // Destaca o item solicitado em amarelo
+        }
+        
+        tr.innerHTML = `
+          <td class="p-2 border-r border-slate-200">${meta.categoria}</td>
+          <td class="p-2 border-r border-slate-200">${meta.item}</td>
+          <td class="p-2 border-r border-slate-200 text-center">
+            <input type="radio" name="pedagogico_${idx}" value="insuficiente" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+          </td>
+          <td class="p-2 border-r border-slate-200 text-center">
+            <input type="radio" name="pedagogico_${idx}" value="regular" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+          </td>
+          <td class="p-2 border-r border-slate-200 text-center">
+            <input type="radio" name="pedagogico_${idx}" value="bom" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+          </td>
+          <td class="p-2 text-center">
+            <input type="radio" name="pedagogico_${idx}" value="muitobom" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+          </td>
+        `;
+        pedagogicoCorpo.appendChild(tr);
+      });
+
+      // Injeta comportamentais
+      ITENS_COMPORTAMENTAIS.forEach((item, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="p-2 border-r border-slate-200">${item}</td>
+          <td class="p-2 border-r border-slate-200 text-center">
+            <input type="radio" name="comportamental_${idx}" value="sim" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+          </td>
+          <td class="p-2 text-center">
+            <input type="radio" name="comportamental_${idx}" value="nao" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+          </td>
+        `;
+        comportamentalCorpo.appendChild(tr);
+      });
+
+      const modal = document.getElementById("modal-preencher-avaliacao");
       modal.classList.remove("hidden");
       setTimeout(() => {
         modal.classList.remove("opacity-0");
@@ -1134,33 +1460,47 @@
       }, 10);
     }
 
-    function fecharModalAvaliacao() {
-      const modal = document.getElementById("modal-avaliacao");
+    function fecharModalPreencherAvaliacao() {
+      const modal = document.getElementById("modal-preencher-avaliacao");
       modal.classList.add("opacity-0");
       modal.querySelector("div").classList.add("scale-95");
-      setTimeout(() => {
-        modal.classList.add("hidden");
-      }, 200);
+      setTimeout(() => modal.classList.add("hidden"), 200);
     }
 
-    // Salvar Avaliação (POST)
-    async function enviarAvaliacao(event) {
+    // Processa e envia os dados avaliativos de direção via POST
+    async function enviarAvaliacaoPratica(event) {
       event.preventDefault();
+
+      const aulaId = document.getElementById("preencher-aula-id").value;
+      const nota = document.getElementById("campo-nota-final").value;
+      const feedback = document.getElementById("campo-feedback-final").value;
+      const botao = document.getElementById("btn-salvar-form-avaliacao");
+
+      // Serializa os inputs selecionados da ficha para salvar no histórico
+      const detalhesObj = {};
       
-      const aulaId = document.getElementById("aval-aula-id").value;
-      const nota = document.getElementById("aval-nota").value;
-      const feedback = document.getElementById("aval-obs").value;
-      const botao = document.getElementById("btn-salvar-avaliacao");
+      // Coletando pedagógicos
+      ITENS_PEDAGOGICOS.forEach((_, idx) => {
+        const selecionado = document.querySelector(`input[name="pedagogico_${idx}"]:checked`);
+        detalhesObj[`pedagogico_${idx}`] = selecionado ? selecionado.value : "";
+      });
+
+      // Coletando comportamentais
+      ITENS_COMPORTAMENTAIS.forEach((_, idx) => {
+        const selecionado = document.querySelector(`input[name="comportamental_${idx}"]:checked`);
+        detalhesObj[`comportamental_${idx}`] = selecionado ? selecionado.value : "";
+      });
 
       botao.disabled = true;
-      botao.innerHTML = `<span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span> Registrando...`;
+      botao.innerHTML = `<span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span> Gravando...`;
 
       try {
         const payload = {
           action: "avaliarAula",
           aulaId: aulaId,
           nota: nota,
-          feedback: feedback
+          feedback: feedback,
+          detalhes: JSON.stringify(detalhesObj) // Serializado como string JSON limpa
         };
 
         const resposta = await fetch(SCRIPT_URL_PLANILHA, {
@@ -1171,8 +1511,8 @@
         const resJSON = await resposta.json();
 
         if (resJSON.success) {
-          mostrarNotificacao("Ficha de avaliação cadastrada e salva com sucesso!", "sucesso");
-          fecharModalAvaliacao();
+          mostrarNotificacao("Ficha de avaliação do aluno gravada com sucesso!", "sucesso");
+          fecharModalPreencherAvaliacao();
           carregarAgendaInstrutor();
         } else {
           mostrarNotificacao(resJSON.message || "Erro ao gravar feedback.", "erro");
@@ -1182,11 +1522,11 @@
         mostrarNotificacao("Erro de comunicação ao salvar avaliação.", "erro");
       } finally {
         botao.disabled = false;
-        botao.innerHTML = `Registrar e Concluir`;
+        botao.innerHTML = `Finalizar e Registrar Aula`;
       }
     }
 
-    // Utilitário de formatação de data
+    // Formatação de data
     function formatarData(dataString) {
       if (!dataString) return "--/--/----";
       const dataLimpa = dataString.split("T")[0];
