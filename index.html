@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portal Unificado - Prévia Treinamentos</title>
+  <title>Previa Treinamentos - Portal de Ensino Prático</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -22,17 +22,37 @@
       background: transparent;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: #022b26;
       border-radius: 3px;
+    }
+    /* Estilo de Glassmorphism baseado na imagem de referência */
+    .glass-card {
+      background: rgba(4, 46, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(20, 158, 141, 0.25);
+    }
+    .glass-input {
+      background: rgba(240, 249, 248, 0.95);
+      border: 1px solid rgba(20, 158, 141, 0.3);
+      color: #022b26;
+    }
+    .glass-input:focus {
+      border-color: #f26522;
+      box-shadow: 0 0 0 2px rgba(242, 101, 34, 0.2);
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased custom-scrollbar">
 
   <!-- ==========================================
        CONEXÃO FIXA COM O GOOGLE SHEETS
        ========================================== -->
   <script>
+    /**
+     * IMPORTANTE: Esta é a URL fixa do seu Google Apps Script implantado.
+     * Ela está conectada com as abas "Alunos", "aulas_disponiveis" e "aulas_historico" do seu painel do Sheets.
+     */
     const SCRIPT_URL_PLANILHA = "https://script.google.com/macros/s/AKfycbx6cDH2N-D5TeYaITp69pjv-jy7Ub6fvP-ADXBZMC_T6OOSDaTwY87qsU1LmyxnGGSRGA/exec";
   </script>
 
@@ -46,11 +66,11 @@
     </div>
   </div>
 
-  <!-- MODAL DE CONFIRMAÇÃO CUSTOMIZADO -->
+  <!-- MODAL DE CONFIRMAÇÃO CUSTOMIZADO (Substitui confirm do navegador) -->
   <div id="modal-confirmacao" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
     <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 m-4 transform scale-95 transition-transform duration-200">
       <div class="flex items-center gap-3 mb-4">
-        <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+        <div class="p-2 bg-orange-50 text-orange-600 rounded-xl">
           <i data-lucide="help-circle" class="w-6 h-6"></i>
         </div>
         <h3 id="confirmacao-titulo" class="text-lg font-bold text-slate-900">Confirmar Ação</h3>
@@ -58,7 +78,38 @@
       <p id="confirmacao-mensagem" class="text-slate-600 text-sm mb-6">Você tem certeza que deseja realizar esta ação?</p>
       <div class="flex justify-end gap-3">
         <button id="btn-confirmar-cancelar" class="px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors">Cancelar</button>
-        <button id="btn-confirmar-prosseguir" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg shadow-indigo-100 transition-colors">Confirmar</button>
+        <button id="btn-confirmar-prosseguir" class="px-4 py-2 text-sm font-semibold text-white bg-[#f26522] hover:bg-[#d94f10] rounded-xl shadow-lg shadow-orange-100 transition-colors">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMAÇÃO E COMPARTILHAMENTO DE WHATSAPP IMEDIATO -->
+  <div id="modal-sucesso-agendamento" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 m-4 transform scale-95 transition-transform duration-200">
+      <div class="text-center space-y-4">
+        <div class="mx-auto h-16 w-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shadow-md">
+          <i data-lucide="calendar-check" class="h-8 w-8"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-slate-900">Agendamento Confirmado!</h3>
+          <p id="sucesso-agendamento-msg" class="text-slate-500 text-sm mt-1">Sua aula prática de direção já está reservada no sistema.</p>
+        </div>
+        <div class="bg-teal-50/50 border border-teal-100 p-4 rounded-xl text-left text-xs space-y-1.5 text-teal-900">
+          <p>🚗 Aula: <strong id="sucesso-aula-titulo">--</strong></p>
+          <p>📆 Data: <strong id="sucesso-aula-data">--</strong></p>
+          <p>⏰ Horário: <strong id="sucesso-aula-hora">--</strong></p>
+          <p>👨‍🏫 Instrutor: <strong id="sucesso-aula-instrutor">--</strong></p>
+        </div>
+        <p class="text-slate-600 text-xs">Sua aula já está na agenda do seu instrutor! Gostaria de entrar em contato via WhatsApp para confirmar?</p>
+        <div class="flex flex-col gap-2 pt-2">
+          <button id="btn-sucesso-whats" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-[#25D366] hover:bg-[#20ba5a] text-white shadow-md flex items-center justify-center gap-2 transition duration-150">
+            <i data-lucide="share-2" class="h-4 w-4"></i>
+            <span>Sim, Entrar em Contato via WhatsApp</span>
+          </button>
+          <button id="btn-sucesso-fechar" class="w-full py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-xl border border-slate-100 transition duration-150">
+            Agora não, ver meu histórico
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -67,20 +118,20 @@
   <div id="modal-selecao-aula" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
     <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 m-4 transform scale-95 transition-transform duration-200">
       <div class="flex items-center gap-3 mb-4">
-        <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+        <div class="p-2 bg-teal-50 text-teal-600 rounded-xl">
           <i data-lucide="book-open" class="w-6 h-6"></i>
         </div>
         <div>
-          <h3 class="text-lg font-bold text-slate-900">Agendar Aula</h3>
-          <p class="text-xs text-slate-400">Personalize o conteúdo da sua próxima aula prática.</p>
+          <h3 class="text-lg font-bold text-slate-900">Selecione o Modelo de Aula</h3>
+          <p class="text-xs text-slate-400">Qual aula você gostaria de realizar com o instrutor?</p>
         </div>
       </div>
       
       <div class="space-y-4">
         <div>
-          <label for="select-modelo-aula" class="block text-sm font-bold text-slate-700 mb-1">Qual aula gostaria de ter?</label>
-          <select id="select-modelo-aula" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
-            <!-- Populado via buscarModelosDeAula -->
+          <label for="select-modelo-aula" class="block text-sm font-bold text-slate-700 mb-1">Modelo de Aula Prática</label>
+          <select id="select-modelo-aula" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#f26522] transition">
+            <!-- Populados dinamicamente via buscarModelosDeAula -->
           </select>
         </div>
         <p class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100 italic">
@@ -90,17 +141,17 @@
 
       <div class="flex justify-end gap-3 mt-6">
         <button id="btn-cancelar-selecao" class="px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors">Cancelar</button>
-        <button id="btn-confirmar-selecao" class="px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-lg transition-colors">Confirmar Agendamento</button>
+        <button id="btn-confirmar-selecao" class="px-4 py-2 text-sm font-bold text-white bg-[#f26522] hover:bg-[#d94f10] rounded-xl shadow-lg transition-colors">Confirmar Agendamento</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL DE VISUALIZAÇÃO DE AVALIAÇÃO DETALHADA (Aluno & Instrutor) -->
+  <!-- MODAL DE VISUALIZAÇÃO DE AVALIAÇÃO DETALHADA -->
   <div id="modal-avaliacao-detalhada" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
     <div class="bg-white rounded-2xl shadow-xl max-w-5xl w-full p-6 m-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col">
       <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
         <div class="flex items-center gap-3">
-          <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+          <div class="p-2 bg-teal-50 text-teal-600 rounded-xl">
             <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
           </div>
           <div>
@@ -151,7 +202,7 @@
       <div class="mt-6 border-t pt-4 bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
         <div class="flex justify-between items-center">
           <span class="text-sm font-bold text-slate-700">Feedback Final & Observações</span>
-          <span id="detalhes-nota-geral" class="text-sm font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">Nota Geral: --</span>
+          <span id="detalhes-nota-geral" class="text-sm font-extrabold text-[#f26522] bg-orange-50 px-2.5 py-1 rounded-lg">Nota Geral: --</span>
         </div>
         <p id="detalhes-feedback-texto" class="text-xs text-slate-600 italic">--</p>
       </div>
@@ -163,7 +214,7 @@
     <div class="bg-white rounded-2xl shadow-xl max-w-5xl w-full p-6 m-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col">
       <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
         <div class="flex items-center gap-3">
-          <div class="p-2 bg-sky-50 text-sky-600 rounded-xl">
+          <div class="p-2 bg-teal-50 text-teal-600 rounded-xl">
             <i data-lucide="clipboard-list" class="w-6 h-6"></i>
           </div>
           <div>
@@ -185,7 +236,7 @@
             <thead>
               <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
                 <th class="p-2 font-bold border-r border-slate-200 w-1/4">Categoria</th>
-                <th class="p-2 font-bold border-r border-slate-200 w-1/2">Conteúdo Pedagógico</th>
+                <th class="p-2 font-bold border-r border-slate-200 w-1/2">Conteúdo Pedagogico</th>
                 <th class="p-2 font-bold border-r border-slate-200 text-center">Insuficiente</th>
                 <th class="p-2 font-bold border-r border-slate-200 text-center">Regular</th>
                 <th class="p-2 font-bold border-r border-slate-200 text-center">Bom</th>
@@ -193,7 +244,7 @@
               </tr>
             </thead>
             <tbody id="preencher-pedagogico-corpo" class="divide-y divide-slate-200">
-              <!-- Injetado dinamicamente com base nas colunas preenchidas na aba Avaliação -->
+              <!-- Injetado dinamicamente -->
             </tbody>
           </table>
 
@@ -226,36 +277,42 @@
           <div class="md:col-span-2">
             <label for="campo-feedback-final" class="block text-sm font-bold text-slate-700 mb-1">Observações / Feedback Geral do Instrutor</label>
             <textarea id="campo-feedback-final" rows="2" required placeholder="Digite os pontos fortes e de melhoria do aluno..."
-              class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 transition text-sm"></textarea>
+              class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#f26522] transition text-sm"></textarea>
           </div>
         </div>
 
         <div class="flex justify-end gap-3 border-t pt-4">
           <button type="button" onclick="fecharModalPreencherAvaliacao()" class="px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50 rounded-xl transition">Cancelar</button>
-          <button type="submit" id="btn-salvar-form-avaliacao" class="px-5 py-2 text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-lg transition">Finalizar e Registrar Aula</button>
+          <button type="submit" id="btn-salvar-form-avaliacao" class="px-5 py-2 text-sm font-bold text-white bg-[#f26522] hover:bg-[#d94f10] rounded-xl shadow-lg transition">Finalizar e Registrar Aula</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- TELA DE LOGIN DUPLA -->
-  <div id="tela-login" class="flex-1 flex flex-col justify-center items-center px-4 py-12 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-slate-100 relative overflow-hidden">
+  <div id="tela-login" class="flex-1 flex flex-col justify-center items-center px-4 py-12 sm:px-6 lg:px-8 bg-gradient-to-tr from-[#022b26] via-[#05483f] to-[#0d6c60]">
+    <div class="max-w-md w-full space-y-8 glass-card p-8 rounded-3xl shadow-2xl relative overflow-hidden">
+      
+      <div class="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full filter blur-3xl -mr-20 -mt-20"></div>
       
       <div class="relative text-center">
-        <div class="mx-auto h-16 w-16 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
-          <i data-lucide="graduation-cap" class="h-9 w-9 text-white"></i>
+        <!-- Logo Principal -->
+        <div class="mx-auto flex justify-center pb-4">
+          <img src="IMAG PREVIATREINAMENTOS.png" alt="Previa Treinamentos" class="h-16 object-contain" 
+               onerror="this.style.display='none'; document.getElementById('logo-fallback-login').classList.remove('hidden')">
+          <div id="logo-fallback-login" class="hidden text-3xl font-extrabold text-white tracking-widest">
+            PREV<span class="text-[#f26522]">I</span>A
+          </div>
         </div>
-        <h2 class="mt-6 text-3xl font-extrabold text-slate-950">Portal Prévia</h2>
-        <p class="mt-2 text-sm text-slate-500 font-medium">Selecione seu perfil abaixo para acessar o sistema</p>
+        <p class="text-teal-100 text-sm font-medium">Selecione seu perfil abaixo para acessar o sistema</p>
       </div>
 
-      <!-- Seletor de Perfil -->
-      <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
-        <button id="perfil-aluno" onclick="mudarPerfilLogin('aluno')" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition bg-white text-slate-950 shadow-sm">
+      <!-- Seletor de Perfil Aluno / Instrutor -->
+      <div class="bg-[#022320] p-1 rounded-2xl flex gap-1 border border-teal-800/50">
+        <button id="perfil-aluno" onclick="mudarPerfilLogin('aluno')" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition bg-[#f26522] text-white shadow-md">
           Sou Aluno
         </button>
-        <button id="perfil-instrutor" onclick="mudarPerfilLogin('instrutor')" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition text-slate-500 hover:text-slate-800">
+        <button id="perfil-instrutor" onclick="mudarPerfilLogin('instrutor')" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition text-teal-300 hover:text-white">
           Sou Instrutor
         </button>
       </div>
@@ -265,66 +322,72 @@
         
         <div class="space-y-4">
           <div>
-            <label for="login-cpf" class="block text-sm font-semibold text-slate-700">CPF do Usuário</label>
-            <div class="mt-1 relative rounded-md shadow-sm">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <label for="login-cpf" class="block text-xs font-bold text-teal-100 uppercase tracking-wider">CPF do Usuário</label>
+            <div class="mt-1.5 relative rounded-md shadow-sm">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-teal-600">
                 <i data-lucide="user" class="h-5 w-5"></i>
               </div>
               <input id="login-cpf" name="cpf" type="text" required maxlength="14" placeholder="000.000.000-00" oninput="mascararCPF(this)"
-                class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-slate-900 sm:text-sm transition">
+                class="block w-full pl-10 pr-3 py-3 glass-input rounded-xl focus:outline-none sm:text-sm transition">
             </div>
           </div>
           <div>
-            <label for="login-senha" class="block text-sm font-semibold text-slate-700">Senha de Acesso</label>
-            <div class="mt-1 relative rounded-md shadow-sm">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <div class="flex justify-between items-center">
+              <label for="login-senha" class="block text-xs font-bold text-teal-100 uppercase tracking-wider">Senha de Acesso</label>
+            </div>
+            <div class="mt-1.5 relative rounded-md shadow-sm">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-teal-600">
                 <i data-lucide="lock" class="h-5 w-5"></i>
               </div>
               <input id="login-senha" name="senha" type="password" required placeholder="Digite sua senha"
-                class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-slate-900 sm:text-sm transition">
+                class="block w-full pl-10 pr-3 py-3 glass-input rounded-xl focus:outline-none sm:text-sm transition">
             </div>
-            <p id="login-dica" class="mt-1.5 text-xs text-slate-400">Dica: Por padrão, a sua senha são os 4 primeiros dígitos do seu CPF.</p>
+            <p id="login-dica" class="mt-2 text-[11px] text-teal-200/70">Dica: Por padrão, a sua senha são os 4 primeiros dígitos do seu CPF.</p>
           </div>
         </div>
 
         <div>
           <button type="submit" id="botao-login"
-            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-lg shadow-indigo-100 transition-all duration-150">
+            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-[#f26522] hover:bg-[#d94f10] active:scale-[0.98] focus:outline-none shadow-lg shadow-orange-950/20 transition-all duration-150">
             <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <i data-lucide="arrow-right-to-line" class="h-5 w-5 text-sky-200 group-hover:text-white transition"></i>
+              <i data-lucide="arrow-right-to-line" class="h-5 w-5 text-orange-200 group-hover:text-white transition"></i>
             </span>
             Acessar o Painel
           </button>
         </div>
       </form>
+      
+      <div class="text-center text-[10px] text-teal-300/40 pt-4 border-t border-teal-900/40">
+        © 2026 Previa Treinamentos — Powered by IntelliCreate
+      </div>
     </div>
   </div>
 
   <!-- PORTAL PRINCIPAL (DASHBOARD) -->
   <div id="portal-dashboard" class="hidden flex-1 flex flex-col md:flex-row min-h-screen">
     
-    <!-- BARRA LATERAL (Sidebar) -->
-    <aside class="w-full md:w-64 bg-slate-900 text-white flex flex-col border-r border-slate-800">
-      <div class="p-6 border-b border-slate-800 flex items-center space-x-3">
-        <div class="h-10 w-10 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg shadow-sky-500/20">
-          <i data-lucide="graduation-cap" class="h-6 w-6 text-white"></i>
-        </div>
-        <div>
-          <h1 class="font-bold text-base leading-none">Prévia</h1>
-          <span id="sidebar-subtitulo" class="text-xs text-slate-400">Portal do Aluno</span>
+    <!-- BARRA LATERAL (Sidebar - Mantido escuro para manter elegância e contraste de marca) -->
+    <aside class="w-full md:w-64 bg-[#022320] text-white flex flex-col border-r border-[#073d37]">
+      <div class="p-6 border-b border-[#073d37] flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <img src="IMAG PREVIATREINAMENTOS.png" alt="Previa" class="h-10 object-contain" 
+               onerror="this.style.display='none'; document.getElementById('logo-fallback-sidebar').classList.remove('hidden')">
+          <div id="logo-fallback-sidebar" class="hidden text-xl font-black text-white">
+            PREV<span class="text-[#f26522]">I</span>A
+          </div>
         </div>
       </div>
       
       <!-- Informações Rápidas do Usuário Logado -->
-      <div class="p-4 mx-4 my-6 bg-slate-800/50 rounded-xl border border-slate-800">
+      <div class="p-4 mx-4 my-6 bg-[#042e2a] rounded-2xl border border-teal-900/50">
         <div class="flex items-center space-x-3">
-          <div class="h-10 w-10 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center font-bold" id="aluno-iniciais">
+          <div class="h-10 w-10 bg-[#f26522]/10 text-[#f26522] rounded-full flex items-center justify-center font-bold border border-[#f26522]/20" id="aluno-iniciais">
             --
           </div>
           <div class="overflow-hidden">
-            <h3 class="text-sm font-semibold text-slate-200 truncate" id="aluno-nome">Carregando...</h3>
-            <span class="text-xs text-sky-400 flex items-center mt-0.5" id="sidebar-role-badge">
-              <i data-lucide="award" class="h-3.5 w-3.5 mr-1 flex-shrink-0"></i> Ativo
+            <h3 class="text-xs font-bold text-teal-50 truncate" id="aluno-nome">Carregando...</h3>
+            <span class="text-[10px] text-teal-300 flex items-center mt-0.5" id="sidebar-role-badge">
+              <i data-lucide="award" class="h-3 w-3 mr-1 flex-shrink-0 text-[#f26522]"></i> Ativo
             </span>
           </div>
         </div>
@@ -333,17 +396,17 @@
       <!-- Menu de Navegação do ALUNO -->
       <nav id="menu-aluno" class="flex-1 px-4 space-y-1.5">
         <button onclick="alternarAba('inicio')" id="btn-menu-inicio"
-          class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold bg-slate-800 text-white transition-all duration-150">
+          class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold bg-[#f26522] text-white transition-all duration-150">
           <i data-lucide="layout-dashboard" class="h-5 w-5"></i>
-          <span>Relatório Geral</span>
+          <span>Relatorio Geral</span>
         </button>
         <button onclick="alternarAba('agendar')" id="btn-menu-agendar"
-          class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 transition-all duration-150">
+          class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold text-teal-300 hover:bg-[#042e2a]/50 hover:text-white transition-all duration-150">
           <i data-lucide="calendar-plus" class="h-5 w-5"></i>
           <span>Agendar Aula</span>
         </button>
         <button onclick="alternarAba('historico')" id="btn-menu-historico"
-          class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 transition-all duration-150">
+          class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold text-teal-300 hover:bg-[#042e2a]/50 hover:text-white transition-all duration-150">
           <i data-lucide="history" class="h-5 w-5"></i>
           <span>Histórico & Notas</span>
         </button>
@@ -352,40 +415,40 @@
       <!-- Menu de Navegação do INSTRUTOR -->
       <nav id="menu-instrutor" class="hidden flex-1 px-4 space-y-1.5">
         <button onclick="alternarAba('agenda-instrutor')" id="btn-menu-agenda-instrutor"
-          class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold bg-slate-800 text-white transition-all duration-150">
+          class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold bg-[#f26522] text-white transition-all duration-150">
           <i data-lucide="calendar" class="h-5 w-5"></i>
           <span>Minha Agenda</span>
         </button>
       </nav>
 
       <!-- Rodapé / Logout -->
-      <div class="p-4 border-t border-slate-800">
+      <div class="p-4 border-t border-[#073d37]">
         <button onclick="fazerLogout()"
-          class="flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all duration-150">
+          class="flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all duration-150">
           <i data-lucide="log-out" class="h-5 w-5"></i>
-          <span>Sair da Conta</span>
+          <span>Sair do Sistema</span>
         </button>
       </div>
     </aside>
 
     <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
-    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto max-h-screen">
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto max-h-screen bg-slate-50">
       
       <!-- Cabeçalho Superior -->
       <header class="bg-white border-b border-slate-100 py-4 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-40">
         <div class="flex items-center space-x-4">
-          <h2 id="titulo-secao-portal" class="text-xl font-bold text-slate-900">Relatório Geral</h2>
+          <h2 id="titulo-secao-portal" class="text-lg font-extrabold text-slate-900 uppercase tracking-wide">Relatorio Geral</h2>
         </div>
         <div class="flex items-center space-x-4">
           <div class="hidden sm:flex flex-col items-end text-right" id="header-instrutor-box">
-            <span class="text-xs text-slate-400 font-medium">Instrutor Vinculado:</span>
-            <span class="text-sm font-bold text-indigo-600" id="aluno-instrutor">Não vinculado</span>
+            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Instrutor Vinculado</span>
+            <span class="text-sm font-extrabold text-[#0d6c60]" id="aluno-instrutor">Não vinculado</span>
           </div>
           <div class="h-8 w-px bg-slate-200 hidden sm:block"></div>
           <div class="flex items-center space-x-2">
-            <span id="badge-status-conexao" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-              <span class="w-1.5 h-1.5 mr-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-              Conectado ao Servidor
+            <span id="badge-status-conexao" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-100">
+              <span class="w-1.5 h-1.5 mr-1.5 bg-teal-500 rounded-full animate-pulse"></span>
+              Servidor Conectado
             </span>
           </div>
         </div>
@@ -396,44 +459,45 @@
 
         <!-- ABA 1: RELATÓRIO GERAL (DASHBOARD ALUNO) -->
         <section id="secao-inicio" class="space-y-6">
-          <div class="bg-gradient-to-r from-sky-500 to-indigo-600 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden shadow-lg shadow-indigo-100">
-            <div class="absolute right-0 top-0 transform translate-x-12 -translate-y-12 w-64 h-64 bg-white/10 rounded-full pointer-events-none"></div>
+          <!-- Banner com gradiente suave e claro de teal (Muito mais leve para os olhos!) -->
+          <div class="bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100/80 rounded-3xl p-6 sm:p-8 text-teal-950 relative overflow-hidden shadow-sm">
+            <div class="absolute right-0 top-0 transform translate-x-12 -translate-y-12 w-64 h-64 bg-teal-200/10 rounded-full pointer-events-none"></div>
             <div class="relative z-10 space-y-2">
-              <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-wider">Painel do Aluno</span>
-              <h2 class="text-2xl sm:text-3xl font-extrabold" id="boas-vindas-nome">Olá!</h2>
-              <p class="text-sky-100 max-w-lg text-sm sm:text-base">Gerencie suas aulas práticas, verifique seus agendamentos e consulte seu Relatório Geral de desempenho em tempo real.</p>
+              <span class="inline-block px-3 py-1 bg-orange-50 text-[#f26522] border border-orange-100 rounded-full text-[10px] font-bold uppercase tracking-wider">Previa Treinamentos</span>
+              <h2 class="text-xl sm:text-2xl font-extrabold text-[#022b26]" id="boas-vindas-nome">Olá!</h2>
+              <p class="text-teal-800 max-w-lg text-xs sm:text-sm leading-relaxed">Gerencie suas aulas práticas, verifique seus agendamentos e consulte seu Relatorio Geral de desempenho em tempo real.</p>
             </div>
           </div>
 
-          <!-- Cards de Métricas e Informações Cadastrais -->
+          <!-- Cards de Métricas e Informações Cadastrais (Clean e Elegante) -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
-              <div class="h-12 w-12 bg-sky-100 rounded-xl flex items-center justify-center text-sky-600 flex-shrink-0">
-                <i data-lucide="smartphone" class="h-6 w-6"></i>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+              <div class="h-11 w-11 bg-teal-50 rounded-xl flex items-center justify-center text-[#0d6c60] flex-shrink-0">
+                <i data-lucide="smartphone" class="h-5 w-5"></i>
               </div>
               <div>
-                <span class="text-xs text-slate-400 font-semibold block">Telefone</span>
-                <span id="card-telefone" class="text-base font-bold text-slate-900">--</span>
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Telefone</span>
+                <span id="card-telefone" class="text-sm font-bold text-slate-900">--</span>
               </div>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
-              <div class="h-12 w-12 bg-violet-100 rounded-xl flex items-center justify-center text-violet-600 flex-shrink-0">
-                <i data-lucide="mail" class="h-6 w-6"></i>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+              <div class="h-11 w-11 bg-teal-50 rounded-xl flex items-center justify-center text-[#0d6c60] flex-shrink-0">
+                <i data-lucide="mail" class="h-5 w-5"></i>
               </div>
               <div class="overflow-hidden">
-                <span class="text-xs text-slate-400 font-semibold block">E-mail Cadastrado</span>
-                <span id="card-email" class="text-base font-bold text-slate-900 block truncate">--</span>
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">E-mail Cadastrado</span>
+                <span id="card-email" class="text-sm font-bold text-slate-900 block truncate">--</span>
               </div>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
-              <div class="h-12 w-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 flex-shrink-0">
-                <i data-lucide="map-pin" class="h-6 w-6"></i>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+              <div class="h-11 w-11 bg-teal-50 rounded-xl flex items-center justify-center text-[#0d6c60] flex-shrink-0">
+                <i data-lucide="map-pin" class="h-5 w-5"></i>
               </div>
               <div class="overflow-hidden">
-                <span class="text-xs text-slate-400 font-semibold block">Endereço Registrado</span>
-                <span id="card-endereco" class="text-base font-bold text-slate-900 block truncate">--</span>
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Endereço Registrado</span>
+                <span id="card-endereco" class="text-sm font-bold text-slate-900 block truncate">--</span>
               </div>
             </div>
           </div>
@@ -443,29 +507,29 @@
         <section id="secao-agendar" class="hidden space-y-6">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h3 class="text-xl font-bold text-slate-900">Aulas Livres & Disponíveis</h3>
-              <p class="text-sm text-slate-400">Escolha abaixo o melhor horário para realizar sua aula prática com o seu instrutor.</p>
+              <h3 class="text-base font-bold text-slate-900 uppercase tracking-wider">Aulas Livres & Disponíveis</h3>
+              <p class="text-xs text-slate-400">Escolha abaixo o melhor horário para realizar sua aula prática com o seu instrutor.</p>
             </div>
-            <button onclick="carregarAulasDisponiveis()" class="inline-flex items-center px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
-              <i data-lucide="rotate-cw" class="h-4 w-4 mr-2"></i>
+            <button onclick="carregarAulasDisponiveis()" class="inline-flex items-center px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
+              <i data-lucide="rotate-cw" class="h-3.5 w-3.5 mr-2"></i>
               Atualizar Lista
             </button>
           </div>
 
           <!-- Loader -->
           <div id="loader-agendar" class="bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-3">
-            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-            <span class="text-slate-500 font-medium text-sm">Buscando aulas com seu instrutor...</span>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0d6c60]"></div>
+            <span class="text-slate-500 font-medium text-xs">Buscando aulas com seu instrutor...</span>
           </div>
 
           <!-- Vazio -->
           <div id="vazio-agendar" class="hidden bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-4">
-            <div class="h-16 w-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center">
-              <i data-lucide="calendar" class="h-8 w-8"></i>
+            <div class="h-12 w-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center">
+              <i data-lucide="calendar" class="h-6 w-6"></i>
             </div>
             <div>
-              <h4 class="text-lg font-bold text-slate-900">Sem horários livres no momento</h4>
-              <p class="text-sm text-slate-400 mt-1">Todas as vagas com o seu instrutor já foram reservadas.</p>
+              <h4 class="text-sm font-bold text-slate-900">Sem horários livres no momento</h4>
+              <p class="text-xs text-slate-400 mt-1">Todas as vagas com o seu instrutor já foram reservadas.</p>
             </div>
           </div>
 
@@ -479,62 +543,62 @@
         <section id="secao-historico" class="hidden space-y-6">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h3 class="text-xl font-bold text-slate-900">Histórico de Aulas</h3>
-              <p class="text-sm text-slate-400">Consulte abaixo as aulas marcadas, notas de desempenho e feedbacks detalhados.</p>
+              <h3 class="text-base font-bold text-slate-900 uppercase tracking-wider">Histórico de Aulas</h3>
+              <p class="text-xs text-slate-400">Consulte abaixo as aulas marcadas, notas de desempenho e feedbacks detalhados.</p>
             </div>
-            <button onclick="carregarHistoricoDeAulas()" class="inline-flex items-center px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
-              <i data-lucide="rotate-cw" class="h-4 w-4 mr-2"></i>
+            <button onclick="carregarHistoricoDeAulas()" class="inline-flex items-center px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
+              <i data-lucide="rotate-cw" class="h-3.5 w-3.5 mr-2"></i>
               Atualizar Histórico
             </button>
           </div>
 
           <!-- Métricas -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-              <span class="text-xs text-slate-400 font-semibold uppercase block">Aulas Práticas Totais</span>
-              <span id="total-aulas-num" class="text-3xl font-extrabold text-slate-900 block mt-2">--</span>
+            <div class="bg-white p-5 rounded-2xl border border-slate-100">
+              <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Aulas Práticas Totais</span>
+              <span id="total-aulas-num" class="text-2xl font-extrabold text-slate-900 block mt-1">--</span>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-              <span class="text-xs text-slate-400 font-semibold uppercase block">Aulas Concluídas</span>
-              <span id="total-aulas-concluidas" class="text-3xl font-extrabold text-emerald-600 block mt-2">--</span>
+            <div class="bg-white p-5 rounded-2xl border border-slate-100">
+              <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Aulas Concluídas</span>
+              <span id="total-aulas-concluidas" class="text-2xl font-extrabold text-emerald-600 block mt-1">--</span>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-              <span class="text-xs text-slate-400 font-semibold uppercase block">Média Geral</span>
-              <span id="media-notas" class="text-3xl font-extrabold text-sky-600 block mt-2">--</span>
+            <div class="bg-white p-5 rounded-2xl border border-slate-100">
+              <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Média Geral</span>
+              <span id="media-notas" class="text-2xl font-extrabold text-[#f26522] block mt-1">--</span>
             </div>
           </div>
 
           <!-- Loader Histórico -->
           <div id="loader-historico" class="bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-3">
-            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-            <span class="text-slate-500 font-medium text-sm">Carregando histórico acadêmico...</span>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0d6c60]"></div>
+            <span class="text-slate-500 font-medium text-xs">Carregando histórico acadêmico...</span>
           </div>
 
           <!-- Vazio Histórico -->
           <div id="vazio-historico" class="hidden bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-4">
-            <div class="h-16 w-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center">
-              <i data-lucide="folder-open" class="h-8 w-8"></i>
+            <div class="h-12 w-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center">
+              <i data-lucide="folder-open" class="h-6 w-6"></i>
             </div>
             <div>
-              <h4 class="text-lg font-bold text-slate-900">Histórico Vazio</h4>
-              <p class="text-sm text-slate-400 mt-1">Você ainda não agendou nenhuma aula de direção prática.</p>
+              <h4 class="text-sm font-bold text-slate-900">Histórico Vazio</h4>
+              <p class="text-xs text-slate-400 mt-1">Você ainda não agendou nenhuma aula de direção prática.</p>
             </div>
           </div>
 
           <!-- Tabela Desktop -->
-          <div id="card-tabela-historico" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          <div id="card-tabela-historico" class="hidden bg-white rounded-2xl border border-slate-100 overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50 border-b border-slate-100">
-                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Aula</th>
-                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Data & Horário</th>
-                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Instrutor / Local</th>
-                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Status / Nota</th>
-                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Ações / Detalhes</th>
+                    <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Aula</th>
+                    <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Data & Horário</th>
+                    <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Instrutor / Local</th>
+                    <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Status / Nota</th>
+                    <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Ações</th>
                   </tr>
                 </thead>
-                <tbody id="tabela-linhas-historico" class="divide-y divide-slate-100 text-sm text-slate-700">
+                <tbody id="tabela-linhas-historico" class="divide-y divide-slate-100 text-xs text-slate-700">
                   <!-- JS -->
                 </tbody>
               </table>
@@ -551,46 +615,46 @@
         <section id="secao-agenda-instrutor" class="hidden space-y-6">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h3 class="text-xl font-bold text-slate-900">Minha Agenda Prática</h3>
-              <p class="text-sm text-slate-400">Confira abaixo as suas aulas marcadas do dia e realize as avaliações técnicas.</p>
+              <h3 class="text-base font-bold text-slate-900 uppercase tracking-wider">Minha Agenda Prática</h3>
+              <p class="text-xs text-slate-400">Confira abaixo as suas aulas marcadas do dia e realize as avaliações técnicas.</p>
             </div>
-            <button onclick="carregarAgendaInstrutor()" class="inline-flex items-center px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
-              <i data-lucide="rotate-cw" class="h-4 w-4 mr-2"></i>
+            <button onclick="carregarAgendaInstrutor()" class="inline-flex items-center px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
+              <i data-lucide="rotate-cw" class="h-3.5 w-3.5 mr-2"></i>
               Atualizar Agenda
             </button>
           </div>
 
           <!-- Loader Instrutor -->
           <div id="loader-instrutor" class="bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-3">
-            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-            <span class="text-slate-500 font-medium text-sm">Carregando cronograma diário...</span>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0d6c60]"></div>
+            <span class="text-slate-500 font-medium text-xs">Carregando cronograma diário...</span>
           </div>
 
           <!-- Vazio Instrutor -->
           <div id="vazio-instrutor" class="hidden bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-4">
-            <div class="h-16 w-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center">
-              <i data-lucide="calendar-days" class="h-8 w-8"></i>
+            <div class="h-12 w-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center">
+              <i data-lucide="calendar-days" class="h-6 w-6"></i>
             </div>
             <div>
-              <h4 class="text-lg font-bold text-slate-900">Nenhum agendamento ativo</h4>
-              <p class="text-sm text-slate-400 mt-1">Você não possui alunos agendados para os seus horários.</p>
+              <h4 class="text-sm font-bold text-slate-900">Nenhum agendamento ativo</h4>
+              <p class="text-xs text-slate-400 mt-1">Você não possui alunos agendados para os seus horários.</p>
             </div>
           </div>
 
           <!-- Tabela de Alunos do Instrutor -->
-          <div id="card-tabela-instrutor" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          <div id="card-tabela-instrutor" class="hidden bg-white rounded-2xl border border-slate-100 overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50 border-b border-slate-100">
-                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Estudante</th>
-                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Aula / Tipo</th>
-                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Data / Horário</th>
-                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Status Acadêmico</th>
-                    <th class="p-4 text-xs font-bold uppercase text-slate-500">Ações de Avaliação</th>
+                    <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Estudante</th>
+                    <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Aula / Tipo</th>
+                    <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Data / Horário</th>
+                    <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Status Acadêmico</th>
+                    <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Ações</th>
                   </tr>
                 </thead>
-                <tbody id="tabela-linhas-instrutor" class="divide-y divide-slate-100 text-sm text-slate-700">
+                <tbody id="tabela-linhas-instrutor" class="divide-y divide-slate-100 text-xs text-slate-700">
                   <!-- JS -->
                 </tbody>
               </table>
@@ -639,12 +703,12 @@
       const btnInstrutor = document.getElementById("perfil-instrutor");
       
       if (perfil === "aluno") {
-        btnAluno.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition bg-white text-slate-950 shadow-sm";
-        btnInstrutor.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition text-slate-500 hover:text-slate-800";
+        btnAluno.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition bg-[#f26522] text-white shadow-md";
+        btnInstrutor.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition text-teal-300 hover:text-white";
         document.getElementById("login-dica").classList.remove("hidden");
       } else {
-        btnInstrutor.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition bg-white text-slate-950 shadow-sm";
-        btnAluno.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition text-slate-500 hover:text-slate-800";
+        btnInstrutor.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition bg-[#f26522] text-white shadow-md";
+        btnAluno.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition text-teal-300 hover:text-white";
         document.getElementById("login-dica").classList.add("hidden");
       }
     }
@@ -665,8 +729,8 @@
         corpo.className = "bg-white border-l-4 border-rose-500 shadow-xl rounded-r-lg p-4 flex items-start space-x-3";
         icone.innerHTML = `<i data-lucide="alert-triangle" class="h-5 w-5 text-rose-500"></i>`;
       } else {
-        corpo.className = "bg-white border-l-4 border-indigo-500 shadow-xl rounded-r-lg p-4 flex items-start space-x-3";
-        icone.innerHTML = `<i data-lucide="info" class="h-5 w-5 text-indigo-500"></i>`;
+        corpo.className = "bg-white border-l-4 border-[#f26522] shadow-xl rounded-r-lg p-4 flex items-start space-x-3";
+        icone.innerHTML = `<i data-lucide="info" class="h-5 w-5 text-[#f26522]"></i>`;
       }
 
       lucide.createIcons();
@@ -779,7 +843,7 @@
         botao.disabled = false;
         botao.innerHTML = `
           <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-            <i data-lucide="arrow-right-to-line" class="h-5 w-5 text-sky-200"></i>
+            <i data-lucide="arrow-right-to-line" class="h-5 w-5 text-orange-200"></i>
           </span>
           Acessar o Painel
         `;
@@ -792,8 +856,8 @@
       document.getElementById("tela-login").classList.add("hidden");
       document.getElementById("portal-dashboard").classList.remove("hidden");
       
-      document.getElementById("sidebar-subtitulo").textContent = "Portal do Aluno";
-      document.getElementById("sidebar-role-badge").innerHTML = `<i data-lucide="award" class="h-3.5 w-3.5 mr-1 flex-shrink-0"></i> Aluno Ativo`;
+      document.getElementById("sidebar-subtitulo") ? document.getElementById("sidebar-subtitulo").textContent = "Portal do Aluno" : null;
+      document.getElementById("sidebar-role-badge").innerHTML = `<i data-lucide="award" class="h-3.5 w-3.5 mr-1 flex-shrink-0 text-[#f26522]"></i> Aluno Ativo`;
       document.getElementById("menu-aluno").classList.remove("hidden");
       document.getElementById("menu-instrutor").classList.add("hidden");
       document.getElementById("header-instrutor-box").classList.remove("hidden");
@@ -823,8 +887,8 @@
       document.getElementById("tela-login").classList.add("hidden");
       document.getElementById("portal-dashboard").classList.remove("hidden");
       
-      document.getElementById("sidebar-subtitulo").textContent = "Painel do Instrutor";
-      document.getElementById("sidebar-role-badge").innerHTML = `<i data-lucide="user-cog" class="h-3.5 w-3.5 mr-1 flex-shrink-0"></i> Instrutor Credenciado`;
+      document.getElementById("sidebar-subtitulo") ? document.getElementById("sidebar-subtitulo").textContent = "Painel do Instrutor" : null;
+      document.getElementById("sidebar-role-badge").innerHTML = `<i data-lucide="user-cog" class="h-3.5 w-3.5 mr-1 flex-shrink-0 text-[#f26522]"></i> Instrutor`;
       document.getElementById("menu-aluno").classList.add("hidden");
       document.getElementById("menu-instrutor").classList.remove("hidden");
       document.getElementById("header-instrutor-box").classList.add("hidden");
@@ -854,16 +918,16 @@
         if (elemento) {
           if (secao === abaId) {
             elemento.classList.remove("hidden");
-            if (btnMenu) btnMenu.className = "menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold bg-slate-800 text-white transition-all duration-150";
+            if (btnMenu) btnMenu.className = "menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold bg-[#f26522] text-white transition-all duration-150";
           } else {
             elemento.classList.add("hidden");
-            if (btnMenu) btnMenu.className = "menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 transition-all duration-150";
+            if (btnMenu) btnMenu.className = "menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold text-teal-300 hover:bg-[#042e2a]/50 hover:text-white transition-all duration-150";
           }
         }
       });
 
       const titulos = { 
-        inicio: "Relatório Geral", 
+        inicio: "Relatorio Geral", 
         agendar: "Agendar Nova Aula Prática", 
         historico: "Meu Histórico de Aulas",
         "agenda-instrutor": "Agenda de Direção Prática"
@@ -912,17 +976,17 @@
               <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4">
                 <div class="space-y-3">
                   <div class="flex items-center justify-between">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-100">
                       Disponível
                     </span>
-                    <span class="text-xs text-slate-400 font-medium flex items-center">
+                    <span class="text-[10px] text-slate-400 font-bold flex items-center uppercase tracking-wide">
                       <i data-lucide="clock" class="h-3.5 w-3.5 mr-1 text-slate-400"></i> ${aula.inicio} até ${aula.fim}
                     </span>
                   </div>
                   <div>
-                    <h4 class="font-bold text-slate-900 text-base line-clamp-2">${aula.titulo}</h4>
-                    <p class="text-xs text-indigo-600 font-bold mt-1 flex items-center">
-                      <i data-lucide="user-cog" class="h-3.5 w-3.5 mr-1 text-indigo-500"></i> Prof. ${aula.instrutor}
+                    <h4 class="font-bold text-slate-900 text-sm line-clamp-2">${aula.titulo}</h4>
+                    <p class="text-xs text-[#0d6c60] font-bold mt-1 flex items-center">
+                      <i data-lucide="user-cog" class="h-3.5 w-3.5 mr-1 text-teal-500"></i> Prof. ${aula.instrutor}
                     </p>
                   </div>
                   <div class="border-t border-slate-100 pt-3 space-y-1.5 text-xs text-slate-500">
@@ -936,8 +1000,8 @@
                     </div>
                   </div>
                 </div>
-                <button onclick="abrirModalSelecaoAula('${aula.id}', '${aula.titulo}', '${dataFormatada}', '${aula.inicio}')"
-                  class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white shadow-sm flex items-center justify-center space-x-2 transition">
+                <button onclick="abrirModalSelecaoAula('${aula.id}', '${aula.titulo}', '${dataFormatada}', '${aula.inicio}', '${aula.fim}', '${aula.local}', '${aula.instrutor}')"
+                  class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-[#f26522] hover:bg-[#d94f10] text-white shadow-sm flex items-center justify-center space-x-2 transition duration-150">
                   <i data-lucide="calendar-check" class="h-4 w-4"></i>
                   <span>Agendar Aula</span>
                 </button>
@@ -958,7 +1022,7 @@
     }
 
     // Abrir Modal de Seleção de Modelo de Aula
-    async function abrirModalSelecaoAula(aulaId, tituloOriginal, dataFormatada, inicio) {
+    async function abrirModalSelecaoAula(aulaId, tituloOriginal, dataFormatada, inicio, fim, local, instrutor) {
       const modal = document.getElementById("modal-selecao-aula");
       const btnConfirmar = document.getElementById("btn-confirmar-selecao");
       const btnCancelar = document.getElementById("btn-cancelar-selecao");
@@ -1006,12 +1070,12 @@
           return;
         }
         fecharModal();
-        realizarAgendamentoNaPlanilha(aulaId, modeloSelecionado, dataFormatada, inicio);
+        realizarAgendamentoNaPlanilha(aulaId, modeloSelecionado, dataFormatada, inicio, fim, local, instrutor);
       };
     }
 
-    // Gravar Agendamento Real
-    async function realizarAgendamentoNaPlanilha(aulaId, tituloAula, dataStr, horaStr) {
+    // Gravar Agendamento Real e apresentar modal de compartilhamento imediato
+    async function realizarAgendamentoNaPlanilha(aulaId, tituloAula, dataStr, horaStr, fimStr, localStr, instrutorStr) {
       mostrarNotificacao("Efetuando o seu agendamento no sistema...", "info");
 
       try {
@@ -1020,16 +1084,68 @@
         const resJSON = await resposta.json();
 
         if (resJSON.success) {
-          mostrarNotificacao(`Excelente! Aula "${tituloAula}" agendada com sucesso.`, "sucesso");
-          setTimeout(() => {
-            alternarAba("historico");
-          }, 1500);
+          mostrarNotificacao(`Excelente! Aula agendada com sucesso.`, "sucesso");
+          
+          // Abrir modal de sucesso com link de WhatsApp imediato
+          abrirModalSucessoAgendamento(tituloAula, dataStr, horaStr, fimStr, localStr, instrutorStr, resJSON.telefoneInstrutor);
         } else {
           mostrarNotificacao(resJSON.message || "Erro ao efetuar agendamento.", "erro");
         }
       } catch (err) {
         console.error("Falha ao salvar agendamento:", err);
         mostrarNotificacao("Erro de comunicação ao salvar agendamento.", "erro");
+      }
+    }
+
+    // Apresenta o Modal de Sucesso com opção direta para WhatsApp
+    function abrirModalSucessoAgendamento(titulo, data, inicio, fim, local, instrutor, telefoneInstrutor) {
+      const modal = document.getElementById("modal-sucesso-agendamento");
+      
+      document.getElementById("sucesso-aula-titulo").textContent = titulo;
+      document.getElementById("sucesso-aula-data").textContent = data;
+      document.getElementById("sucesso-aula-hora").textContent = `${inicio} às ${fim}`;
+      document.getElementById("sucesso-aula-instrutor").textContent = `Prof. ${instrutor}`;
+
+      const textWhats = `Olá! Seguem os detalhes do meu novo agendamento na Previa Treinamentos:\n\n` +
+        `🚗 Aula: *${titulo}*\n` +
+        `📆 Data: *${data}*\n` +
+        `⏰ Horário: *${inicio} às ${fim}*\n` +
+        `📍 Local: *${local || "Não especificado"}*\n` +
+        `👨‍🏫 Instrutor: *Prof. ${instrutor}*`;
+
+      // Garante a presença do DDI 55 (Brasil) para abrir a conversa diretamente no WhatsApp
+      let numeroLimpo = telefoneInstrutor ? String(telefoneInstrutor).replace(/\D/g, "") : "";
+      if (numeroLimpo.length === 11 || numeroLimpo.length === 10) {
+        numeroLimpo = "55" + numeroLimpo;
+      }
+
+      const linkWhats = `https://api.whatsapp.com/send?phone=${numeroLimpo}&text=${encodeURIComponent(textWhats)}`;
+
+      const btnWhats = document.getElementById("btn-sucesso-whats");
+      const btnFechar = document.getElementById("btn-sucesso-fechar");
+
+      btnWhats.onclick = () => {
+        window.open(linkWhats, "_blank");
+        fecharModalSucesso();
+      };
+
+      btnFechar.onclick = () => {
+        fecharModalSucesso();
+      };
+
+      modal.classList.remove("hidden");
+      setTimeout(() => {
+        modal.classList.remove("opacity-0");
+        modal.querySelector("div").classList.remove("scale-95");
+      }, 10);
+
+      function fecharModalSucesso() {
+        modal.classList.add("opacity-0");
+        modal.querySelector("div").classList.add("scale-95");
+        setTimeout(() => {
+          modal.classList.add("hidden");
+          alternarAba("historico");
+        }, 200);
       }
     }
 
@@ -1108,18 +1224,22 @@
                 `;
               }
             } else {
-              // Aula Concluída: Pode ver a ficha de avaliação técnica detalhada baseada em image_17c2f8.png
+              // Aula Concluída
               acaoHTML = `
                 <button onclick="obterEDetalharAvaliacao('${item.id}', '${item.titulo}', '${dataFormatada}', '${item.nota}', '${item.obs}', '${encodeURIComponent(item.detalhes)}')"
-                  class="px-3 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-xs font-bold rounded-lg border border-indigo-100 transition flex items-center gap-1">
-                  <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Ver Avaliação
+                  class="px-3 py-1 bg-teal-50 text-teal-700 hover:bg-teal-100 text-xs font-bold rounded-lg border border-teal-100 transition flex items-center gap-1">
+                  <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Ver Ficha
                 </button>
               `;
             }
 
-            const numeroWhats = item.telefoneInstrutor || "5511999999999";
+            // Normaliza e adiciona o DDI 55 para o link do WhatsApp no histórico de notas
+            let numeroWhats = item.telefoneInstrutor ? String(item.telefoneInstrutor).replace(/\D/g, "") : "";
+            if (numeroWhats.length === 11 || numeroWhats.length === 10) {
+              numeroWhats = "55" + numeroWhats;
+            }
 
-            const textoWhats = `Olá! Seguem os detalhes do meu agendamento na Prévia Treinamentos:\n\n` +
+            const textoWhats = `Olá! Seguem os detalhes do meu agendamento na Previa Treinamentos:\n\n` +
               `🚗 Aula: *${item.titulo}*\n` +
               `📆 Data: *${dataFormatada}*\n` +
               `⏰ Horário: *${item.inicio} às ${item.fim}*\n` +
@@ -1140,7 +1260,7 @@
                 <div class="text-xs text-slate-400 font-semibold">${item.inicio} às ${item.fim}</div>
               </td>
               <td class="p-4">
-                <div class="font-bold text-indigo-600 text-xs">Prof. ${item.instrutor}</div>
+                <div class="font-bold text-[#0d6c60] text-xs">Prof. ${item.instrutor}</div>
                 <div class="text-xs text-slate-400 mt-0.5">${item.local || 'Não especificado'}</div>
               </td>
               <td class="p-4 space-y-1">
@@ -1171,7 +1291,7 @@
                 </div>
                 <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                   <span>Local: <strong>${item.local || 'Sede'}</strong></span>
-                  <span class="text-indigo-600 font-bold">Prof. ${item.instrutor}</span>
+                  <span class="text-[#0d6c60] font-bold">Prof. ${item.instrutor}</span>
                 </div>
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Feedback Geral:</span>
@@ -1261,7 +1381,6 @@
       }
 
       try {
-        // Busca os critérios específicos filtrando as colunas vazias
         const response = await fetch(`${SCRIPT_URL_PLANILHA}?action=buscarQuestoesDeAula&titulo=${encodeURIComponent(titulo)}`);
         const criterios = await response.json();
 
@@ -1271,10 +1390,9 @@
           const item = itemObj.descricao;
           const letter = itemObj.colLetter;
           const categoria = obterCategoriaDoItem(item);
-          const valorSelecionado = detalhesObj[`pedagogico_${letter}`] || ""; // "insuficiente", "regular", "bom", "muitobom"
+          const valorSelecionado = detalhesObj[`pedagogico_${letter}`] || "";
           const tr = document.createElement("tr");
 
-          // Destaca em amarelo o item especial da Coluna W correspondente ao modelo de Trânsito Intenso da imagem_1a1f58.png
           if (letter === 'W') {
             tr.className = "bg-yellow-100 font-bold border-b";
           }
@@ -1292,7 +1410,7 @@
 
         // Preenche comportamental
         ITENS_COMPORTAMENTAIS.forEach((item, idx) => {
-          const valorSelecionado = detalhesObj[`comportamental_${idx}`] || ""; // "sim", "nao"
+          const valorSelecionado = detalhesObj[`comportamental_${idx}`] || "";
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td class="p-2 border-r border-slate-200">${item}</td>
@@ -1353,7 +1471,7 @@
               statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">Concluída (${parseFloat(aula.nota).toFixed(1)})</span>`;
               acaoBotao = `
                 <button onclick="obterEDetalharAvaliacao('${aula.id}', '${aula.titulo}', '${dataFormatada}', '${aula.nota}', '${aula.obs}', '${encodeURIComponent(aula.detalhes)}')"
-                  class="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-xs font-bold rounded-xl border border-indigo-100 transition flex items-center gap-1">
+                  class="px-3 py-1.5 bg-teal-50 text-teal-700 hover:bg-teal-100 text-xs font-bold rounded-xl border border-teal-100 transition flex items-center gap-1">
                   <i data-lucide="eye" class="w-3.5 h-3.5"></i> Ver Avaliação
                 </button>
               `;
@@ -1361,7 +1479,7 @@
               statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-100">Agendada</span>`;
               acaoBotao = `
                 <button onclick="abrirModalPreencherAvaliacao('${aula.id}', '${aula.alunoNome}', '${aula.titulo}')"
-                  class="px-4 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-lg shadow-sky-100 transition flex items-center gap-1.5">
+                  class="px-4 py-2 text-xs font-bold bg-[#f26522] hover:bg-[#d94f10] text-white rounded-xl shadow-lg shadow-orange-100 transition flex items-center gap-1.5">
                   <i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i> Iniciar Avaliação
                 </button>
               `;
@@ -1421,7 +1539,6 @@
       comportamentalCorpo.innerHTML = "";
 
       try {
-        // Busca os critérios ativos (ignora células vazias na linha do modelo correspondente!)
         const response = await fetch(`${SCRIPT_URL_PLANILHA}?action=buscarQuestoesDeAula&titulo=${encodeURIComponent(tituloAula)}`);
         const criterios = await response.json();
 
@@ -1433,7 +1550,6 @@
           const categoria = obterCategoriaDoItem(item);
           const tr = document.createElement("tr");
 
-          // Destaque em amarelo do item especial solicitado na imagem_1a1f58.png / image_17c2f8.png
           if (letter === 'W') {
             tr.className = "bg-yellow-100 font-bold border-b";
           }
@@ -1442,16 +1558,16 @@
             <td class="p-2 border-r border-slate-200">${categoria}</td>
             <td class="p-2 border-r border-slate-200">${item}</td>
             <td class="p-2 border-r border-slate-200 text-center">
-              <input type="radio" name="pedagogico_${letter}" value="insuficiente" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+              <input type="radio" name="pedagogico_${letter}" value="insuficiente" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-[#0d6c60] focus:ring-[#0d6c60]">
             </td>
             <td class="p-2 border-r border-slate-200 text-center">
-              <input type="radio" name="pedagogico_${letter}" value="regular" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+              <input type="radio" name="pedagogico_${letter}" value="regular" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-[#0d6c60] focus:ring-[#0d6c60]">
             </td>
             <td class="p-2 border-r border-slate-200 text-center">
-              <input type="radio" name="pedagogico_${letter}" value="bom" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+              <input type="radio" name="pedagogico_${letter}" value="bom" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-[#0d6c60] focus:ring-[#0d6c60]">
             </td>
             <td class="p-2 text-center">
-              <input type="radio" name="pedagogico_${letter}" value="muitobom" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+              <input type="radio" name="pedagogico_${letter}" value="muitobom" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-[#0d6c60] focus:ring-[#0d6c60]">
             </td>
           `;
           pedagogicoCorpo.appendChild(tr);
@@ -1463,10 +1579,10 @@
           tr.innerHTML = `
             <td class="p-2 border-r border-slate-200">${item}</td>
             <td class="p-2 border-r border-slate-200 text-center">
-              <input type="radio" name="comportamental_${idx}" value="sim" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+              <input type="radio" name="comportamental_${idx}" value="sim" required class="w-4 h-4 text-[#0d6c60] focus:ring-[#0d6c60]">
             </td>
             <td class="p-2 text-center">
-              <input type="radio" name="comportamental_${idx}" value="nao" required class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+              <input type="radio" name="comportamental_${idx}" value="nao" required class="w-4 h-4 text-[#0d6c60] focus:ring-[#0d6c60]">
             </td>
           `;
           comportamentalCorpo.appendChild(tr);
@@ -1533,7 +1649,6 @@
       let somaNotas = 0;
       let contadorNotas = 0;
 
-      // Coleta dinâmica com base nas letras das colunas que foram inseridas no formulário
       const radioCheckedList = document.querySelectorAll(`input[name^="pedagogico_"]:checked`);
       
       radioCheckedList.forEach(radio => {
@@ -1551,7 +1666,6 @@
 
       const notaCalculada = contadorNotas > 0 ? (somaNotas / contadorNotas).toFixed(1) : "10.0";
 
-      // Coleta os dados comportamentais Sim/Não
       ITENS_COMPORTAMENTAIS.forEach((_, cIdx) => {
         const selecionado = document.querySelector(`input[name="comportamental_${cIdx}"]:checked`);
         detalhesObj[`comportamental_${cIdx}`] = selecionado ? selecionado.value : "";
