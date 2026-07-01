@@ -22,7 +22,7 @@
       background: transparent;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #022b26;
+      background: #0d6c60;
       border-radius: 3px;
     }
     /* Estilo de Glassmorphism baseado na imagem de referência */
@@ -66,7 +66,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE CONFIRMAÇÃO CUSTOMIZADO (Substitui confirm do navegador) -->
+  <!-- MODAL DE CONFIRMAÇÃO CUSTOMIZADO -->
   <div id="modal-confirmacao" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
     <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 m-4 transform scale-95 transition-transform duration-200">
       <div class="flex items-center gap-3 mb-4">
@@ -209,7 +209,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE FORMULÁRIO DE AVALIAÇÃO (Apenas para o Instrutor - idêntico ao image_26c9bd.png) -->
+  <!-- MODAL DE FORMULÁRIO DE AVALIAÇÃO (Apenas para o Instrutor) -->
   <div id="modal-preencher-avaliacao" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
     <div class="bg-white rounded-2xl shadow-xl max-w-5xl w-full p-6 m-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col">
       <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
@@ -289,6 +289,60 @@
     </div>
   </div>
 
+  <!-- MODAL DE SAIBA MAIS SOBRE O INSTRUTOR (FOTO E RESUMO) -->
+  <div id="modal-saiba-mais-instrutor" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 m-4 transform scale-95 transition-transform duration-200 flex flex-col relative max-h-[85vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-start mb-4 border-b border-slate-100 pb-3">
+        <h3 class="text-base font-bold text-slate-900 uppercase tracking-wide">Saiba mais sobre o seu Instrutor</h3>
+        <button onclick="fecharModalSaibaMais()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <div class="flex flex-col items-center text-center space-y-4">
+        <!-- Foto do Instrutor com Fallback elegante -->
+        <div class="relative w-36 h-36 rounded-full overflow-hidden border-4 border-teal-50 shadow-inner bg-slate-100 flex items-center justify-center">
+          <img id="modal-inst-foto" src="" alt="Foto do Instrutor" class="w-full h-full object-cover hidden" onerror="this.classList.add('hidden'); document.getElementById('modal-inst-avatar-fallback').classList.remove('hidden');">
+          <div id="modal-inst-avatar-fallback" class="text-[#0d6c60]">
+            <i data-lucide="user-round" class="w-20 h-20"></i>
+          </div>
+        </div>
+        
+        <div>
+          <h4 id="modal-inst-nome" class="font-bold text-slate-900 text-lg">--</h4>
+          <p id="modal-inst-veiculo" class="text-xs text-[#0d6c60] font-bold mt-1 bg-teal-50/50 py-1 px-3 rounded-full border border-teal-100 inline-block">🚗 Veículo: --</p>
+        </div>
+        
+        <div class="w-full border-t border-slate-100 my-1"></div>
+        
+        <div class="text-left w-full space-y-3">
+          <div>
+            <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Histórico Profissional</span>
+            <p id="modal-inst-resumo" class="text-xs text-slate-600 mt-1 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100 italic">
+              --
+            </p>
+          </div>
+          
+          <div class="bg-[#042e2a]/5 p-3 rounded-xl border border-teal-100 flex items-center space-x-3">
+            <div class="p-2 bg-[#f26522]/10 text-[#f26522] rounded-lg">
+              <i data-lucide="smartphone" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Telefone de Contato</span>
+              <span id="modal-inst-telefone" class="text-xs font-bold text-slate-900">--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-6 flex justify-end">
+        <button onclick="fecharModalSaibaMais()" class="w-full py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-xl border border-slate-100 transition duration-150">
+          Fechar Janela
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- TELA DE LOGIN DUPLA -->
   <div id="tela-login" class="flex-1 flex flex-col justify-center items-center px-4 py-12 sm:px-6 lg:px-8 bg-gradient-to-tr from-[#022b26] via-[#05483f] to-[#0d6c60]">
     <div class="max-w-md w-full space-y-8 glass-card p-8 rounded-3xl shadow-2xl relative overflow-hidden">
@@ -304,7 +358,7 @@
             PREV<span class="text-[#f26522]">I</span>A
           </div>
         </div>
-        <p class="text-teal-100 text-sm font-medium">Selecione seu perfil abaixo para acessar o sistema</p>
+        <p class="text-teal-100 text-sm font-medium">Bem Vindo a Autoescola Digital PREVIA.<br> Selecione seu perfil abaixo para acessar o sistema</p>
       </div>
 
       <!-- Seletor de Perfil Aluno / Instrutor -->
@@ -434,15 +488,20 @@
     <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
     <main class="flex-1 flex flex-col min-w-0 overflow-y-auto max-h-screen bg-slate-50">
       
-      <!-- Cabeçalho Superior -->
+      <!-- Cabeçalho Superior conforme imagem image_34e1d7.png -->
       <header class="bg-white border-b border-slate-100 py-4 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-40">
         <div class="flex items-center space-x-4">
           <h2 id="titulo-secao-portal" class="text-lg font-extrabold text-slate-900 uppercase tracking-wide">Relatorio Geral</h2>
         </div>
         <div class="flex items-center space-x-4">
+          <!-- Bloco do Instrutor Vinculado conforme image_34e1d7.png com botão Saiba Mais -->
           <div class="hidden sm:flex flex-col items-end text-right" id="header-instrutor-box">
             <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Instrutor Vinculado</span>
             <span class="text-sm font-extrabold text-[#0d6c60]" id="aluno-instrutor">Não vinculado</span>
+            <span class="text-[11px] text-slate-500 font-semibold" id="aluno-veiculo">Veículo: --</span>
+            <button onclick="abrirModalSaibaMais()" id="btn-saiba-mais-header" class="text-[10px] font-bold text-[#f26522] hover:underline hover:text-[#d94f10] mt-0.5 hidden">
+              Saiba mais sobre seu instrutor
+            </button>
           </div>
           <div class="h-8 w-px bg-slate-200 hidden sm:block"></div>
           <div class="flex items-center space-x-2">
@@ -453,6 +512,21 @@
           </div>
         </div>
       </header>
+
+      <!-- AVISO DE SEGURANÇA PERSISTENTE NO TOPO DO PAINEL DO ALUNO -->
+      <div id="alerta-seguranca-geral" class="hidden mx-6 sm:mx-8 mt-6">
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-2xl shadow-sm flex items-start space-x-3">
+          <div class="flex-shrink-0 text-amber-600 mt-0.5">
+            <i data-lucide="shield-alert" class="h-5 w-5"></i>
+          </div>
+          <div class="flex-1">
+            <h4 class="text-xs font-bold text-amber-950 uppercase tracking-wide">AVISO DE SEGURANÇA CRÍTICO PARA O ALUNO</h4>
+            <p class="text-xs text-amber-900 mt-1 leading-relaxed">
+              Para sua total segurança pessoal: <strong>NUNCA entre em qualquer veículo de treinamento</strong> sem antes validar visualmente as informações acima! Confirme a foto do seu instrutor, nome completo do profissional e certifique-se de que a marca, cor e placa do carro batem exatamente com as informações cadastradas neste portal.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <!-- SEÇÕES DO ALUNO -->
       <div class="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto space-y-8">
@@ -499,6 +573,23 @@
                 <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Endereço Registrado</span>
                 <span id="card-endereco" class="text-sm font-bold text-slate-900 block truncate">--</span>
               </div>
+            </div>
+          </div>
+          
+          <!-- Box sobre o Instrutor Vinculado na Área de Relatório Geral -->
+          <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="shield-check" class="text-[#0d6c60]"></i> Instrutor Vinculado e Veículo Oficial
+            </h3>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+              <div class="space-y-1">
+                <p class="text-xs text-slate-400 font-bold uppercase">Instrutor do Aluno</p>
+                <p id="dashboard-nome-instrutor" class="text-sm font-bold text-slate-900">--</p>
+                <p id="dashboard-veiculo-instrutor" class="text-xs font-semibold text-[#0d6c60]">Veículo: --</p>
+              </div>
+              <button onclick="abrirModalSaibaMais()" id="btn-saiba-mais-dashboard" class="px-4 py-2 border border-[#f26522] rounded-xl text-xs font-bold text-[#f26522] bg-white hover:bg-orange-50/50 transition">
+                Saiba Mais / Ver Foto
+              </button>
             </div>
           </div>
         </section>
@@ -593,7 +684,7 @@
                   <tr class="bg-slate-50 border-b border-slate-100">
                     <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Aula</th>
                     <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Data & Horário</th>
-                    <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Instrutor / Local</th>
+                    <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Instrutor / Local / Veículo</th>
                     <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Status / Nota</th>
                     <th class="p-4 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Ações</th>
                   </tr>
@@ -679,7 +770,6 @@
     let perfilLogado = "aluno";
     let dadosUsuario = null;
 
-    // Mascara CPF
     function mascararCPF(input) {
       let valor = input.value.replace(/\D/g, "");
       if (valor.length > 11) valor = valor.substring(0, 11);
@@ -694,7 +784,6 @@
       }
     }
 
-    // Toggle entre Perfis de Login
     function mudarPerfilLogin(perfil) {
       perfilLogado = perfil;
       document.getElementById("login-perfil-atual").value = perfil;
@@ -713,7 +802,6 @@
       }
     }
 
-    // Notificação Flutuante
     function mostrarNotificacao(mensagem, tipo = "info") {
       const notificacao = document.getElementById("notificacao");
       const corpo = document.getElementById("notificacao-corpo");
@@ -744,7 +832,6 @@
       }, 5000);
     }
 
-    // Modal de Confirmação Customizado
     function pedirConfirmacao(titulo, mensagem, acaoConfirmar) {
       const modal = document.getElementById("modal-confirmacao");
       const txtTitulo = document.getElementById("confirmacao-titulo");
@@ -776,9 +863,6 @@
       };
     }
 
-    /**
-     * Mapeador de categorias com base nas competências da imagem image_1a1f58.png
-     */
     function obterCategoriaDoItem(nomeItem) {
       const txt = nomeItem.toLowerCase();
       if (txt.includes("segurança") || txt.includes("entrar") || txt.includes("sair") || txt.includes("limpador") || txt.includes("faróis") || txt.includes("finalização")) {
@@ -799,7 +883,6 @@
       return "Geral";
     }
 
-    // Login Unificado
     async function realizarLogin(event) {
       event.preventDefault();
       
@@ -845,36 +928,55 @@
           <span class="absolute left-0 inset-y-0 flex items-center pl-3">
             <i data-lucide="arrow-right-to-line" class="h-5 w-5 text-orange-200"></i>
           </span>
-          Acessar o Painel
+          Acessar o Panel
         `;
         lucide.createIcons();
       }
     }
 
-    // Inicializa Painel do ALUNO
     function inicializarInterfaceDashboard() {
       document.getElementById("tela-login").classList.add("hidden");
       document.getElementById("portal-dashboard").classList.remove("hidden");
       
-      document.getElementById("sidebar-subtitulo") ? document.getElementById("sidebar-subtitulo").textContent = "Portal do Aluno" : null;
       document.getElementById("sidebar-role-badge").innerHTML = `<i data-lucide="award" class="h-3.5 w-3.5 mr-1 flex-shrink-0 text-[#f26522]"></i> Aluno Ativo`;
       document.getElementById("menu-aluno").classList.remove("hidden");
       document.getElementById("menu-instrutor").classList.add("hidden");
       document.getElementById("header-instrutor-box").classList.remove("hidden");
       
+      // Exibe Alerta de Segurança e detalhes do Instrutor
+      document.getElementById("alerta-seguranca-geral").classList.remove("hidden");
+
       document.getElementById("secao-inicio").classList.remove("hidden");
       document.getElementById("secao-agendar").classList.add("hidden");
       document.getElementById("secao-historico").classList.add("hidden");
       document.getElementById("secao-agenda-instrutor").classList.add("hidden");
 
       document.getElementById("aluno-nome").textContent = dadosUsuario.nome;
-      document.getElementById("boas-vindas-nome").textContent = `Olá, ${dadosUsuario.nome.split(" ")[0]}!`;
+      document.getElementById("boas-vindas-nome").textContent = `Olá, ${dadosUsuario.nome.trim().split(" ")[0]}!`;
       
       const partesNome = dadosUsuario.nome.trim().split(" ");
       const iniciais = partesNome.length > 1 ? (partesNome[0][0] + partesNome[partesNome.length - 1][0]).toUpperCase() : partesNome[0][0].toUpperCase();
       document.getElementById("aluno-iniciais").textContent = iniciais;
 
+      // Vincula detalhes do instrutor no cabeçalho e Relatorio Geral
       document.getElementById("aluno-instrutor").textContent = dadosUsuario.instrutor || "Não vinculado";
+      
+      if (dadosUsuario.instrutorDetalhes) {
+        document.getElementById("aluno-veiculo").textContent = `🚗 Veículo: ${dadosUsuario.instrutorDetalhes.veiculo || "Não informado"}`;
+        document.getElementById("btn-saiba-mais-header").classList.remove("hidden");
+        
+        document.getElementById("dashboard-nome-instrutor").textContent = dadosUsuario.instrutorDetalhes.nome || dadosUsuario.instrutor;
+        document.getElementById("dashboard-veiculo-instrutor").textContent = `🚗 Veículo cadastrado: ${dadosUsuario.instrutorDetalhes.veiculo || "Não informado"}`;
+        document.getElementById("btn-saiba-mais-dashboard").classList.remove("hidden");
+      } else {
+        document.getElementById("aluno-veiculo").textContent = "🚗 Veículo: --";
+        document.getElementById("btn-saiba-mais-header").classList.add("hidden");
+        
+        document.getElementById("dashboard-nome-instrutor").textContent = dadosUsuario.instrutor || "Não vinculado";
+        document.getElementById("dashboard-veiculo-instrutor").textContent = "🚗 Veículo cadastrado: --";
+        document.getElementById("btn-saiba-mais-dashboard").classList.add("hidden");
+      }
+
       document.getElementById("card-telefone").textContent = dadosUsuario.telefone || "Não informado";
       document.getElementById("card-email").textContent = dadosUsuario.email || "Não informado";
       document.getElementById("card-endereco").textContent = dadosUsuario.endereco || "Não cadastrado";
@@ -882,16 +984,15 @@
       alternarAba("inicio");
     }
 
-    // Inicializa Painel do INSTRUTOR
     function inicializarInterfaceDashboardInstrutor() {
       document.getElementById("tela-login").classList.add("hidden");
       document.getElementById("portal-dashboard").classList.remove("hidden");
       
-      document.getElementById("sidebar-subtitulo") ? document.getElementById("sidebar-subtitulo").textContent = "Painel do Instrutor" : null;
       document.getElementById("sidebar-role-badge").innerHTML = `<i data-lucide="user-cog" class="h-3.5 w-3.5 mr-1 flex-shrink-0 text-[#f26522]"></i> Instrutor`;
       document.getElementById("menu-aluno").classList.add("hidden");
       document.getElementById("menu-instrutor").classList.remove("hidden");
       document.getElementById("header-instrutor-box").classList.add("hidden");
+      document.getElementById("alerta-seguranca-geral").classList.add("hidden");
 
       document.getElementById("secao-inicio").classList.add("hidden");
       document.getElementById("secao-agendar").classList.add("hidden");
@@ -907,7 +1008,56 @@
       alternarAba("agenda-instrutor");
     }
 
-    // Alternador de Abas do Menu
+    function abrirModalSaibaMais() {
+      if (!dadosUsuario || !dadosUsuario.instrutorDetalhes) {
+        mostrarNotificacao("Informações de perfil do instrutor indisponíveis no momento.", "erro");
+        return;
+      }
+      
+      const det = dadosUsuario.instrutorDetalhes;
+      document.getElementById("modal-inst-nome").textContent = det.nome || "Não informado";
+      document.getElementById("modal-inst-veiculo").textContent = `🚗 Veículo: ${det.veiculo || "Não informado"}`;
+      document.getElementById("modal-inst-resumo").textContent = det.resumo || "Sem resumo profissional disponível.";
+      document.getElementById("modal-inst-telefone").textContent = det.telefone ? formatarTelefoneComMascara(det.telefone) : "Não informado";
+      
+      const imgFoto = document.getElementById("modal-inst-foto");
+      const fallbackFoto = document.getElementById("modal-inst-avatar-fallback");
+      
+      if (det.foto && det.foto.trim() !== "") {
+        imgFoto.src = det.foto.trim();
+        imgFoto.classList.remove("hidden");
+        fallbackFoto.classList.add("hidden");
+      } else {
+        imgFoto.classList.add("hidden");
+        fallbackFoto.classList.remove("hidden");
+      }
+      
+      const modal = document.getElementById("modal-saiba-mais-instrutor");
+      modal.classList.remove("hidden");
+      setTimeout(() => {
+        modal.classList.remove("opacity-0");
+        modal.querySelector("div").classList.remove("scale-95");
+      }, 10);
+    }
+
+    function fecharModalSaibaMais() {
+      const modal = document.getElementById("modal-saiba-mais-instrutor");
+      modal.classList.add("opacity-0");
+      modal.querySelector("div").classList.add("scale-95");
+      setTimeout(() => modal.classList.add("hidden"), 200);
+    }
+
+    function formatarTelefoneComMascara(num) {
+      const clean = String(num).replace(/\D/g, "");
+      if (clean.length === 11) {
+        return `(${clean.substring(0,2)}) ${clean.substring(2,7)}-${clean.substring(7)}`;
+      }
+      if (clean.length === 10) {
+        return `(${clean.substring(0,2)}) ${clean.substring(2,6)}-${clean.substring(6)}`;
+      }
+      return num;
+    }
+
     function alternarAba(abaId) {
       const secoes = ["inicio", "agendar", "historico", "agenda-instrutor"];
       
@@ -943,7 +1093,6 @@
       }
     }
 
-    // Buscar Aulas Disponíveis
     async function carregarAulasDisponiveis() {
       const loader = document.getElementById("loader-agendar");
       const vazio = document.getElementById("vazio-agendar");
@@ -988,6 +1137,9 @@
                     <p class="text-xs text-[#0d6c60] font-bold mt-1 flex items-center">
                       <i data-lucide="user-cog" class="h-3.5 w-3.5 mr-1 text-teal-500"></i> Prof. ${aula.instrutor}
                     </p>
+                    <p class="text-[11px] text-slate-500 font-semibold mt-0.5 flex items-center">
+                      <i data-lucide="car-front" class="h-3.5 w-3.5 mr-1 text-slate-400"></i> Veículo: ${aula.veiculo || "Não informado"}
+                    </p>
                   </div>
                   <div class="border-t border-slate-100 pt-3 space-y-1.5 text-xs text-slate-500">
                     <div class="flex items-center">
@@ -1021,7 +1173,6 @@
       }
     }
 
-    // Abrir Modal de Seleção de Modelo de Aula
     async function abrirModalSelecaoAula(aulaId, tituloOriginal, dataFormatada, inicio, fim, local, instrutor) {
       const modal = document.getElementById("modal-selecao-aula");
       const btnConfirmar = document.getElementById("btn-confirmar-selecao");
@@ -1074,7 +1225,6 @@
       };
     }
 
-    // Gravar Agendamento Real e apresentar modal de compartilhamento imediato
     async function realizarAgendamentoNaPlanilha(aulaId, tituloAula, dataStr, horaStr, fimStr, localStr, instrutorStr) {
       mostrarNotificacao("Efetuando o seu agendamento no sistema...", "info");
 
@@ -1085,8 +1235,6 @@
 
         if (resJSON.success) {
           mostrarNotificacao(`Excelente! Aula agendada com sucesso.`, "sucesso");
-          
-          // Abrir modal de sucesso com link de WhatsApp imediato
           abrirModalSucessoAgendamento(tituloAula, dataStr, horaStr, fimStr, localStr, instrutorStr, resJSON.telefoneInstrutor);
         } else {
           mostrarNotificacao(resJSON.message || "Erro ao efetuar agendamento.", "erro");
@@ -1097,7 +1245,6 @@
       }
     }
 
-    // Apresenta o Modal de Sucesso com opção direta para WhatsApp
     function abrirModalSucessoAgendamento(titulo, data, inicio, fim, local, instrutor, telefoneInstrutor) {
       const modal = document.getElementById("modal-sucesso-agendamento");
       
@@ -1113,7 +1260,6 @@
         `📍 Local: *${local || "Não especificado"}*\n` +
         `👨‍🏫 Instrutor: *Prof. ${instrutor}*`;
 
-      // Garante a presença do DDI 55 (Brasil) para abrir a conversa diretamente no WhatsApp
       let numeroLimpo = telefoneInstrutor ? String(telefoneInstrutor).replace(/\D/g, "") : "";
       if (numeroLimpo.length === 11 || numeroLimpo.length === 10) {
         numeroLimpo = "55" + numeroLimpo;
@@ -1149,7 +1295,6 @@
       }
     }
 
-    // Carregar histórico
     async function carregarHistoricoDeAulas() {
       const loader = document.getElementById("loader-historico");
       const vazio = document.getElementById("vazio-historico");
@@ -1198,7 +1343,6 @@
 
             let notaDisplay = isConcluida ? `${notaNum.toFixed(1)} / 10.0` : "Pendente";
 
-            // Regra de Cancelamento de 3 Dias
             const hoje = new Date();
             hoje.setHours(0,0,0,0);
             
@@ -1224,7 +1368,6 @@
                 `;
               }
             } else {
-              // Aula Concluída
               acaoHTML = `
                 <button onclick="obterEDetalharAvaliacao('${item.id}', '${item.titulo}', '${dataFormatada}', '${item.nota}', '${item.obs}', '${encodeURIComponent(item.detalhes)}')"
                   class="px-3 py-1 bg-teal-50 text-teal-700 hover:bg-teal-100 text-xs font-bold rounded-lg border border-teal-100 transition flex items-center gap-1">
@@ -1233,7 +1376,6 @@
               `;
             }
 
-            // Normaliza e adiciona o DDI 55 para o link do WhatsApp no histórico de notas
             let numeroWhats = item.telefoneInstrutor ? String(item.telefoneInstrutor).replace(/\D/g, "") : "";
             if (numeroWhats.length === 11 || numeroWhats.length === 10) {
               numeroWhats = "55" + numeroWhats;
@@ -1248,7 +1390,7 @@
             
             const linkWhats = `https://api.whatsapp.com/send?phone=${numeroWhats}&text=${encodeURIComponent(textoWhats)}`;
 
-            // Desktop Tabela
+            // Desktop Tabela (Adicionado Veículo do Instrutor)
             const tr = document.createElement("tr");
             tr.className = "hover:bg-slate-50/50 transition";
             tr.innerHTML = `
@@ -1262,6 +1404,7 @@
               <td class="p-4">
                 <div class="font-bold text-[#0d6c60] text-xs">Prof. ${item.instrutor}</div>
                 <div class="text-xs text-slate-400 mt-0.5">${item.local || 'Não especificado'}</div>
+                <div class="text-[10px] text-slate-500 font-semibold mt-0.5">🚗 Veículo: ${item.veiculo || 'Não informado'}</div>
               </td>
               <td class="p-4 space-y-1">
                 <div>${statusBadge}</div>
@@ -1289,9 +1432,14 @@
                   <h4 class="font-bold text-slate-900 text-sm">${item.titulo}</h4>
                   <p class="text-xs text-slate-400 mt-1">${dataFormatada} • ${item.inicio} às ${item.fim}</p>
                 </div>
-                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                  <span>Local: <strong>${item.local || 'Sede'}</strong></span>
-                  <span class="text-[#0d6c60] font-bold">Prof. ${item.instrutor}</span>
+                <div class="pt-2 border-t border-slate-100 flex flex-col gap-1 text-xs text-slate-500">
+                  <div class="flex justify-between">
+                    <span>Local: <strong>${item.local || 'Sede'}</strong></span>
+                    <span class="text-[#0d6c60] font-bold">Prof. ${item.instrutor}</span>
+                  </div>
+                  <div class="text-slate-500 font-semibold text-[11px] bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                    🚗 Veículo: ${item.veiculo || 'Não informado'}
+                  </div>
                 </div>
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Feedback Geral:</span>
@@ -1329,7 +1477,6 @@
       }
     }
 
-    // Cancelamento
     function confirmarCancelamento(aulaId, tituloAula, dataStr) {
       pedirConfirmacao(
         "Confirmar Cancelamento",
@@ -1358,7 +1505,6 @@
       }
     }
 
-    // Exibe o modal detalhado buscando as questões específicas do modelo e preenchendo as notas salvas no histórico
     async function obterEDetalharAvaliacao(aulaId, titulo, data, nota, obs, detalhesEscapados) {
       mostrarNotificacao("Carregando ficha de avaliação...", "info");
       
@@ -1408,7 +1554,6 @@
           tbodyPedagogico.appendChild(tr);
         });
 
-        // Preenche comportamental
         ITENS_COMPORTAMENTAIS.forEach((item, idx) => {
           const valorSelecionado = detalhesObj[`comportamental_${idx}`] || "";
           const tr = document.createElement("tr");
@@ -1439,7 +1584,6 @@
       setTimeout(() => modal.classList.add("hidden"), 200);
     }
 
-    // Carrega Agenda do Instrutor
     async function carregarAgendaInstrutor() {
       const loader = document.getElementById("loader-instrutor");
       const vazio = document.getElementById("vazio-instrutor");
@@ -1521,7 +1665,6 @@
       }
     }
 
-    // Abre a ficha técnica baseada na aba Avaliação filtrando colunas vazias de acordo com o modelo de aula
     async function abrirModalPreencherAvaliacao(aulaId, alunoNome, tituloAula) {
       mostrarNotificacao("Buscando critérios avaliativos...", "info");
 
@@ -1573,7 +1716,6 @@
           pedagogicoCorpo.appendChild(tr);
         });
 
-        // Injeta comportamentais
         ITENS_COMPORTAMENTAIS.forEach((item, idx) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
@@ -1601,10 +1743,6 @@
       }
     }
 
-    /**
-     * Calcula dinamicamente a média matemática das colunas preenchidas
-     * Muito bom = 10.0 | Bom = 8.0 | Regular = 5.0 | Insuficiente = 2.0
-     */
     function calcularNotaMediaDinamica() {
       let soma = 0;
       let preenchidos = 0;
@@ -1637,7 +1775,6 @@
       setTimeout(() => modal.classList.add("hidden"), 200);
     }
 
-    // Processa e envia os dados avaliativos de direção via POST associando cada item a sua coluna correspondente
     async function enviarAvaliacaoPratica(event) {
       event.preventDefault();
 
@@ -1706,7 +1843,6 @@
       }
     }
 
-    // Formatação de data
     function formatarData(dataString) {
       if (!dataString) return "--/--/----";
       const dataLimpa = dataString.split("T")[0];
@@ -1718,7 +1854,6 @@
       return `${partes[2]}/${partes[1]}/${partes[0]}`;
     }
 
-    // Logout
     function fazerLogout() {
       pedirConfirmacao(
         "Encerrar Sessão",
@@ -1729,6 +1864,7 @@
           document.getElementById("login-senha").value = "";
           document.getElementById("portal-dashboard").classList.add("hidden");
           document.getElementById("tela-login").classList.remove("hidden");
+          document.getElementById("alerta-seguranca-geral").classList.add("hidden");
           mostrarNotificacao("Sessão encerrada com sucesso.", "info");
         }
       );
