@@ -33,10 +33,6 @@
        CONEXÃO FIXA COM O GOOGLE SHEETS
        ========================================== -->
   <script>
-    /**
-     * IMPORTANTE: Esta é a URL fixa da planilha conectada ao portal do aluno.
-     * Ela está oculta do aluno e definida diretamente no código.
-     */
     const SCRIPT_URL_PLANILHA = "https://script.google.com/macros/s/AKfycbx6cDH2N-D5TeYaITp69pjv-jy7Ub6fvP-ADXBZMC_T6OOSDaTwY87qsU1LmyxnGGSRGA/exec";
   </script>
 
@@ -67,7 +63,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE SELEÇÃO DE MODELO DE AULA (Agendamento do Aluno) -->
+  <!-- MODAL DE SELEÇÃO DE MODELO DE AULA -->
   <div id="modal-selecao-aula" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
     <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 m-4 transform scale-95 transition-transform duration-200">
       <div class="flex items-center gap-3 mb-4">
@@ -84,7 +80,7 @@
         <div>
           <label for="select-modelo-aula" class="block text-sm font-bold text-slate-700 mb-1">Qual aula gostaria de ter?</label>
           <select id="select-modelo-aula" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
-            <!-- Será populado dinamicamente via API (Aba Avaliação) -->
+            <!-- Populado via buscarModelosDeAula -->
           </select>
         </div>
         <p class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100 italic">
@@ -99,7 +95,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE VISUALIZAÇÃO DE AVALIAÇÃO DETALHADA (Aluno & Instrutor - idêntico à image_1a1f58.png) -->
+  <!-- MODAL DE VISUALIZAÇÃO DE AVALIAÇÃO DETALHADA (Aluno & Instrutor) -->
   <div id="modal-avaliacao-detalhada" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
     <div class="bg-white rounded-2xl shadow-xl max-w-5xl w-full p-6 m-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col">
       <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
@@ -130,7 +126,7 @@
             </tr>
           </thead>
           <tbody id="linhas-avaliacao-tabela" class="divide-y divide-slate-200">
-            <!-- Injetado dinamicamente de acordo com as colunas B-Z da aba Avaliação -->
+            <!-- Injetado dinamicamente -->
           </tbody>
         </table>
 
@@ -162,7 +158,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE FORMULÁRIO DE AVALIAÇÃO (Apenas para o Instrutor - preencher) -->
+  <!-- MODAL DE FORMULÁRIO DE AVALIAÇÃO (Apenas para o Instrutor - idêntico ao image_26c9bd.png) -->
   <div id="modal-preencher-avaliacao" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
     <div class="bg-white rounded-2xl shadow-xl max-w-5xl w-full p-6 m-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col">
       <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
@@ -197,7 +193,7 @@
               </tr>
             </thead>
             <tbody id="preencher-pedagogico-corpo" class="divide-y divide-slate-200">
-              <!-- Injetado dinamicamente com base nas colunas da aba Avaliação -->
+              <!-- Injetado dinamicamente com base nas colunas preenchidas na aba Avaliação -->
             </tbody>
           </table>
 
@@ -616,8 +612,7 @@
       "Segue as orientações do instrutor"
     ];
 
-    // Configurações Globais
-    let perfilLogado = "aluno"; // 'aluno' ou 'instrutor'
+    let perfilLogado = "aluno";
     let dadosUsuario = null;
 
     // Mascara CPF
@@ -718,8 +713,7 @@
     }
 
     /**
-     * Mapeia qualquer item vindo dinamicamente da aba "Avaliação" para uma categoria pedagógica adequada.
-     * Isso assegura robustez total caso o administrador cadastre novos itens nas colunas B a Z da planilha.
+     * Mapeador de categorias com base nas competências da imagem image_1a1f58.png
      */
     function obterCategoriaDoItem(nomeItem) {
       const txt = nomeItem.toLowerCase();
@@ -972,7 +966,6 @@
 
       selectModelo.innerHTML = `<option value="">Carregando modelos de aula...</option>`;
 
-      // Abre modal com transição
       modal.classList.remove("hidden");
       setTimeout(() => {
         modal.classList.remove("opacity-0");
@@ -987,7 +980,6 @@
 
       btnCancelar.onclick = () => fecharModal();
       
-      // Busca dinamicamente os modelos de aula da aba "Avaliação"
       try {
         const response = await fetch(`${SCRIPT_URL_PLANILHA}?action=buscarModelosDeAula`);
         const modelos = await response.json();
@@ -998,7 +990,7 @@
           opt.value = modelo;
           opt.textContent = modelo;
           if (modelo === "Aula Trânsito Intenso") {
-            opt.selected = true; // Pré-seleciona a de Trânsito Intenso
+            opt.selected = true;
           }
           selectModelo.appendChild(opt);
         });
@@ -1116,7 +1108,7 @@
                 `;
               }
             } else {
-              // Aula Concluída: Pode ver a avaliação técnica detalhada
+              // Aula Concluída: Pode ver a ficha de avaliação técnica detalhada baseada em image_17c2f8.png
               acaoHTML = `
                 <button onclick="obterEDetalharAvaliacao('${item.id}', '${item.titulo}', '${dataFormatada}', '${item.nota}', '${item.obs}', '${encodeURIComponent(item.detalhes)}')"
                   class="px-3 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-xs font-bold rounded-lg border border-indigo-100 transition flex items-center gap-1">
@@ -1125,7 +1117,6 @@
               `;
             }
 
-            // Telefones e WhatsApp dinâmicos direto do instrutor da planilha!
             const numeroWhats = item.telefoneInstrutor || "5511999999999";
 
             const textoWhats = `Olá! Seguem os detalhes do meu agendamento na Prévia Treinamentos:\n\n` +
@@ -1270,19 +1261,21 @@
       }
 
       try {
-        // Busca os critérios específicos da aba Avaliação correspondentes ao título da aula
+        // Busca os critérios específicos filtrando as colunas vazias
         const response = await fetch(`${SCRIPT_URL_PLANILHA}?action=buscarQuestoesDeAula&titulo=${encodeURIComponent(titulo)}`);
         const criterios = await response.json();
 
         tbodyPedagogico.innerHTML = "";
 
-        criterios.forEach((item, idx) => {
+        criterios.forEach((itemObj) => {
+          const item = itemObj.descricao;
+          const letter = itemObj.colLetter;
           const categoria = obterCategoriaDoItem(item);
-          const valorSelecionado = detalhesObj[`pedagogico_${idx}`] || ""; // "insuficiente", "regular", "bom", "muitobom"
+          const valorSelecionado = detalhesObj[`pedagogico_${letter}`] || ""; // "insuficiente", "regular", "bom", "muitobom"
           const tr = document.createElement("tr");
 
-          // Destaca em amarelo o item especial correspondente ao modelo de Trânsito Intenso da imagem_1a1f58.png
-          if (item.includes("Sinalização, observação da movimentação da via")) {
+          // Destaca em amarelo o item especial da Coluna W correspondente ao modelo de Trânsito Intenso da imagem_1a1f58.png
+          if (letter === 'W') {
             tr.className = "bg-yellow-100 font-bold border-b";
           }
 
@@ -1410,7 +1403,7 @@
       }
     }
 
-    // Abre a ficha técnica baseada na aba Avaliação para preenchimento em tempo real do instrutor
+    // Abre a ficha técnica baseada na aba Avaliação filtrando colunas vazias de acordo com o modelo de aula
     async function abrirModalPreencherAvaliacao(aulaId, alunoNome, tituloAula) {
       mostrarNotificacao("Buscando critérios avaliativos...", "info");
 
@@ -1428,18 +1421,20 @@
       comportamentalCorpo.innerHTML = "";
 
       try {
-        // Busca dinamicamente os itens cadastrados para esta aula específica
+        // Busca os critérios ativos (ignora células vazias na linha do modelo correspondente!)
         const response = await fetch(`${SCRIPT_URL_PLANILHA}?action=buscarQuestoesDeAula&titulo=${encodeURIComponent(tituloAula)}`);
         const criterios = await response.json();
 
         pedagogicoCorpo.innerHTML = "";
 
-        criterios.forEach((item, idx) => {
+        criterios.forEach((itemObj) => {
+          const item = itemObj.descricao;
+          const letter = itemObj.colLetter;
           const categoria = obterCategoriaDoItem(item);
           const tr = document.createElement("tr");
 
-          // Destaque em amarelo do item especial solicitado na imagem_1a1f58.png
-          if (item.includes("Sinalização, observação da movimentação da via")) {
+          // Destaque em amarelo do item especial solicitado na imagem_1a1f58.png / image_17c2f8.png
+          if (letter === 'W') {
             tr.className = "bg-yellow-100 font-bold border-b";
           }
           
@@ -1447,16 +1442,16 @@
             <td class="p-2 border-r border-slate-200">${categoria}</td>
             <td class="p-2 border-r border-slate-200">${item}</td>
             <td class="p-2 border-r border-slate-200 text-center">
-              <input type="radio" name="pedagogico_${idx}" value="insuficiente" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+              <input type="radio" name="pedagogico_${letter}" value="insuficiente" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
             </td>
             <td class="p-2 border-r border-slate-200 text-center">
-              <input type="radio" name="pedagogico_${idx}" value="regular" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+              <input type="radio" name="pedagogico_${letter}" value="regular" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
             </td>
             <td class="p-2 border-r border-slate-200 text-center">
-              <input type="radio" name="pedagogico_${idx}" value="bom" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+              <input type="radio" name="pedagogico_${letter}" value="bom" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
             </td>
             <td class="p-2 text-center">
-              <input type="radio" name="pedagogico_${idx}" value="muitobom" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+              <input type="radio" name="pedagogico_${letter}" value="muitobom" required onclick="calcularNotaMediaDinamica(${criterios.length})" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
             </td>
           `;
           pedagogicoCorpo.appendChild(tr);
@@ -1491,24 +1486,27 @@
     }
 
     /**
-     * Calcula dinamicamente a média matemática conforme o instrutor vai marcando as notas
+     * Calcula dinamicamente a média matemática das colunas preenchidas
      * Muito bom = 10.0 | Bom = 8.0 | Regular = 5.0 | Insuficiente = 2.0
      */
-    function calcularNotaMediaDinamica(totalItens) {
+    function calcularNotaMediaDinamica() {
       let soma = 0;
       let preenchidos = 0;
+      
+      const radioGroups = document.querySelectorAll(`input[name^="pedagogico_"]`);
+      const checkedRadios = document.querySelectorAll(`input[name^="pedagogico_"]:checked`);
+      
+      const uniqueNames = new Set();
+      radioGroups.forEach(radio => uniqueNames.add(radio.name));
 
-      for (let idx = 0; idx < totalItens; idx++) {
-        const selecionado = document.querySelector(`input[name="pedagogico_${idx}"]:checked`);
-        if (selecionado) {
-          preenchidos++;
-          const val = selecionado.value;
-          if (val === "muitobom") soma += 10;
-          else if (val === "bom") soma += 8;
-          else if (val === "regular") soma += 5;
-          else if (val === "insuficiente") soma += 2;
-        }
-      }
+      checkedRadios.forEach(selecionado => {
+        preenchidos++;
+        const val = selecionado.value;
+        if (val === "muitobom") soma += 10;
+        else if (val === "bom") soma += 8;
+        else if (val === "regular") soma += 5;
+        else if (val === "insuficiente") soma += 2;
+      });
 
       if (preenchidos > 0) {
         const media = (soma / preenchidos).toFixed(1);
@@ -1523,50 +1521,37 @@
       setTimeout(() => modal.classList.add("hidden"), 200);
     }
 
-    // Processa e envia os dados avaliativos de direção via POST
+    // Processa e envia os dados avaliativos de direção via POST associando cada item a sua coluna correspondente
     async function enviarAvaliacaoPratica(event) {
       event.preventDefault();
 
       const aulaId = document.getElementById("preencher-aula-id").value;
-      const tituloAula = document.getElementById("preencher-aula-titulo").value;
       const feedback = document.getElementById("campo-feedback-final").value;
       const botao = document.getElementById("btn-salvar-form-avaliacao");
 
       const detalhesObj = {};
-      
-      // Coleta dinâmica com base nas questões da página
-      let idx = 0;
       let somaNotas = 0;
       let contadorNotas = 0;
 
-      while (true) {
-        const selecionado = document.querySelector(`input[name="pedagogico_${idx}"]:checked`);
-        if (!selecionado) {
-          // Se não houver mais inputs sequenciais, encerra a busca
-          if (document.querySelectorAll(`input[name^="pedagogico_"]`).length <= idx) {
-            break;
-          }
-          idx++;
-          continue;
-        }
+      // Coleta dinâmica com base nas letras das colunas que foram inseridas no formulário
+      const radioCheckedList = document.querySelectorAll(`input[name^="pedagogico_"]:checked`);
+      
+      radioCheckedList.forEach(radio => {
+        const letter = radio.name.replace("pedagogico_", "");
+        detalhesObj[`pedagogico_${letter}`] = radio.value;
         
-        detalhesObj[`pedagogico_${idx}`] = selecionado.value;
-        
-        // Mapeamento matemático
-        const val = selecionado.value;
+        const val = radio.value;
         if (val === "muitobom") somaNotas += 10.0;
         else if (val === "bom") somaNotas += 8.0;
         else if (val === "regular") somaNotas += 5.0;
         else if (val === "insuficiente") somaNotas += 2.0;
 
         contadorNotas++;
-        idx++;
-      }
+      });
 
-      // Calcula média aritmética
       const notaCalculada = contadorNotas > 0 ? (somaNotas / contadorNotas).toFixed(1) : "10.0";
 
-      // Coletando comportamentais
+      // Coleta os dados comportamentais Sim/Não
       ITENS_COMPORTAMENTAIS.forEach((_, cIdx) => {
         const selecionado = document.querySelector(`input[name="comportamental_${cIdx}"]:checked`);
         detalhesObj[`comportamental_${cIdx}`] = selecionado ? selecionado.value : "";
@@ -1581,7 +1566,7 @@
           aulaId: aulaId,
           nota: notaCalculada,
           feedback: feedback,
-          detalhes: JSON.stringify(detalhesObj) // Serializado como string JSON limpa
+          detalhes: JSON.stringify(detalhesObj)
         };
 
         const resposta = await fetch(SCRIPT_URL_PLANILHA, {
