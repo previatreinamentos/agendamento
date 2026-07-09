@@ -41,17 +41,18 @@
       border-color: #f26522;
       box-shadow: 0 0 0 2px rgba(242, 101, 34, 0.2);
     }
+    /* Transições suaves para a barra lateral minimizável */
+    .sidebar-transition {
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased custom-scrollbar">
 
-  <!-- ==========================================
-       CONEXÃO FIXA COM O GOOGLE SHEETS
-       ========================================== -->
   <script>
     /**
      * IMPORTANTE: Esta é a URL fixa do seu Google Apps Script implantado.
-     * Ela está conectada com as abas "Alunos", "aulas_disponiveis" e "aulas_historico" do seu painel do Sheets.
+     * Ela está conectada com as abas do seu painel do Sheets.
      */
     const SCRIPT_URL_PLANILHA = "https://script.google.com/macros/s/AKfycbx6cDH2N-D5TeYaITp69pjv-jy7Ub6fvP-ADXBZMC_T6OOSDaTwY87qsU1LmyxnGGSRGA/exec";
   </script>
@@ -91,7 +92,7 @@
           <i data-lucide="calendar-check" class="h-8 w-8"></i>
         </div>
         <div>
-          <h3 class="text-xl font-bold text-slate-900">Agendamento Confirmado!</h3>
+          <h3 class="text-xl font-bold text-slate-900">Agendamento Confirmed!</h3>
           <p id="sucesso-agendamento-msg" class="text-slate-500 text-sm mt-1">Sua aula prática de direção já está reservada no sistema.</p>
         </div>
         <div class="bg-teal-50/50 border border-teal-100 p-4 rounded-xl text-left text-xs space-y-1.5 text-teal-900">
@@ -236,7 +237,7 @@
             <thead>
               <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
                 <th class="p-2 font-bold border-r border-slate-200 w-1/4">Categoria</th>
-                <th class="p-2 font-bold border-r border-slate-200 w-1/2">Conteúdo Pedagogico</th>
+                <th class="p-2 font-bold border-r border-slate-200 w-1/2">Conteúdo Pedagógico</th>
                 <th class="p-2 font-bold border-r border-slate-200 text-center">Insuficiente</th>
                 <th class="p-2 font-bold border-r border-slate-200 text-center">Regular</th>
                 <th class="p-2 font-bold border-r border-slate-200 text-center">Bom</th>
@@ -272,7 +273,7 @@
             <div id="campo-nota-final-preview" class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-slate-900 font-extrabold text-lg text-center">
               --
             </div>
-            <p class="text-[10px] text-slate-400 mt-1">A nota final J é a média aritmética ponderada dos itens pedagógicos acima.</p>
+            <p class="text-[10px] text-slate-400 mt-1">A nota final é a média aritmética ponderada dos itens pedagógicos acima.</p>
           </div>
           <div class="md:col-span-2">
             <label for="campo-feedback-final" class="block text-sm font-bold text-slate-700 mb-1">Observações / Feedback Geral do Instrutor</label>
@@ -420,25 +421,29 @@
   <!-- PORTAL PRINCIPAL (DASHBOARD) -->
   <div id="portal-dashboard" class="hidden flex-1 flex flex-col md:flex-row min-h-screen">
     
-    <!-- BARRA LATERAL (Sidebar - Mantido escuro para manter elegância e contraste de marca) -->
-    <aside class="w-full md:w-64 bg-[#022320] text-white flex flex-col border-r border-[#073d37]">
+    <!-- BARRA LATERAL (Minimizável para otimização extrema de espaço) -->
+    <aside id="main-sidebar" class="w-full md:w-64 bg-[#022320] text-white flex flex-col border-r border-[#073d37] sidebar-transition relative flex-shrink-0">
       <div class="p-6 border-b border-[#073d37] flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <img src="IMAG PREVIATREINAMENTOS.png" alt="Previa" class="h-10 object-contain" 
+        <div class="flex items-center space-x-3 overflow-hidden">
+          <img src="IMAG PREVIATREINAMENTOS.png" alt="Previa" id="sidebar-logo" class="h-10 object-contain transition-all" 
                onerror="this.style.display='none'; document.getElementById('logo-fallback-sidebar').classList.remove('hidden')">
-          <div id="logo-fallback-sidebar" class="hidden text-xl font-black text-white">
+          <div id="logo-fallback-sidebar" class="hidden text-xl font-black text-white whitespace-nowrap">
             PREV<span class="text-[#f26522]">I</span>A
           </div>
         </div>
+        <!-- Botão Minimizar Sidebar -->
+        <button onclick="toggleSidebar()" class="p-1.5 hover:bg-teal-900/50 rounded-lg text-teal-300 hover:text-white transition" title="Recolher / Expandir menu">
+          <i data-lucide="menu-fold" id="icon-toggle-sidebar" class="h-5 w-5"></i>
+        </button>
       </div>
       
       <!-- Informações Rápidas do Usuário Logado -->
-      <div class="p-4 mx-4 my-6 bg-[#042e2a] rounded-2xl border border-teal-900/50">
+      <div class="p-4 mx-4 my-6 bg-[#042e2a] rounded-2xl border border-teal-900/50 overflow-hidden" id="sidebar-user-card">
         <div class="flex items-center space-x-3">
-          <div class="h-10 w-10 bg-[#f26522]/10 text-[#f26522] rounded-full flex items-center justify-center font-bold border border-[#f26522]/20" id="aluno-iniciais">
+          <div class="h-10 w-10 bg-[#f26522]/10 text-[#f26522] rounded-full flex items-center justify-center font-bold border border-[#f26522]/20 flex-shrink-0" id="aluno-iniciais">
             --
           </div>
-          <div class="overflow-hidden">
+          <div class="overflow-hidden whitespace-nowrap transition-opacity duration-200" id="sidebar-user-info">
             <h3 class="text-xs font-bold text-teal-50 truncate" id="aluno-nome">Carregando...</h3>
             <span class="text-[10px] text-teal-300 flex items-center mt-0.5" id="sidebar-role-badge">
               <i data-lucide="award" class="h-3 w-3 mr-1 flex-shrink-0 text-[#f26522]"></i> Ativo
@@ -451,18 +456,24 @@
       <nav id="menu-aluno" class="flex-1 px-4 space-y-1.5">
         <button onclick="alternarAba('inicio')" id="btn-menu-inicio"
           class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold bg-[#f26522] text-white transition-all duration-150">
-          <i data-lucide="layout-dashboard" class="h-5 w-5"></i>
-          <span>Relatorio Geral</span>
+          <i data-lucide="layout-dashboard" class="h-5 w-5 flex-shrink-0"></i>
+          <span class="sidebar-text transition-opacity duration-200">Relatorio Geral</span>
         </button>
         <button onclick="alternarAba('agendar')" id="btn-menu-agendar"
           class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold text-teal-300 hover:bg-[#042e2a]/50 hover:text-white transition-all duration-150">
-          <i data-lucide="calendar-plus" class="h-5 w-5"></i>
-          <span>Agendar Aula</span>
+          <i data-lucide="calendar-plus" class="h-5 w-5 flex-shrink-0"></i>
+          <span class="sidebar-text transition-opacity duration-200">Agendar Aula</span>
+        </button>
+        <!-- PLATAFORMA DE CURSOS EAD -->
+        <button onclick="alternarAba('cursos')" id="btn-menu-cursos"
+          class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold text-teal-300 hover:bg-[#042e2a]/50 hover:text-white transition-all duration-150">
+          <i data-lucide="graduation-cap" class="h-5 w-5 flex-shrink-0"></i>
+          <span class="sidebar-text transition-opacity duration-200">Cursos & Aulas EAD</span>
         </button>
         <button onclick="alternarAba('historico')" id="btn-menu-historico"
           class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold text-teal-300 hover:bg-[#042e2a]/50 hover:text-white transition-all duration-150">
-          <i data-lucide="history" class="h-5 w-5"></i>
-          <span>Histórico & Notas</span>
+          <i data-lucide="history" class="h-5 w-5 flex-shrink-0"></i>
+          <span class="sidebar-text transition-opacity duration-200">Histórico & Notas</span>
         </button>
       </nav>
 
@@ -470,8 +481,8 @@
       <nav id="menu-instrutor" class="hidden flex-1 px-4 space-y-1.5">
         <button onclick="alternarAba('agenda-instrutor')" id="btn-menu-agenda-instrutor"
           class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold bg-[#f26522] text-white transition-all duration-150">
-          <i data-lucide="calendar" class="h-5 w-5"></i>
-          <span>Minha Agenda</span>
+          <i data-lucide="calendar" class="h-5 w-5 flex-shrink-0"></i>
+          <span class="sidebar-text transition-opacity duration-200">Minha Agenda</span>
         </button>
       </nav>
 
@@ -479,27 +490,27 @@
       <div class="p-4 border-t border-[#073d37]">
         <button onclick="fazerLogout()"
           class="flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all duration-150">
-          <i data-lucide="log-out" class="h-5 w-5"></i>
-          <span>Sair do Sistema</span>
+          <i data-lucide="log-out" class="h-5 w-5 flex-shrink-0"></i>
+          <span class="sidebar-text transition-opacity duration-200">Sair do Sistema</span>
         </button>
       </div>
     </aside>
 
-    <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
+    <!-- ÁREA DE CONTEÚDO PRINCIPAL (Compactada e fluida para eliminar margens mortas) -->
     <main class="flex-1 flex flex-col min-w-0 overflow-y-auto max-h-screen bg-slate-50">
       
-      <!-- Cabeçalho Superior conforme imagem image_34e1d7.png -->
-      <header class="bg-white border-b border-slate-100 py-4 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-40">
+      <!-- Cabeçalho Superior - Muito mais compacto -->
+      <header id="main-header" class="bg-white border-b border-slate-100 py-3 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-40">
         <div class="flex items-center space-x-4">
-          <h2 id="titulo-secao-portal" class="text-lg font-extrabold text-slate-900 uppercase tracking-wide">Relatorio Geral</h2>
+          <h2 id="titulo-secao-portal" class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Relatorio Geral</h2>
         </div>
         <div class="flex items-center space-x-4">
-          <!-- Bloco do Instrutor Vinculado conforme image_34e1d7.png com botão Saiba Mais -->
+          <!-- Bloco do Instrutor Vinculado -->
           <div class="hidden sm:flex flex-col items-end text-right" id="header-instrutor-box">
-            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Instrutor Vinculado</span>
-            <span class="text-sm font-extrabold text-[#0d6c60]" id="aluno-instrutor">Não vinculado</span>
-            <span class="text-[11px] text-slate-500 font-semibold" id="aluno-veiculo">Veículo: --</span>
-            <button onclick="abrirModalSaibaMais()" id="btn-saiba-mais-header" class="text-[10px] font-bold text-[#f26522] hover:underline hover:text-[#d94f10] mt-0.5 hidden">
+            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Instrutor Vinculado</span>
+            <span class="text-xs font-extrabold text-[#0d6c60]" id="aluno-instrutor">Não vinculado</span>
+            <span class="text-[10px] text-slate-500 font-semibold" id="aluno-veiculo">Veículo: --</span>
+            <button onclick="abrirModalSaibaMais()" id="btn-saiba-mais-header" class="text-[9px] font-bold text-[#f26522] hover:underline hover:text-[#d94f10] mt-0.5 hidden">
               Saiba mais sobre seu instrutor
             </button>
           </div>
@@ -513,8 +524,8 @@
         </div>
       </header>
 
-      <!-- AVISO DE SEGURANÇA PERSISTENTE NO TOPO DO PAINEL DO ALUNO -->
-      <div id="alerta-seguranca-geral" class="hidden mx-6 sm:mx-8 mt-6">
+      <!-- AVISO DE SEGURANÇA PERSISTENTE NO TOPO -->
+      <div id="alerta-seguranca-geral" class="hidden mx-6 sm:mx-8 mt-4">
         <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-2xl shadow-sm flex items-start space-x-3">
           <div class="flex-shrink-0 text-amber-600 mt-0.5">
             <i data-lucide="shield-alert" class="h-5 w-5"></i>
@@ -528,12 +539,11 @@
         </div>
       </div>
 
-      <!-- SEÇÕES DO ALUNO -->
-      <div class="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto space-y-8">
+      <!-- SEÇÕES DO ALUNO (Tamanho fluido sem margens gigantescas para o Player de Aula) -->
+      <div id="container-secoes" class="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6 transition-all duration-300">
 
         <!-- ABA 1: RELATÓRIO GERAL (DASHBOARD ALUNO) -->
         <section id="secao-inicio" class="space-y-6">
-          <!-- Banner com gradiente suave e claro de teal (Muito mais leve para os olhos!) -->
           <div class="bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100/80 rounded-3xl p-6 sm:p-8 text-teal-950 relative overflow-hidden shadow-sm">
             <div class="absolute right-0 top-0 transform translate-x-12 -translate-y-12 w-64 h-64 bg-teal-200/10 rounded-full pointer-events-none"></div>
             <div class="relative z-10 space-y-2">
@@ -543,7 +553,7 @@
             </div>
           </div>
 
-          <!-- Cards de Métricas e Informações Cadastrais (Clean e Elegante) -->
+          <!-- Cards de Métricas e Informações Cadastrais -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
               <div class="h-11 w-11 bg-teal-50 rounded-xl flex items-center justify-center text-[#0d6c60] flex-shrink-0">
@@ -579,7 +589,7 @@
           <!-- Box sobre o Instrutor Vinculado na Área de Relatório Geral -->
           <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
             <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <i data-lucide="shield-check" class="text-[#0d6c60]"></i> Instrutor Vinculado e Veículo Oficial
+              <i data-lucide="badge-check" class="text-[#0d6c60]"></i> Instrutor Vinculado e Veículo Oficial
             </h3>
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
               <div class="space-y-1">
@@ -627,6 +637,62 @@
           <!-- Grid de Aulas -->
           <div id="grid-aulas-agendar" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Gerado via JS -->
+          </div>
+        </section>
+
+        <!-- ABA 2.5: PLATAFORMA DE CURSOS EAD (DO ALUNO) -->
+        <section id="secao-cursos" class="hidden space-y-4">
+          <!-- Barra Horizontal de Ações compacta no topo -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+            <div class="overflow-hidden">
+              <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider truncate">Cursos & Aulas Teóricas EAD</h3>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+              <!-- Menu suspenso compacto de aulas para economizar 100% de espaço (Retirada da Playlist Lateral) -->
+              <div id="dropdown-aulas-container" class="hidden flex items-center gap-2">
+                <span class="text-[10px] font-bold text-slate-400 uppercase">Selecione a Aula:</span>
+                <select id="select-aula-playlist" onchange="carregarVideoNoPlayerPeloId(this.value)" class="px-2.5 py-1.5 border border-slate-200 rounded-xl text-xs font-bold text-[#0d6c60] bg-white focus:outline-none focus:ring-2 focus:ring-[#f26522] max-w-[200px] truncate">
+                  <!-- Gerado dinamicamente -->
+                </select>
+              </div>
+              
+              <button id="btn-voltar-catalogo" onclick="voltarAoCatalogoCursos()" class="hidden inline-flex items-center px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition shadow-sm">
+                <i data-lucide="arrow-left" class="h-4 w-4 mr-1"></i>
+                Voltar
+              </button>
+
+              <!-- Botão de Expandir Tela do Curso (Usa API de Fullscreen para ocupar toda a tela do aluno) -->
+              <button id="btn-expandir-curso" onclick="togglePlayerFullscreen()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#f26522] hover:bg-[#d94f10] text-white flex items-center justify-center gap-1.5 transition shadow-md">
+                <i data-lucide="maximize" class="h-4 w-4"></i>
+                <span>Expandir Tela</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Loader de Cursos -->
+          <div id="loader-cursos" class="bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-3">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0d6c60]"></div>
+            <span class="text-slate-500 font-medium text-xs">Acessando seus cursos matriculados...</span>
+          </div>
+
+          <!-- Catálogo de Cursos -->
+          <div id="cursos-catalogo-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 hidden">
+            <!-- Gerado dinamicamente via JS -->
+          </div>
+
+          <!-- Player Imersivo de Curso - Ocupando 100% do Espaço Sem Barra Lateral e Sem Rodapé -->
+          <div id="cursos-player-container" class="hidden flex flex-col space-y-4">
+            
+            <!-- Frame do Player Multi-mídia - Agora ocupa toda a largura livre -->
+            <div id="player-wrapper-fullscreen" class="bg-black rounded-3xl overflow-hidden shadow-xl border border-slate-800 aspect-video relative flex items-center justify-center w-full max-h-[70vh]">
+              <iframe id="iframe-player-curso" class="w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+              <!-- Loader do Player -->
+              <div id="iframe-player-loading" class="absolute inset-0 bg-[#022320]/90 flex flex-col items-center justify-center text-white space-y-3 hidden">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#f26522]"></div>
+                <span class="text-xs font-semibold text-teal-200">Carregando conteúdo da aula...</span>
+              </div>
+            </div>
+            
           </div>
         </section>
 
@@ -757,7 +823,6 @@
     </main>
   </div>
 
-  <!-- SCRIPT DE INTELIGÊNCIA E AGENDAMENTO -->
   <script>
     const ITENS_COMPORTAMENTAIS = [
       "Ansioso",
@@ -769,6 +834,82 @@
 
     let perfilLogado = "aluno";
     let dadosUsuario = null;
+
+    // Estado da Plataforma de Cursos
+    let cursosCarregados = [];
+    let cursoAtivo = null;
+    let aulaAtiva = null;
+    let sidebarMinimizada = false;
+
+    // Recupera o estado inicial da sidebar do localStorage
+    if (localStorage.getItem("previa_sidebar_minimizada") === "true") {
+      sidebarMinimizada = true;
+    }
+
+    function toggleSidebar() {
+      sidebarMinimizada = !sidebarMinimizada;
+      localStorage.setItem("previa_sidebar_minimizada", sidebarMinimizada);
+      aplicarEstadoSidebar();
+    }
+
+    function aplicarEstadoSidebar() {
+      const sidebar = document.getElementById("main-sidebar");
+      const sidebarTexts = document.querySelectorAll(".sidebar-text");
+      const userCard = document.getElementById("sidebar-user-card");
+      const userInfo = document.getElementById("sidebar-user-info");
+      const sidebarLogo = document.getElementById("sidebar-logo");
+      const fallbackLogo = document.getElementById("logo-fallback-sidebar");
+      const iconToggle = document.getElementById("icon-toggle-sidebar");
+
+      if (sidebarMinimizada) {
+        // Encolhe a barra lateral
+        sidebar.classList.remove("md:w-64");
+        sidebar.classList.add("md:w-20");
+        
+        // Oculta textos e cartões expandidos
+        sidebarTexts.forEach(txt => txt.classList.add("hidden", "opacity-0"));
+        if (userInfo) userInfo.classList.add("hidden", "opacity-0");
+        if (userCard) userCard.classList.add("p-2", "mx-2");
+        if (userCard) userCard.classList.remove("p-4", "mx-4");
+        if (sidebarLogo) sidebarLogo.classList.add("h-6");
+        if (fallbackLogo) fallbackLogo.classList.add("hidden");
+        
+        // Ajusta ícone de expansão
+        if (iconToggle) iconToggle.setAttribute("data-lucide", "menu-unfold");
+      } else {
+        // Expande a barra lateral
+        sidebar.classList.add("md:w-64");
+        sidebar.classList.remove("md:w-20");
+        
+        // Exibe novamente elementos de texto
+        sidebarTexts.forEach(txt => txt.classList.remove("hidden", "opacity-0"));
+        if (userInfo) userInfo.classList.remove("hidden", "opacity-0");
+        if (userCard) userCard.classList.remove("p-2", "mx-2");
+        if (userCard) userCard.classList.add("p-4", "mx-4");
+        if (sidebarLogo) sidebarLogo.classList.remove("h-6");
+        if (fallbackLogo) fallbackLogo.classList.remove("hidden");
+
+        if (iconToggle) iconToggle.setAttribute("data-lucide", "menu-fold");
+      }
+      lucide.createIcons();
+    }
+
+    function togglePlayerFullscreen() {
+      const el = document.getElementById("player-wrapper-fullscreen");
+      if (!el) return;
+
+      if (!document.fullscreenElement) {
+        el.requestFullscreen().catch(err => {
+          console.error(`Erro ao ativar tela cheia: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    function transformarCPF(input) { // Mantendo o mapeamento de máscara para conveniência
+      mascararCPF(input);
+    }
 
     function mascararCPF(input) {
       let valor = input.value.replace(/\D/g, "");
@@ -808,7 +949,7 @@
       const icone = document.getElementById("notificacao-icone");
       const txtMsg = document.getElementById("notificacao-mensagem");
 
-      txtMsg.textContent = mensagem;
+      txtMsg.textContent = message = mensagem;
 
       if (tipo === "sucesso") {
         corpo.className = "bg-white border-l-4 border-emerald-500 shadow-xl rounded-r-lg p-4 flex items-start space-x-3";
@@ -928,7 +1069,7 @@
           <span class="absolute left-0 inset-y-0 flex items-center pl-3">
             <i data-lucide="arrow-right-to-line" class="h-5 w-5 text-orange-200"></i>
           </span>
-          Acessar o Panel
+          Acessar o Painel
         `;
         lucide.createIcons();
       }
@@ -943,11 +1084,12 @@
       document.getElementById("menu-instrutor").classList.add("hidden");
       document.getElementById("header-instrutor-box").classList.remove("hidden");
       
-      // Exibe Alerta de Segurança e detalhes do Instrutor
+      // Exibe Alerta de Segurança e detalhes do Instrutor inicialmente
       document.getElementById("alerta-seguranca-geral").classList.remove("hidden");
 
       document.getElementById("secao-inicio").classList.remove("hidden");
       document.getElementById("secao-agendar").classList.add("hidden");
+      document.getElementById("secao-cursos").classList.add("hidden");
       document.getElementById("secao-historico").classList.add("hidden");
       document.getElementById("secao-agenda-instrutor").classList.add("hidden");
 
@@ -981,6 +1123,7 @@
       document.getElementById("card-email").textContent = dadosUsuario.email || "Não informado";
       document.getElementById("card-endereco").textContent = dadosUsuario.endereco || "Não cadastrado";
 
+      aplicarEstadoSidebar();
       alternarAba("inicio");
     }
 
@@ -996,6 +1139,7 @@
 
       document.getElementById("secao-inicio").classList.add("hidden");
       document.getElementById("secao-agendar").classList.add("hidden");
+      document.getElementById("secao-cursos").classList.add("hidden");
       document.getElementById("secao-historico").classList.add("hidden");
       document.getElementById("secao-agenda-instrutor").classList.remove("hidden");
 
@@ -1005,6 +1149,7 @@
       const iniciais = partesNome.length > 1 ? (partesNome[0][0] + partesNome[partesNome.length - 1][0]).toUpperCase() : partesNome[0][0].toUpperCase();
       document.getElementById("aluno-iniciais").textContent = iniciais;
 
+      aplicarEstadoSidebar();
       alternarAba("agenda-instrutor");
     }
 
@@ -1059,8 +1204,33 @@
     }
 
     function alternarAba(abaId) {
-      const secoes = ["inicio", "agendar", "historico", "agenda-instrutor"];
+      const secoes = ["inicio", "agendar", "cursos", "historico", "agenda-instrutor"];
       
+      // Ajusta dinamicamente o tamanho do container para aproveitar todo o espaço livre nos cursos
+      const containerSecoes = document.getElementById("container-secoes");
+      const mainHeader = document.getElementById("main-header");
+
+      if (containerSecoes) {
+        if (abaId === "cursos") {
+          containerSecoes.className = "flex-1 p-2 sm:p-4 max-w-none w-full mx-auto space-y-4 transition-all duration-300 lg:px-8";
+          // Compacta o cabeçalho superior na seção de cursos (Requisito 1 de remoção de espaço)
+          if (mainHeader) mainHeader.classList.add("py-1.5", "border-b-0");
+        } else {
+          containerSecoes.className = "flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6 transition-all duration-300";
+          if (mainHeader) mainHeader.className = "bg-white border-b border-slate-100 py-3 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-40";
+        }
+      }
+
+      // Oculta o aviso de segurança especificamente na seção de cursos EAD para salvar espaço
+      const alertaSeg = document.getElementById("alerta-seguranca-geral");
+      if (alertaSeg) {
+        if (abaId === "cursos" || perfilLogado === "instrutor") {
+          alertaSeg.classList.add("hidden");
+        } else if (perfilLogado === "aluno") {
+          alertaSeg.classList.remove("hidden");
+        }
+      }
+
       secoes.forEach(secao => {
         const elemento = document.getElementById(`secao-${secao}`);
         const btnMenu = document.getElementById(`btn-menu-${secao}`);
@@ -1079,6 +1249,7 @@
       const titulos = { 
         inicio: "Relatorio Geral", 
         agendar: "Agendar Nova Aula Prática", 
+        cursos: "Cursos & Aulas Teóricas EAD",
         historico: "Meu Histórico de Aulas",
         "agenda-instrutor": "Agenda de Direção Prática"
       };
@@ -1086,11 +1257,189 @@
 
       if (abaId === "agendar") {
         carregarAulasDisponiveis();
+      } else if (abaId === "cursos") {
+        carregarCursosEAD();
       } else if (abaId === "historico") {
         carregarHistoricoDeAulas();
       } else if (abaId === "agenda-instrutor") {
         carregarAgendaInstrutor();
       }
+    }
+
+    async function carregarCursosEAD() {
+      const loader = document.getElementById("loader-cursos");
+      const catalogo = document.getElementById("cursos-catalogo-container");
+      const player = document.getElementById("cursos-player-container");
+      const btnVoltar = document.getElementById("btn-voltar-catalogo");
+      const dropdownAulas = document.getElementById("dropdown-aulas-container");
+
+      loader.classList.remove("hidden");
+      catalogo.classList.add("hidden");
+      player.classList.add("hidden");
+      btnVoltar.classList.add("hidden");
+      dropdownAulas.classList.add("hidden");
+      catalogo.innerHTML = "";
+
+      try {
+        // Envia o CPF do aluno logado para filtrar apenas cursos matriculados (Requisito 3)
+        const urlObterCursos = `${SCRIPT_URL_PLANILHA}?action=buscarCursos&cpf=${dadosUsuario.cpf}`;
+        const res = await fetch(urlObterCursos);
+        const cursos = await res.json();
+        cursosCarregados = cursos;
+
+        if (cursos && cursos.length > 0) {
+          loader.classList.add("hidden");
+          catalogo.classList.remove("hidden");
+
+          cursos.forEach((curso, index) => {
+            const totalAulas = curso.aulas.length;
+            // Capa carregada da Coluna J da planilha ou fallback realista
+            const linkCapaValido = curso.capa && curso.capa.trim() !== "" 
+              ? curso.capa.trim() 
+              : `https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=600`;
+
+            const htmlCard = `
+              <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition flex flex-col justify-between h-full space-y-4">
+                <div class="space-y-3">
+                  <!-- Capa lida da Coluna J da planilha -->
+                  <div class="h-40 w-full relative overflow-hidden bg-slate-100">
+                    <img src="${linkCapaValido}" alt="Banner do Curso" class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
+                    <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-white/95 backdrop-blur-sm text-[#0d6c60] border border-teal-100/50 shadow-sm">
+                      ${curso.categoria || 'Teórico'}
+                    </span>
+                  </div>
+                  
+                  <div class="px-5 pb-1">
+                    <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold mb-1">
+                      <span class="flex items-center">
+                        <i data-lucide="book-open" class="h-3.5 w-3.5 mr-1 text-slate-400"></i> ${totalAulas} aulas
+                      </span>
+                      <span class="text-xs text-emerald-600 font-bold flex items-center">
+                        <i data-lucide="shield-check" class="h-3 w-3 mr-1"></i> Matriculado
+                      </span>
+                    </div>
+                    <h4 class="font-extrabold text-slate-900 text-sm leading-tight line-clamp-1">${curso.titulo}</h4>
+                    <p class="text-xs text-slate-500 mt-1.5 line-clamp-2">${curso.descricao}</p>
+                  </div>
+                </div>
+                
+                <div class="px-5 pb-5 pt-0">
+                  <button onclick="abrirPlayerDoCurso(${index})"
+                    class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-[#0d6c60] hover:bg-[#084941] text-white shadow-sm flex items-center justify-center space-x-2 transition duration-150">
+                    <i data-lucide="play" class="h-4 w-4"></i>
+                    <span>Acessar Aulas</span>
+                  </button>
+                </div>
+              </div>
+            `;
+            catalogo.innerHTML += htmlCard;
+          });
+          lucide.createIcons();
+        } else {
+          loader.classList.add("hidden");
+          catalogo.classList.remove("hidden");
+          catalogo.innerHTML = `
+            <div class="col-span-full bg-white rounded-3xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-4">
+              <div class="h-16 w-16 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center shadow-md">
+                <i data-lucide="graduation-cap" class="h-8 w-8"></i>
+              </div>
+              <div>
+                <h4 class="text-base font-bold text-slate-900">Nenhum Curso Ativo</h4>
+                <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Você não está matriculado em nenhum curso teórico no momento. Entre em contato com a secretaria para ativar suas matrículas.</p>
+              </div>
+            </div>
+          `;
+          lucide.createIcons();
+        }
+      } catch (err) {
+        console.error("Erro ao buscar cursos EAD:", err);
+        loader.classList.add("hidden");
+        mostrarNotificacao("Não foi possível carregar sua grade de cursos. Tente novamente.", "erro");
+      }
+    }
+
+    function voltarAoCatalogoCursos() {
+      document.getElementById("cursos-catalogo-container").classList.remove("hidden");
+      document.getElementById("cursos-player-container").classList.add("hidden");
+      document.getElementById("btn-voltar-catalogo").classList.add("hidden");
+      document.getElementById("dropdown-aulas-container").classList.add("hidden");
+      
+      // Para o player de vídeo para evitar áudio de fundo tocando
+      document.getElementById("iframe-player-curso").src = "";
+      
+      carregarCursosEAD();
+    }
+
+    function abrirPlayerDoCurso(indexCurso) {
+      cursoAtivo = cursosCarregados[indexCurso];
+      if (!cursoAtivo || !cursoAtivo.aulas || cursoAtivo.aulas.length === 0) {
+        mostrarNotificacao("Este curso ainda não possui aulas cadastradas.", "erro");
+        return;
+      }
+
+      document.getElementById("cursos-catalogo-container").classList.add("hidden");
+      document.getElementById("cursos-player-container").classList.remove("hidden");
+      document.getElementById("btn-voltar-catalogo").classList.remove("hidden");
+      document.getElementById("dropdown-aulas-container").classList.remove("hidden");
+
+      // Carregar a primeira aula
+      const aulaInicial = cursoAtivo.aulas[0];
+
+      carregarDropdownAulasDoCurso();
+      carregarVideoNoPlayer(aulaInicial);
+    }
+
+    function carregarDropdownAulasDoCurso() {
+      const select = document.getElementById("select-aula-playlist");
+      select.innerHTML = "";
+
+      cursoAtivo.aulas.forEach((aula, index) => {
+        const opt = document.createElement("option");
+        opt.value = aula.id;
+        opt.textContent = `${index + 1}. ${aula.titulo}`;
+        select.appendChild(opt);
+      });
+    }
+
+    function carregarVideoNoPlayerPeloId(aulaId) {
+      const aula = cursoAtivo.aulas.find(a => a.id === aulaId);
+      if (aula) carregarVideoNoPlayer(aula);
+    }
+
+    function carregarVideoNoPlayer(aula) {
+      aulaAtiva = aula;
+
+      const iframe = document.getElementById("iframe-player-curso");
+      const loader = document.getElementById("iframe-player-loading");
+      const select = document.getElementById("select-aula-playlist");
+
+      loader.classList.remove("hidden");
+
+      // Sincroniza a seleção do dropdown
+      if (select) select.value = aula.id;
+
+      let urlFinal = "";
+      if (aula.tipo === 'youtube') {
+        urlFinal = converterUrlParaEmbedYoutube(aula.url);
+      } else {
+        urlFinal = aula.url;
+      }
+
+      iframe.src = urlFinal;
+      iframe.onload = () => {
+        loader.classList.add("hidden");
+      };
+    }
+
+    function converterUrlParaEmbedYoutube(url) {
+      if (!url) return "";
+      let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      let match = url.match(regExp);
+      
+      if (match && match[2].length === 11) {
+        return `https://www.youtube.com/embed/${match[2]}?autoplay=1&rel=0`;
+      }
+      return url;
     }
 
     async function carregarAulasDisponiveis() {
