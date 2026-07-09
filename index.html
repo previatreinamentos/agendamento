@@ -10,6 +10,8 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- jsPDF Library for PDF Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   
   <style>
     body {
@@ -304,9 +306,9 @@
           <i data-lucide="printer" class="w-4 h-4"></i>
           <span>Imprimir Certificado</span>
         </button>
-        <button onclick="baixarCertificadoComoImagem()" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[#f26522] hover:bg-[#d94f10] shadow-lg shadow-orange-100 flex items-center justify-center gap-2 transition">
+        <button onclick="baixarCertificadoComoPDF()" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[#f26522] hover:bg-[#d94f10] shadow-lg shadow-orange-100 flex items-center justify-center gap-2 transition">
           <i data-lucide="download" class="w-4 h-4"></i>
-          <span>Baixar Arquivo PNG</span>
+          <span>Baixar Arquivo PDF</span>
         </button>
       </div>
 
@@ -1634,8 +1636,8 @@
       return cpfStr;
     }
 
-    function baixarCertificadoComoImagem() {
-      mostrarNotificacao("Gerando arquivo de alta definição...", "info");
+    async function baixarCertificadoComoPDF() {
+      mostrarNotificacao("Gerando certificado em PDF de alta definição...", "info");
 
       const canvas = document.createElement("canvas");
       canvas.width = 1200;
@@ -1716,14 +1718,32 @@
       ctx.font = "normal 11px sans-serif";
       ctx.fillText("Diretoria de Ensino Credenciada", 600, 685);
 
-      // Download do PNG
-      const dataURL = canvas.toDataURL("image/png");
-      const downloadLink = document.createElement("a");
-      downloadLink.download = `Certificado_${cursoAtivo.titulo.replace(/\s+/g, "_")}.png`;
-      downloadLink.href = dataURL;
-      downloadLink.click();
-      
-      mostrarNotificacao("Download do certificado iniciado com sucesso!", "sucesso");
+      try {
+        const { jsPDF } = window.jspdf;
+        // Instancia PDF em formato paisagem com as dimensões exatas do canvas do certificado
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'px',
+          format: [1200, 800]
+        });
+
+        // Converte o canvas para imagem JPEG de altíssima qualidade
+        const imgData = canvas.toDataURL("image/jpeg", 0.98);
+        pdf.addImage(imgData, 'JPEG', 0, 0, 1200, 800);
+        
+        // Efetua o download do arquivo PDF
+        pdf.save(`Certificado_${cursoAtivo.titulo.replace(/\s+/g, "_")}.pdf`);
+        mostrarNotificacao("Download do certificado em PDF iniciado com sucesso!", "sucesso");
+      } catch (pdfError) {
+        console.error("Erro ao gerar PDF:", pdfError);
+        mostrarNotificacao("Erro ao gerar PDF. Baixando imagem PNG alternativa...", "erro");
+        
+        const dataURL = canvas.toDataURL("image/png");
+        const downloadLink = document.createElement("a");
+        downloadLink.download = `Certificado_${cursoAtivo.titulo.replace(/\s+/g, "_")}.png`;
+        downloadLink.href = dataURL;
+        downloadLink.click();
+      }
     }
 
     function carregarDropdownAulasDoCurso() {
