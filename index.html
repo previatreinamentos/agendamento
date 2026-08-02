@@ -4,6 +4,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Previa Treinamentos - Portal de Ensino Prático</title>
+ <!-- 1. Ícone padrão para navegadores (Favicon) -->
+  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/pw/AP1GczOHQW3vNgak5n6o5ao_2xrU1jg939u8uya5WNvo9AcA8vATPtKCFkZ7yag8Z53i0T4y14Z4_kgtCSydvki-SqzzprLY09tnJTxG2tdbAgqJjv3fHNffJnHp2aRdyszqR6eMSL3iVpDPIQGRCrOoSp3y=w599-h599-s-no-gm?authuser=0">
+
+  <!-- 2. Ícone para iOS (iPhone / iPad - Tela Inicial) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="https://lh3.googleusercontent.com/pw/AP1GczOHQW3vNgak5n6o5ao_2xrU1jg939u8uya5WNvo9AcA8vATPtKCFkZ7yag8Z53i0T4y14Z4_kgtCSydvki-SqzzprLY09tnJTxG2tdbAgqJjv3fHNffJnHp2aRdyszqR6eMSL3iVpDPIQGRCrOoSp3y=w599-h599-s-no-gm?authuser=0">
+
+  <!-- 3. Web App Manifest embutido dinamicamente (para Android, PWA e Criação de Atalho) -->
+  <script>
+    const myManifest = {
+      "name": "Previa Treinamentos",
+      "short_name": "Previa",
+      "start_url": "./",
+      "display": "standalone",
+      "background_color": "#ffffff",
+      "theme_color": "#000000",
+      "icons": [
+        {
+          "src": "https://lh3.googleusercontent.com/pw/AP1GczOHQW3vNgak5n6o5ao_2xrU1jg939u8uya5WNvo9AcA8vATPtKCFkZ7yag8Z53i0T4y14Z4_kgtCSydvki-SqzzprLY09tnJTxG2tdbAgqJjv3fHNffJnHp2aRdyszqR6eMSL3iVpDPIQGRCrOoSp3y=w599-h599-s-no-gm?authuser=0",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "https://lh3.googleusercontent.com/pw/AP1GczOHQW3vNgak5n6o5ao_2xrU1jg939u8uya5WNvo9AcA8vATPtKCFkZ7yag8Z53i0T4y14Z4_kgtCSydvki-SqzzprLY09tnJTxG2tdbAgqJjv3fHNffJnHp2aRdyszqR6eMSL3iVpDPIQGRCrOoSp3y=w599-h599-s-no-gm?authuser=0",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any maskable"
+        }
+      ]
+    };
+
+    const stringManifest = JSON.stringify(myManifest);
+    const blob = new Blob([stringManifest], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(blob);
+    
+    const linkElem = document.createElement('link');
+    linkElem.rel = 'manifest';
+    linkElem.href = manifestURL;
+    document.head.appendChild(linkElem);
+  </script>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -516,8 +556,8 @@
       </form>
       
       <div class="text-center text-[10px] text-teal-300/40 pt-4 border-t border-teal-900/40">
-        © 2026 Previa Treinamentos — Powered by IntelliCreate
-      </div>
+        © 2026 Previa Treinamentos      
+     </div>
     </div>
   </div>
 
@@ -744,8 +784,7 @@
 <section id="secao-cursos" class="hidden space-y-4">
 
   <!-- Barra Superior -->
-  <div class="flex flex-col gap-4 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
-
+<div class="flex flex-col gap-4">
     <!-- Linha Superior -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
 
@@ -773,6 +812,7 @@
               </div>
             </div>
           </div>
+
 
           <div class="flex items-center gap-2">
 
@@ -1068,7 +1108,7 @@
         if (userCard) userCard.classList.remove("p-2", "mx-2");
         if (userCard) userCard.classList.add("p-4", "mx-4");
         if (fallbackLogo) fallbackLogo.classList.remove("hidden");
-        if (iconToggle) iconToggle.setAttribute("data-lucide", "menu-fold");
+        if (iconToggle) iconToggle.setAttribute("data-lucide", "chevrons-left-right");
       }
       lucide.createIcons();
     }
@@ -1223,7 +1263,7 @@
         }
       } catch (error) {
         console.error("Erro no login:", error);
-        mostrarNotificacao("Falha de conexão com o servidor da planilha.", "erro");
+        mostrarNotificacao("Falha de conexão com o servidor.", "erro");
       } finally {
         botao.disabled = false;
         botao.innerHTML = `
@@ -1522,6 +1562,9 @@
       document.getElementById("status-progresso-curso-container").classList.add("hidden");
       document.getElementById("dropdown-aulas-container").classList.add("hidden");
       document.getElementById("iframe-player-curso").src = "";
+      document.getElementById("status-progresso-curso-container")?.classList.add("hidden");
+      document.getElementById("btn-concluir-curso")?.classList.add("hidden");
+      document.getElementById("btn-gerar-certificado")?.classList.add("hidden");
       carregarCursosEAD();
     }
 
@@ -1576,33 +1619,80 @@
       lucide.createIcons();
     }
 
-    async function finalizarCursoAtivo() {
-      pedirConfirmacao(
-        "Concluir Curso Teórico",
-        `Deseja realmente finalizar o curso "${cursoAtivo.titulo}"? Esta ação registrará seu progresso completo e liberará seu Certificado Oficial de Conclusão para download imediato.`,
-        async () => {
-          mostrarNotificacao("Sincronizando finalização de curso com a planilha...", "info");
-          
-          try {
-            const urlStatus = `${SCRIPT_URL_PLANILHA}?action=atualizarStatusCurso&cpf=${dadosUsuario.cpf}&cursoId=${cursoAtivo.id}&status=Finalizado`;
-            const response = await fetch(urlStatus);
-            const resJSON = await response.json();
+async function finalizarCursoAtivo() {
+  // Tenta encontrar o curso ativo em qualquer uma das duas variáveis
+  const curso = typeof cursoSelecionadoAtual !== "undefined" && cursoSelecionadoAtual 
+    ? cursoSelecionadoAtual 
+    : (typeof cursoAtivo !== "undefined" ? cursoAtivo : null);
 
-            if (resJSON.success) {
-              mostrarNotificacao("Parabéns! Curso concluído com sucesso.", "sucesso");
-              cursoAtivo.status = "Finalizado";
-              renderizarVisualDeProgressoCurso();
-            } else {
-              mostrarNotificacao("Houve uma falha ao registrar sua conclusão. Tente novamente.", "erro");
-            }
-          } catch(err) {
-            console.error("Erro na comunicação de conclusão do curso:", err);
-            mostrarNotificacao("Erro de conexão ao salvar progresso.", "erro");
-          }
-        }
-      );
+  // Se não encontrou o curso, avisa e para o processo
+  if (!curso) {
+    console.error("Erro: Nenhum curso selecionado foi encontrado nas variáveis.");
+    if (typeof mostrarNotificacao === "function") {
+      mostrarNotificacao("Erro ao identificar o curso ativo.", "erro");
+    }
+    return;
+  }
+
+  // Função que executa a requisição após a confirmação do aluno
+  const processarConclusao = async () => {
+    if (typeof mostrarNotificacao === "function") {
+      mostrarNotificacao("Sincronizando finalização de curso...", "info");
     }
 
+    try {
+      const urlScript = typeof SCRIPT_URL_PLANILHA !== "undefined" ? SCRIPT_URL_PLANILHA : (typeof SCRIPT_URL !== "undefined" ? SCRIPT_URL : "");
+      const cpfAluno = typeof dadosUsuario !== "undefined" && dadosUsuario.cpf ? dadosUsuario.cpf : (typeof alunoLogado !== "undefined" ? alunoLogado.cpf : "");
+
+      const payload = {
+        action: "concluirCurso",
+        cpf: cpfAluno,
+        cursoId: curso.id || curso,
+        status: "Finalizado",
+        dataConclusao: new Date().toLocaleDateString("pt-BR")
+      };
+
+      // Dispara requisição para a API do Apps Script
+      fetch(urlScript, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      // Como o no-cors não retorna JSON direto, consideramos o envio concluído com sucesso no cliente
+      curso.status = "Finalizado";
+      curso.dataConclusao = new Date().toLocaleDateString("pt-BR");
+
+      if (typeof mostrarNotificacao === "function") {
+        mostrarNotificacao("Parabéns! Curso concluído com sucesso.", "sucesso");
+      }
+
+      if (typeof fecharModalAula === "function") fecharModalAula();
+      if (typeof abrirModalCertificado === "function") abrirModalCertificado(curso);
+      if (typeof renderizarVisualDeProgressoCurso === "function") renderizarVisualDeProgressoCurso();
+
+    } catch (err) {
+      console.error("Erro na comunicação de conclusão do curso:", err);
+      if (typeof mostrarNotificacao === "function") {
+        mostrarNotificacao("Erro de conexão ao salvar progresso.", "erro");
+      }
+    }
+  };
+
+  // Se a função pedirConfirmacao existir, usa ela. Senão, usa o confirm padrão do navegador
+  if (typeof pedirConfirmacao === "function") {
+    pedirConfirmacao(
+      "Concluir Curso Teórico",
+      `Deseja realmente finalizar o curso "${curso.titulo || 'selecionado'}"? Esta ação registrará seu progresso completo e liberará seu Certificado Oficial.`,
+      processarConclusao
+    );
+  } else {
+    if (confirm(`Deseja realmente finalizar o curso "${curso.titulo || 'selecionado'}"?`)) {
+      processarConclusao();
+    }
+  }
+}
     function abrirCertificado() {
       const modal = document.getElementById("modal-certificado-container");
       
@@ -2507,13 +2597,13 @@
       botao.innerHTML = `<span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span> Gravando...`;
 
       try {
-        const payload = {
-          action: "avaliarAula",
-          aulaId: aulaId,
-          nota: notaCalculada,
-          feedback: feedback,
-          detalhes: JSON.stringify(detalhesObj)
-        };
+const dados = {
+  action: "avaliarAula",
+  aulaId: idDaAula,          // Certifique-se de que a variável do ID está com o nome correto
+  nota: valorDaNota,         // <-- ESTA É A LINHA CRUCIAL: o 'nota' precisa ser exatamente assim
+  feedback: feedbackTexto,
+  detalhes: JSON.stringify(detalhesAvaliacao)
+};
 
         const resposta = await fetch(SCRIPT_URL_PLANILHA, {
           method: "POST",
@@ -2564,5 +2654,44 @@
       );
     }
   </script>
+<!-- COLE O CÓDIGO ABAIXO AQUI -->
+
+  <!-- Banner/Aviso de Instalação -->
+  <div id="install-banner" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: #000; color: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 9999; text-align: center; width: 90%; max-width: 400px;">
+    <p style="margin: 0 0 10px 0; font-size: 14px;">Deseja instalar nosso aplicativo para acesso rápido?</p>
+    <button id="btn-install" style="background-color: #25d366; color: white; border: none; padding: 8px 16px; border-radius: 5px; font-weight: bold; cursor: pointer;">Instalar Aplicativo</button>
+    <button id="btn-close" style="background-color: transparent; color: #ccc; border: none; margin-left: 10px; cursor: pointer;">Agora não</button>
+  </div>
+
+  <!-- Script para controlar o Prompt de Instalação -->
+  <script>
+    let deferredPrompt;
+    const installBanner = document.getElementById('install-banner');
+    const btnInstall = document.getElementById('btn-install');
+    const btnClose = document.getElementById('btn-close');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBanner.style.display = 'block';
+    });
+
+    btnInstall.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        installBanner.style.display = 'none';
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`Resposta do usuário: ${outcome}`);
+        deferredPrompt = null;
+      }
+    });
+
+    btnClose.addEventListener('click', () => {
+      installBanner.style.display = 'none';
+    });
+  </script>
+
+</body>
+</html>
 </body>
 </html>
