@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Previa Treinamentos - Portal de Ensino Prático</title>
- <!-- 1. Ícone padrão para navegadores (Favicon) -->
+  <!-- 1. Ícone padrão para navegadores (Favicon) -->
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/pw/AP1GczOHQW3vNgak5n6o5ao_2xrU1jg939u8uya5WNvo9AcA8vATPtKCFkZ7yag8Z53i0T4y14Z4_kgtCSydvki-SqzzprLY09tnJTxG2tdbAgqJjv3fHNffJnHp2aRdyszqR6eMSL3iVpDPIQGRCrOoSp3y=w599-h599-s-no-gm?authuser=0">
 
   <!-- 2. Ícone para iOS (iPhone / iPad - Tela Inicial) -->
@@ -44,6 +44,7 @@
     linkElem.href = manifestURL;
     document.head.appendChild(linkElem);
   </script>
+  
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -213,7 +214,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE VISUALIZAÇÃO DE AVALIAÇÃO DETALHADA (CORRIGIDO E COMPLETO) -->
+  <!-- MODAL DE VISUALIZAÇÃO DE AVALIAÇÃO DETALHADA -->
   <div id="modal-avaliacao-detalhada" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
     <div class="bg-white rounded-2xl shadow-xl max-w-5xl w-full p-6 m-4 transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col">
       <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
@@ -625,6 +626,11 @@
           <i data-lucide="calendar" class="h-5 w-5 flex-shrink-0"></i>
           <span class="sidebar-text transition-opacity duration-200">Minha Agenda</span>
         </button>
+        <button onclick="alternarAba('ferramentas')" id="btn-menu-ferramentas"
+          class="menu-item flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-bold text-teal-300 hover:bg-[#042e2a]/50 hover:text-white transition-all duration-150">
+          <i data-lucide="wrench" class="h-5 w-5 flex-shrink-0"></i>
+          <span class="sidebar-text transition-opacity duration-200">Ferramentas Educacionais</span>
+        </button>
       </nav>
 
       <!-- Sair -->
@@ -680,7 +686,7 @@
         </div>
       </div>
 
-      <!-- SEÇÕES DO ALUNO -->
+      <!-- SEÇÕES DO SISTEMA -->
       <div id="container-secoes" class="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6 transition-all duration-300">
 
         <!-- ABA 1: RELATÓRIO GERAL (DASHBOARD ALUNO) -->
@@ -780,151 +786,72 @@
             <!-- Gerado via JS -->
           </div>
         </section>
-<!-- ABA 2.5: PLATAFORMA DE CURSOS EAD (DO ALUNO) -->
-<section id="secao-cursos" class="hidden space-y-4">
 
-  <!-- Barra Superior -->
-<div class="flex flex-col gap-4">
-    <!-- Linha Superior -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <!-- ABA 2.5: PLATAFORMA DE CURSOS EAD (DO ALUNO) -->
+        <section id="secao-cursos" class="hidden space-y-4">
+          <!-- Barra Superior -->
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+                <!-- Barra de Progresso e Certificação -->
+                <div id="status-progresso-curso-container" class="hidden bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex items-center gap-4">
+                  <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-teal-50 text-[#0d6c60] rounded-xl">
+                      <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                      <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Progresso deste Curso</span>
+                      <div class="flex items-center gap-2">
+                        <span id="badge-progresso-curso" class="text-xs font-extrabold text-[#0d6c60]">Buscando status...</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button id="btn-concluir-curso" onclick="finalizarCursoAtivo()" class="px-4 py-2 bg-[#0d6c60] hover:bg-[#07473f] text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-2 transition duration-150">
+                      <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                      <span>Concluir Curso</span>
+                    </button>
+                    <button id="btn-gerar-certificado" onclick="abrirCertificado()" class="hidden px-5 py-2 bg-[#f26522] hover:bg-[#d94f10] text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-2 transition duration-150 animate-pulse">
+                      <i data-lucide="award" class="w-4 h-4"></i>
+                      <span>Emitir Certificado</span>
+                    </button>
+                  </div>
+                </div>
 
-
-      <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
-
-        <!-- Barra de Progresso e Certificação -->
-       <div id="status-progresso-curso-container"
-     class="hidden bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex items-center gap-4">
-
-          <div class="flex items-center gap-3">
-            <div class="p-2.5 bg-teal-50 text-[#0d6c60] rounded-xl">
-              <i data-lucide="graduation-cap" class="w-6 h-6"></i>
-            </div>
-
-            <div>
-              <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">
-                Progresso deste Curso
-              </span>
-
-              <div class="flex items-center gap-2">
-                <span id="badge-progresso-curso" class="text-xs font-extrabold text-[#0d6c60]">
-                  Buscando status...
-                </span>
+                <!-- Menu de seleção de aula -->
+                <div id="dropdown-aulas-container" class="hidden flex items-center gap-2">
+                  <span class="text-[10px] font-bold text-slate-400 uppercase">Aula:</span>
+                  <select id="select-aula-playlist" onchange="carregarVideoNoPlayerPeloId(this.value)" class="px-2.5 py-1.5 border border-slate-200 rounded-xl text-xs font-bold text-[#0d6c60] bg-white focus:outline-none focus:ring-2 focus:ring-[#f26522] max-w-[200px] truncate"></select>
+                </div>
+                <button id="btn-voltar-catalogo" onclick="voltarAoCatalogoCursos()" class="hidden inline-flex items-center px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition shadow-sm">
+                  <i data-lucide="arrow-left" class="h-4 w-4 mr-1"></i> Voltar
+                </button>
               </div>
             </div>
           </div>
 
-
-          <div class="flex items-center gap-2">
-
-            <!-- Botão de Conclusão do Curso -->
-            <button id="btn-concluir-curso"
-              onclick="finalizarCursoAtivo()"
-              class="px-4 py-2 bg-[#0d6c60] hover:bg-[#07473f] text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-2 transition duration-150">
-
-              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-              <span>Concluir Curso</span>
-
-            </button>
-
-            <!-- Botão de Certificado -->
-            <button id="btn-gerar-certificado"
-              onclick="abrirCertificado()"
-              class="hidden px-5 py-2 bg-[#f26522] hover:bg-[#d94f10] text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-2 transition duration-150 animate-pulse">
-
-              <i data-lucide="award" class="w-4 h-4"></i>
-              <span>Emitir Certificado</span>
-
-            </button>
-
+          <!-- Loader de Cursos -->
+          <div id="loader-cursos" class="bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-3">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0d6c60]"></div>
+            <span class="text-slate-500 font-medium text-xs">Acessando seus cursos matriculados...</span>
           </div>
 
-        </div>
+          <!-- Catálogo de Cursos -->
+          <div id="cursos-catalogo-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 hidden">
+            <!-- Gerado dinamicamente via JS -->
+          </div>
 
-        <!-- Menu de seleção de aula -->
-        <div id="dropdown-aulas-container" class="hidden flex items-center gap-2">
-
-          <span class="text-[10px] font-bold text-slate-400 uppercase">
-            Aula:
-          </span>
-
-          <select
-            id="select-aula-playlist"
-            onchange="carregarVideoNoPlayerPeloId(this.value)"
-            class="px-2.5 py-1.5 border border-slate-200 rounded-xl text-xs font-bold text-[#0d6c60] bg-white focus:outline-none focus:ring-2 focus:ring-[#f26522] max-w-[200px] truncate">
-
-          </select>
-
-        </div>
-
-        <!-- Botão Voltar -->
-        <button
-          id="btn-voltar-catalogo"
-          onclick="voltarAoCatalogoCursos()"
-          class="hidden inline-flex items-center px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition shadow-sm">
-
-          <i data-lucide="arrow-left" class="h-4 w-4 mr-1"></i>
-          Voltar
-
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-  <!-- Loader de Cursos -->
-  <div id="loader-cursos" class="bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-3">
-
-    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0d6c60]"></div>
-
-    <span class="text-slate-500 font-medium text-xs">
-      Acessando seus cursos matriculados...
-    </span>
-
-  </div>
-
-  <!-- Catálogo de Cursos -->
-  <div id="cursos-catalogo-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 hidden">
-
-    <!-- Gerado dinamicamente via JS -->
-
-  </div>
-
-  <!-- Player -->
-  <div id="cursos-player-container" class="hidden flex flex-col space-y-4">
-
-    <!-- Player -->
-    <div id="player-wrapper-fullscreen"
-      class="bg-black rounded-3xl overflow-hidden shadow-xl border border-slate-800 aspect-video relative flex items-center justify-center w-full max-h-[70vh]">
-
-      <iframe
-        id="iframe-player-curso"
-        class="w-full h-full"
-        src=""
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen>
-
-      </iframe>
-
-      <!-- Loader do Player -->
-      <div id="iframe-player-loading"
-        class="absolute inset-0 bg-[#022320]/90 flex flex-col items-center justify-center text-white space-y-3 hidden">
-
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#f26522]"></div>
-
-        <span class="text-xs font-semibold text-teal-200">
-          Carregando conteúdo da aula...
-        </span>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
+          <!-- Player -->
+          <div id="cursos-player-container" class="hidden flex flex-col space-y-4">
+            <div id="player-wrapper-fullscreen" class="bg-black rounded-3xl overflow-hidden shadow-xl border border-slate-800 aspect-video relative flex items-center justify-center w-full max-h-[70vh]">
+              <iframe id="iframe-player-curso" class="w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+              <div id="iframe-player-loading" class="absolute inset-0 bg-[#022320]/90 flex flex-col items-center justify-center text-white space-y-3 hidden">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#f26522]"></div>
+                <span class="text-xs font-semibold text-teal-200">Carregando conteúdo da aula...</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
 
         <!-- ABA 3: HISTÓRICO E NOTAS (ALUNO) -->
@@ -1050,6 +977,45 @@
           </div>
         </section>
 
+        <!-- SEÇÃO: FERRAMENTAS EDUCACIONAIS (NOVA) -->
+        <section id="secao-ferramentas" class="hidden space-y-4">
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+                <div id="dropdown-ferramentas-container" class="hidden flex items-center gap-2">
+                  <span class="text-[10px] font-bold text-slate-400 uppercase">Conteúdo:</span>
+                  <select id="select-aula-ferramenta" onchange="carregarVideoNoPlayerFerramenta(this.value)" class="px-2.5 py-1.5 border border-slate-200 rounded-xl text-xs font-bold text-[#0d6c60] bg-white focus:outline-none focus:ring-2 focus:ring-[#f26522] max-w-[200px] truncate"></select>
+                </div>
+                <button id="btn-voltar-ferramentas" onclick="voltarAoCatalogoFerramentas()" class="hidden inline-flex items-center px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition shadow-sm">
+                  <i data-lucide="arrow-left" class="h-4 w-4 mr-1"></i> Voltar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loader -->
+          <div id="loader-ferramentas" class="bg-white rounded-2xl p-12 text-center border border-slate-100 flex flex-col items-center justify-center space-y-3">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0d6c60]"></div>
+            <span class="text-slate-500 font-medium text-xs">Carregando ferramentas educacionais...</span>
+          </div>
+
+          <!-- Catálogo -->
+          <div id="ferramentas-catalogo-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 hidden">
+            <!-- Gerado via JS -->
+          </div>
+
+          <!-- Player da Ferramenta -->
+          <div id="ferramentas-player-container" class="hidden flex flex-col space-y-4">
+            <div id="player-wrapper-fullscreen-ferramenta" class="bg-black rounded-3xl overflow-hidden shadow-xl border border-slate-800 aspect-video relative flex items-center justify-center w-full max-h-[70vh]">
+              <iframe id="iframe-player-ferramenta" class="w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+              <div id="iframe-ferramenta-loading" class="absolute inset-0 bg-[#022320]/90 flex flex-col items-center justify-center text-white space-y-3 hidden">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#f26522]"></div>
+                <span class="text-xs font-semibold text-teal-200">Carregando ferramenta...</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
       </div>
     </main>
   </div>
@@ -1066,10 +1032,14 @@
     let perfilLogado = "aluno";
     let dadosUsuario = null;
 
-    // Estado da Plataforma de Cursos
+    // Estado da Plataforma
     let cursosCarregados = [];
     let cursoAtivo = null;
     let aulaAtiva = null;
+    
+    let ferramentasCarregadas = [];
+    let ferramentaAtiva = null;
+
     let sidebarMinimizada = false;
 
     // Recupera o estado inicial da sidebar do localStorage
@@ -1208,21 +1178,11 @@
 
     function obterCategoriaDoItem(nomeItem) {
       const txt = nomeItem.toLowerCase();
-      if (txt.includes("segurança") || txt.includes("entrar") || txt.includes("sair") || txt.includes("limpador") || txt.includes("faróis") || txt.includes("finalização")) {
-        return "Verificação de Segurança";
-      }
-      if (txt.includes("banco") || txt.includes("retrovisores") || txt.includes("cinto")) {
-        return "Ergonomia";
-      }
-      if (txt.includes("painel") || txt.includes("volante") || txt.includes("pedais") || txt.includes("marchas") || txt.includes("reduções") || txt.includes("domínio")) {
-        return "Atenção e habilidade técnica";
-      }
-      if (txt.includes("velocidade") || txt.includes("distância") || txt.includes("ultrapassagens") || txt.includes("adversas") || txt.includes("manobras") || txt.includes("pedestres") || txt.includes("motociclistas")) {
-        return "Direção defensiva";
-      }
-      if (txt.includes("cruzamentos") || txt.includes("faixas") || txt.includes("seta") || txt.includes("sinalização") || txt.includes("sinalizações") || txt.includes("parada") || txt.includes("estacionamento")) {
-        return "Circulação e conduta";
-      }
+      if (txt.includes("segurança") || txt.includes("entrar") || txt.includes("sair") || txt.includes("limpador") || txt.includes("faróis") || txt.includes("finalização")) return "Verificação de Segurança";
+      if (txt.includes("banco") || txt.includes("retrovisores") || txt.includes("cinto")) return "Ergonomia";
+      if (txt.includes("painel") || txt.includes("volante") || txt.includes("pedais") || txt.includes("marchas") || txt.includes("reduções") || txt.includes("domínio")) return "Atenção e habilidade técnica";
+      if (txt.includes("velocidade") || txt.includes("distância") || txt.includes("ultrapassagens") || txt.includes("adversas") || txt.includes("manobras") || txt.includes("pedestres") || txt.includes("motociclistas")) return "Direção defensiva";
+      if (txt.includes("cruzamentos") || txt.includes("faixas") || txt.includes("seta") || txt.includes("sinalização") || txt.includes("sinalizações") || txt.includes("parada") || txt.includes("estacionamento")) return "Circulação e conduta";
       return "Geral";
     }
 
@@ -1287,12 +1247,6 @@
       
       document.getElementById("alerta-seguranca-geral").classList.remove("hidden");
 
-      document.getElementById("secao-inicio").classList.remove("hidden");
-      document.getElementById("secao-agendar").classList.add("hidden");
-      document.getElementById("secao-cursos").classList.add("hidden");
-      document.getElementById("secao-historico").classList.add("hidden");
-      document.getElementById("secao-agenda-instrutor").classList.add("hidden");
-
       document.getElementById("aluno-nome").textContent = dadosUsuario.nome;
       document.getElementById("boas-vindas-nome").textContent = `Olá, ${dadosUsuario.nome.trim().split(" ")[0]}!`;
       
@@ -1333,12 +1287,6 @@
       document.getElementById("menu-instrutor").classList.remove("hidden");
       document.getElementById("header-instrutor-box").classList.add("hidden");
       document.getElementById("alerta-seguranca-geral").classList.add("hidden");
-
-      document.getElementById("secao-inicio").classList.add("hidden");
-      document.getElementById("secao-agendar").classList.add("hidden");
-      document.getElementById("secao-cursos").classList.add("hidden");
-      document.getElementById("secao-historico").classList.add("hidden");
-      document.getElementById("secao-agenda-instrutor").classList.remove("hidden");
 
       document.getElementById("aluno-nome").textContent = dadosUsuario.nome;
       
@@ -1401,12 +1349,23 @@
     }
 
     function alternarAba(abaId) {
-      const secoes = ["inicio", "agendar", "cursos", "historico", "agenda-instrutor"];
+      const secoes = ["inicio", "agendar", "cursos", "historico", "agenda-instrutor", "ferramentas"];
       const containerSecoes = document.getElementById("container-secoes");
       const mainHeader = document.getElementById("main-header");
 
+      // FORÇAR OCULTAÇÃO DA BARRA DE CURSO E FERRAMENTA CASO NÃO ESTEJA NESSAS ABAS
+      if (abaId !== "cursos") {
+        document.getElementById("status-progresso-curso-container")?.classList.add("hidden");
+        document.getElementById("dropdown-aulas-container")?.classList.add("hidden");
+        document.getElementById("btn-voltar-catalogo")?.classList.add("hidden");
+      }
+      if (abaId !== "ferramentas") {
+        document.getElementById("dropdown-ferramentas-container")?.classList.add("hidden");
+        document.getElementById("btn-voltar-ferramentas")?.classList.add("hidden");
+      }
+
       if (containerSecoes) {
-        if (abaId === "cursos") {
+        if (abaId === "cursos" || abaId === "ferramentas") {
           containerSecoes.className = "flex-1 p-2 sm:p-4 max-w-none w-full mx-auto space-y-4 transition-all duration-300 lg:px-8";
           if (mainHeader) mainHeader.classList.add("py-1.5", "border-b-0");
         } else {
@@ -1417,7 +1376,7 @@
 
       const alertaSeg = document.getElementById("alerta-seguranca-geral");
       if (alertaSeg) {
-        if (abaId === "cursos" || perfilLogado === "instrutor") {
+        if (abaId === "cursos" || abaId === "ferramentas" || perfilLogado === "instrutor") {
           alertaSeg.classList.add("hidden");
         } else if (perfilLogado === "aluno") {
           alertaSeg.classList.remove("hidden");
@@ -1444,33 +1403,31 @@
         agendar: "Agendar Nova Aula Prática", 
         cursos: "Cursos & Aulas Teóricas EAD",
         historico: "Meu Histórico de Aulas",
-        "agenda-instrutor": "Agenda de Direção Prática"
+        "agenda-instrutor": "Agenda de Direção Prática",
+        "ferramentas": "Ferramentas Educacionais"
       };
       document.getElementById("titulo-secao-portal").textContent = titulos[abaId] || "Portal";
 
-      if (abaId === "agendar") {
-        carregarAulasDisponiveis();
-      } else if (abaId === "cursos") {
-        carregarCursosEAD();
-      } else if (abaId === "historico") {
-        carregarHistoricoDeAulas();
-      } else if (abaId === "agenda-instrutor") {
-        carregarAgendaInstrutor();
-      }
+      if (abaId === "agendar") carregarAulasDisponiveis();
+      else if (abaId === "cursos") carregarCursosEAD();
+      else if (abaId === "historico") carregarHistoricoDeAulas();
+      else if (abaId === "agenda-instrutor") carregarAgendaInstrutor();
+      else if (abaId === "ferramentas") carregarFerramentas();
     }
 
     async function carregarCursosEAD() {
       const loader = document.getElementById("loader-cursos");
       const catalogo = document.getElementById("cursos-catalogo-container");
       const player = document.getElementById("cursos-player-container");
-      const btnVoltar = document.getElementById("btn-voltar-catalogo");
-      const dropdownAulas = document.getElementById("dropdown-aulas-container");
+      
+      // Garante que containers ficam escondidos no momento da listagem do catálogo
+      document.getElementById("btn-voltar-catalogo")?.classList.add("hidden");
+      document.getElementById("status-progresso-curso-container")?.classList.add("hidden");
+      document.getElementById("dropdown-aulas-container")?.classList.add("hidden");
 
       loader.classList.remove("hidden");
       catalogo.classList.add("hidden");
       player.classList.add("hidden");
-      btnVoltar.classList.add("hidden");
-      dropdownAulas.classList.add("hidden");
       catalogo.innerHTML = "";
 
       try {
@@ -1562,9 +1519,6 @@
       document.getElementById("status-progresso-curso-container").classList.add("hidden");
       document.getElementById("dropdown-aulas-container").classList.add("hidden");
       document.getElementById("iframe-player-curso").src = "";
-      document.getElementById("status-progresso-curso-container")?.classList.add("hidden");
-      document.getElementById("btn-concluir-curso")?.classList.add("hidden");
-      document.getElementById("btn-gerar-certificado")?.classList.add("hidden");
       carregarCursosEAD();
     }
 
@@ -1583,7 +1537,6 @@
 
       renderizarVisualDeProgressoCurso();
 
-      // Envia notificação de "Iniciado" para a planilha caso o curso esteja como "Não Iniciado"
       if (cursoAtivo.status !== "Iniciado" && cursoAtivo.status !== "Finalizado") {
         try {
           const urlStatus = `${SCRIPT_URL_PLANILHA}?action=atualizarStatusCurso&cpf=${dadosUsuario.cpf}&cursoId=${cursoAtivo.id}&status=Iniciado`;
@@ -1619,80 +1572,50 @@
       lucide.createIcons();
     }
 
-async function finalizarCursoAtivo() {
-  // Tenta encontrar o curso ativo em qualquer uma das duas variáveis
-  const curso = typeof cursoSelecionadoAtual !== "undefined" && cursoSelecionadoAtual 
-    ? cursoSelecionadoAtual 
-    : (typeof cursoAtivo !== "undefined" ? cursoAtivo : null);
+    async function finalizarCursoAtivo() {
+      const curso = cursoAtivo;
+      if (!curso) {
+        mostrarNotificacao("Erro ao identificar o curso ativo.", "erro");
+        return;
+      }
 
-  // Se não encontrou o curso, avisa e para o processo
-  if (!curso) {
-    console.error("Erro: Nenhum curso selecionado foi encontrado nas variáveis.");
-    if (typeof mostrarNotificacao === "function") {
-      mostrarNotificacao("Erro ao identificar o curso ativo.", "erro");
-    }
-    return;
-  }
+      const processarConclusao = async () => {
+        mostrarNotificacao("Sincronizando finalização de curso...", "info");
 
-  // Função que executa a requisição após a confirmação do aluno
-  const processarConclusao = async () => {
-    if (typeof mostrarNotificacao === "function") {
-      mostrarNotificacao("Sincronizando finalização de curso...", "info");
-    }
+        try {
+          const payload = {
+            action: "concluirCurso",
+            cpf: dadosUsuario.cpf,
+            cursoId: curso.id,
+            status: "Finalizado",
+            dataConclusao: new Date().toLocaleDateString("pt-BR")
+          };
 
-    try {
-      const urlScript = typeof SCRIPT_URL_PLANILHA !== "undefined" ? SCRIPT_URL_PLANILHA : (typeof SCRIPT_URL !== "undefined" ? SCRIPT_URL : "");
-      const cpfAluno = typeof dadosUsuario !== "undefined" && dadosUsuario.cpf ? dadosUsuario.cpf : (typeof alunoLogado !== "undefined" ? alunoLogado.cpf : "");
+          fetch(SCRIPT_URL_PLANILHA, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload)
+          });
 
-      const payload = {
-        action: "concluirCurso",
-        cpf: cpfAluno,
-        cursoId: curso.id || curso,
-        status: "Finalizado",
-        dataConclusao: new Date().toLocaleDateString("pt-BR")
+          curso.status = "Finalizado";
+          curso.dataConclusao = new Date().toLocaleDateString("pt-BR");
+
+          mostrarNotificacao("Parabéns! Curso concluído com sucesso.", "sucesso");
+          renderizarVisualDeProgressoCurso();
+        } catch (err) {
+          console.error("Erro na comunicação de conclusão do curso:", err);
+          mostrarNotificacao("Erro de conexão ao salvar progresso.", "erro");
+        }
       };
 
-      // Dispara requisição para a API do Apps Script
-      fetch(urlScript, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      // Como o no-cors não retorna JSON direto, consideramos o envio concluído com sucesso no cliente
-      curso.status = "Finalizado";
-      curso.dataConclusao = new Date().toLocaleDateString("pt-BR");
-
-      if (typeof mostrarNotificacao === "function") {
-        mostrarNotificacao("Parabéns! Curso concluído com sucesso.", "sucesso");
-      }
-
-      if (typeof fecharModalAula === "function") fecharModalAula();
-      if (typeof abrirModalCertificado === "function") abrirModalCertificado(curso);
-      if (typeof renderizarVisualDeProgressoCurso === "function") renderizarVisualDeProgressoCurso();
-
-    } catch (err) {
-      console.error("Erro na comunicação de conclusão do curso:", err);
-      if (typeof mostrarNotificacao === "function") {
-        mostrarNotificacao("Erro de conexão ao salvar progresso.", "erro");
-      }
+      pedirConfirmacao(
+        "Concluir Curso Teórico",
+        `Deseja realmente finalizar o curso "${curso.titulo}"? Esta ação registrará seu progresso completo e liberará seu Certificado Oficial.`,
+        processarConclusao
+      );
     }
-  };
-
-  // Se a função pedirConfirmacao existir, usa ela. Senão, usa o confirm padrão do navegador
-  if (typeof pedirConfirmacao === "function") {
-    pedirConfirmacao(
-      "Concluir Curso Teórico",
-      `Deseja realmente finalizar o curso "${curso.titulo || 'selecionado'}"? Esta ação registrará seu progresso completo e liberará seu Certificado Oficial.`,
-      processarConclusao
-    );
-  } else {
-    if (confirm(`Deseja realmente finalizar o curso "${curso.titulo || 'selecionado'}"?`)) {
-      processarConclusao();
-    }
-  }
-}
+    
     function abrirCertificado() {
       const modal = document.getElementById("modal-certificado-container");
       
@@ -1734,14 +1657,12 @@ async function finalizarCursoAtivo() {
       canvas.height = 800;
       const ctx = canvas.getContext("2d");
 
-      // Gradiente de fundo sofisticado
       const grad = ctx.createLinearGradient(0, 0, 1200, 800);
       grad.addColorStop(0, "#fafdfd");
       grad.addColorStop(1, "#f2f7f6");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 1200, 800);
 
-      // Moldura Externa Dupla (Verde e Laranja)
       ctx.lineWidth = 18;
       ctx.strokeStyle = "#022b26"; 
       ctx.strokeRect(18, 18, 1164, 764);
@@ -1750,7 +1671,6 @@ async function finalizarCursoAtivo() {
       ctx.strokeStyle = "#f26522"; 
       ctx.strokeRect(32, 32, 1136, 736);
 
-      // Selo Circular no Fundo (Marca d'água)
       ctx.beginPath();
       ctx.arc(600, 400, 140, 0, 2 * Math.PI);
       ctx.fillStyle = "rgba(13, 108, 96, 0.02)";
@@ -1788,7 +1708,6 @@ async function finalizarCursoAtivo() {
       const hashUnico = `PRV-${dadosUsuario.cpf.substring(0,4)}-${cursoAtivo.id}-${Math.floor(1000 + Math.random() * 9000)}`;
       ctx.fillText(`Emitido em ${dataHoje} | Chave de Registro: ${hashUnico}`, 600, 530);
 
-      // Assinatura
       ctx.strokeStyle = "#cbd5e1";
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -1810,18 +1729,15 @@ async function finalizarCursoAtivo() {
 
       try {
         const { jsPDF } = window.jspdf;
-        // Instancia PDF em formato paisagem com as dimensões exatas do canvas do certificado
         const pdf = new jsPDF({
           orientation: 'landscape',
           unit: 'px',
           format: [1200, 800]
         });
 
-        // Converte o canvas para imagem JPEG de altíssima qualidade
         const imgData = canvas.toDataURL("image/jpeg", 0.98);
         pdf.addImage(imgData, 'JPEG', 0, 0, 1200, 800);
         
-        // Efetua o download do arquivo PDF
         pdf.save(`Certificado_${cursoAtivo.titulo.replace(/\s+/g, "_")}.pdf`);
         mostrarNotificacao("Download do certificado em PDF iniciado com sucesso!", "sucesso");
       } catch (pdfError) {
@@ -1873,6 +1789,102 @@ async function finalizarCursoAtivo() {
       iframe.onload = () => {
         loader.classList.add("hidden");
       };
+    }
+
+    async function carregarFerramentas() {
+      const loader = document.getElementById("loader-ferramentas");
+      const catalogo = document.getElementById("ferramentas-catalogo-container");
+      const player = document.getElementById("ferramentas-player-container");
+      
+      document.getElementById("dropdown-ferramentas-container")?.classList.add("hidden");
+      document.getElementById("btn-voltar-ferramentas")?.classList.add("hidden");
+
+      loader.classList.remove("hidden");
+      catalogo.classList.add("hidden");
+      player.classList.add("hidden");
+      catalogo.innerHTML = "";
+
+      try {
+        const res = await fetch(`${SCRIPT_URL_PLANILHA}?action=buscarFerramentas`);
+        const ferramentas = await res.json();
+        ferramentasCarregadas = ferramentas;
+
+        if (ferramentas && ferramentas.length > 0) {
+          loader.classList.add("hidden");
+          catalogo.classList.remove("hidden");
+
+          ferramentas.forEach((ferramenta, index) => {
+            const linkCapa = ferramenta.capa && ferramenta.capa.trim() !== "" ? ferramenta.capa : `https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80&w=600`;
+            catalogo.innerHTML += `
+              <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition flex flex-col justify-between h-full space-y-4">
+                <div class="space-y-3">
+                  <div class="h-40 w-full relative overflow-hidden bg-slate-100">
+                    <img src="${linkCapa}" class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
+                    <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-white/95 text-[#0d6c60] shadow-sm">${ferramenta.categoria || 'Recurso Pedagógico'}</span>
+                  </div>
+                  <div class="px-5 pb-1">
+                    <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold mb-1">
+                      <span class="flex items-center"><i data-lucide="layers" class="h-3.5 w-3.5 mr-1"></i> ${ferramenta.aulas ? ferramenta.aulas.length : 0} módulos</span>
+                    </div>
+                    <h4 class="font-extrabold text-slate-900 text-sm line-clamp-1">${ferramenta.titulo}</h4>
+                    <p class="text-xs text-slate-500 mt-1.5 line-clamp-2">${ferramenta.descricao}</p>
+                  </div>
+                </div>
+                <div class="px-5 pb-5 pt-0">
+                  <button onclick="abrirPlayerDaFerramenta(${index})" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-[#f26522] hover:bg-[#d94f10] text-white flex justify-center gap-2 shadow-sm transition duration-150"><i data-lucide="external-link" class="h-4 w-4"></i> Abrir Ferramenta</button>
+                </div>
+              </div>`;
+          });
+          lucide.createIcons();
+        } else {
+          loader.classList.add("hidden");
+          catalogo.classList.remove("hidden");
+          catalogo.innerHTML = `<div class="col-span-full bg-white p-12 text-center text-slate-500"><i data-lucide="wrench" class="h-10 w-10 mx-auto text-slate-300 mb-2"></i>Nenhuma ferramenta disponível no momento.</div>`;
+          lucide.createIcons();
+        }
+      } catch (err) {
+        console.error("Erro ao carregar ferramentas:", err);
+        loader.classList.add("hidden");
+        catalogo.classList.remove("hidden");
+        catalogo.innerHTML = `<div class="col-span-full bg-white p-12 text-center text-slate-500">Ação 'buscarFerramentas' indisponível no servidor ou erro de rede.</div>`;
+      }
+    }
+
+    function abrirPlayerDaFerramenta(index) {
+      ferramentaAtiva = ferramentasCarregadas[index];
+      if (!ferramentaAtiva || !ferramentaAtiva.aulas || ferramentaAtiva.aulas.length === 0) {
+        mostrarNotificacao("Ferramenta vazia. Nenhuma URL cadastrada.", "erro");
+        return;
+      }
+
+      document.getElementById("ferramentas-catalogo-container").classList.add("hidden");
+      document.getElementById("ferramentas-player-container").classList.remove("hidden");
+      document.getElementById("btn-voltar-ferramentas").classList.remove("hidden");
+      document.getElementById("dropdown-ferramentas-container").classList.remove("hidden");
+
+      const select = document.getElementById("select-aula-ferramenta");
+      select.innerHTML = "";
+      ferramentaAtiva.aulas.forEach((aula, i) => {
+        const opt = document.createElement("option");
+        opt.value = aula.id;
+        opt.textContent = `${i + 1}. ${aula.titulo}`;
+        select.appendChild(opt);
+      });
+      carregarVideoNoPlayerFerramenta(ferramentaAtiva.aulas[0].id);
+    }
+
+    function carregarVideoNoPlayerFerramenta(aulaId) {
+      const aula = ferramentaAtiva.aulas.find(a => a.id === aulaId);
+      if (!aula) return;
+      document.getElementById("iframe-player-ferramenta").src = aula.tipo === 'youtube' ? converterUrlParaEmbedYoutube(aula.url) : aula.url;
+    }
+
+    function voltarAoCatalogoFerramentas() {
+      document.getElementById("ferramentas-catalogo-container").classList.remove("hidden");
+      document.getElementById("ferramentas-player-container").classList.add("hidden");
+      document.getElementById("btn-voltar-ferramentas").classList.add("hidden");
+      document.getElementById("dropdown-ferramentas-container").classList.add("hidden");
+      document.getElementById("iframe-player-ferramenta").src = "";
     }
 
     function converterUrlParaEmbedYoutube(url) {
@@ -2120,15 +2132,15 @@ async function finalizarCursoAtivo() {
 
           dados.forEach(item => {
             const dataFormatada = formatarData(item.data);
-            const notaNum = parseFloat(item.nota);
+            const notaNum = parseFloat(String(item.nota).replace(",", "."));
             let statusBadge = "";
 
-            const isConcluida = item.nota && item.nota !== "Pendente" && !isNaN(notaNum);
+            const isConcluida = item.nota && String(item.nota).toLowerCase() !== "pendente" && !isNaN(notaNum);
 
             if (isConcluida) {
               concluidas++;
               somaNotas += notaNum;
-              notesContador = notasContador + 1;
+              notasContador++; // Correção aplicada do typo anterior
               statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">Concluída</span>`;
             } else {
               statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-100">Agendada</span>`;
@@ -2301,7 +2313,7 @@ async function finalizarCursoAtivo() {
       
       const modal = document.getElementById("modal-avaliacao-detalhada");
       document.getElementById("detalhes-aluno-sub").textContent = `Aula: ${titulo} • Data: ${data}`;
-      document.getElementById("detalhes-nota-geral").textContent = `${parseFloat(nota).toFixed(1)} / 10.0`;
+      document.getElementById("detalhes-nota-geral").textContent = `${parseFloat(String(nota).replace(",",".")).toFixed(1)} / 10.0`;
       document.getElementById("detalhes-feedback-texto").textContent = obs || "Nenhum feedback registrado.";
 
       const tbodyPedagogico = document.getElementById("linhas-avaliacao-tabela");
@@ -2314,7 +2326,7 @@ async function finalizarCursoAtivo() {
       try {
         detalhesObj = JSON.parse(decodeURIComponent(detalhesEscapados));
       } catch (err) {
-        console.warn("Nenhum detalhe de avaliação anterior cadastrado.");
+        console.warn("Nenhum detalhe de avaliação anterior cadastrado ou string mal formatada.");
       }
 
       try {
@@ -2327,7 +2339,17 @@ async function finalizarCursoAtivo() {
           const item = itemObj.descricao;
           const letter = itemObj.colLetter;
           const categoria = obterCategoriaDoItem(item);
-          const valorSelecionado = detalhesObj[`pedagogico_${letter}`] || "";
+          
+          // Busca inteligente por chaves para evitar itens em branco
+          const chavesBuscadas = [`pedagogico_${letter}`, `pedagogico_${letter.toLowerCase()}`, letter, item];
+          let valorSelecionado = "";
+          for(const chave of chavesBuscadas) {
+             if(detalhesObj[chave]) {
+                 valorSelecionado = String(detalhesObj[chave]).toLowerCase().trim();
+                 break;
+             }
+          }
+
           const tr = document.createElement("tr");
 
           if (letter === 'W') {
@@ -2337,21 +2359,29 @@ async function finalizarCursoAtivo() {
           tr.innerHTML = `
             <td class="p-2 border-r border-slate-200">${categoria}</td>
             <td class="p-2 border-r border-slate-200">${item}</td>
-            <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "insuficiente" ? "❌" : ""}</td>
-            <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "regular" ? "⚠️" : ""}</td>
-            <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "bom" ? "✔️" : ""}</td>
-            <td class="p-2 text-center text-sm">${valorSelecionado === "muitobom" ? "⭐" : ""}</td>
+            <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "insuficiente" || valorSelecionado === "2" ? "❌" : ""}</td>
+            <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "regular" || valorSelecionado === "5" ? "⚠️" : ""}</td>
+            <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "bom" || valorSelecionado === "8" ? "✔️" : ""}</td>
+            <td class="p-2 text-center text-sm">${valorSelecionado === "muitobom" || valorSelecionado === "muito bom" || valorSelecionado === "10" ? "⭐" : ""}</td>
           `;
           tbodyPedagogico.appendChild(tr);
         });
 
         ITENS_COMPORTAMENTAIS.forEach((item, idx) => {
-          const valorSelecionado = detalhesObj[`comportamental_${idx}`] || "";
+          let valorSelecionado = "";
+          const chavesBuscadas = [`comportamental_${idx}`, item];
+          for(const chave of chavesBuscadas) {
+             if(detalhesObj[chave]) {
+                 valorSelecionado = String(detalhesObj[chave]).toLowerCase().trim();
+                 break;
+             }
+          }
+
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td class="p-2 border-r border-slate-200">${item}</td>
-            <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "sim" ? "✔️" : ""}</td>
-            <td class="p-2 text-center text-sm">${valorSelecionado === "nao" ? "❌" : ""}</td>
+            <td class="p-2 border-r border-slate-200 text-center text-sm">${valorSelecionado === "sim" || valorSelecionado === "true" || valorSelecionado === "1" ? "✔️" : ""}</td>
+            <td class="p-2 text-center text-sm">${valorSelecionado === "nao" || valorSelecionado === "não" || valorSelecionado === "false" || valorSelecionado === "0" ? "❌" : ""}</td>
           `;
           tbodyComportamental.appendChild(tr);
         });
@@ -2397,15 +2427,16 @@ async function finalizarCursoAtivo() {
 
           aulas.forEach(aula => {
             const dataFormatada = formatarData(aula.data);
-            const isConcluida = aula.nota && aula.nota !== "Pendente";
+            const isConcluida = aula.nota && String(aula.nota).toLowerCase() !== "pendente";
             
             let statusBadge = "";
             let acaoBotao = "";
 
             if (isConcluida) {
-              statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">Concluída (${parseFloat(aula.nota).toFixed(1)})</span>`;
+              const notaFlt = parseFloat(String(aula.nota).replace(",",".")).toFixed(1);
+              statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">Concluída (${notaFlt})</span>`;
               acaoBotao = `
-                <button onclick="obterEDetalharAvaliacao('${aula.id}', '${aula.titulo}', '${dataFormatada}', '${aula.nota}', '${aula.obs}', '${encodeURIComponent(aula.detalhes)}')"
+                <button onclick="obterEDetalharAvaliacao('${aula.id}', '${aula.titulo}', '${dataFormatada}', '${aula.nota}', '${aula.obs}', '${encodeURIComponent(typeof aula.detalhes === "object" ? JSON.stringify(aula.detalhes) : aula.detalhes)}')"
                   class="px-3 py-1.5 bg-teal-50 text-teal-700 hover:bg-teal-100 text-xs font-bold rounded-xl border border-teal-100 transition flex items-center gap-1">
                   <i data-lucide="eye" class="w-3.5 h-3.5"></i> Ver Avaliação
                 </button>
@@ -2597,19 +2628,21 @@ async function finalizarCursoAtivo() {
       botao.innerHTML = `<span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span> Gravando...`;
 
       try {
-const dados = {
-  action: "avaliarAula",
-  aulaId: idDaAula,          // Certifique-se de que a variável do ID está com o nome correto
-  nota: valorDaNota,         // <-- ESTA É A LINHA CRUCIAL: o 'nota' precisa ser exatamente assim
-  feedback: feedbackTexto,
-  detalhes: JSON.stringify(detalhesAvaliacao)
-};
+        // Envio correto das variáveis ao servidor AppScript
+        const payload = {
+          action: "avaliarAula",
+          aulaId: aulaId,
+          nota: notaCalculada,
+          feedback: feedback,
+          detalhes: JSON.stringify(detalhesObj)
+        };
 
         const resposta = await fetch(SCRIPT_URL_PLANILHA, {
           method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          headers: { "Content-Type": "text/plain;charset=utf-8" }, // Formato tolerante a CORS
           body: JSON.stringify(payload)
         });
+        
         const resJSON = await resposta.json();
 
         if (resJSON.success) {
@@ -2654,16 +2687,14 @@ const dados = {
       );
     }
   </script>
-<!-- COLE O CÓDIGO ABAIXO AQUI -->
 
-  <!-- Banner/Aviso de Instalação -->
+  <!-- Banner/Aviso de Instalação (PWA) -->
   <div id="install-banner" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: #000; color: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 9999; text-align: center; width: 90%; max-width: 400px;">
     <p style="margin: 0 0 10px 0; font-size: 14px;">Deseja instalar nosso aplicativo para acesso rápido?</p>
     <button id="btn-install" style="background-color: #25d366; color: white; border: none; padding: 8px 16px; border-radius: 5px; font-weight: bold; cursor: pointer;">Instalar Aplicativo</button>
     <button id="btn-close" style="background-color: transparent; color: #ccc; border: none; margin-left: 10px; cursor: pointer;">Agora não</button>
   </div>
 
-  <!-- Script para controlar o Prompt de Instalação -->
   <script>
     let deferredPrompt;
     const installBanner = document.getElementById('install-banner');
@@ -2691,7 +2722,5 @@ const dados = {
     });
   </script>
 
-</body>
-</html>
 </body>
 </html>
