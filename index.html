@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>PREVIA - Portal de Ensino Prático</title>
-  <meta name="theme-color" content="#07382e">
+  <meta name="theme-color" content="#01095c">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="PREVIA">
@@ -13,8 +13,8 @@
   <!-- ==================== [CONFIGURAÇÃO DO WEB APP / PWA: NOME E ÍCONE] ==================== -->
   <script>
     const PWA_APP_NAME = "PREVIA - Portal de Ensino";
-    const PWA_APP_SHORT_NAME = " PREVIA ";
-    const PWA_APP_ICON = " https://lh3.googleusercontent.com/pw/AP1GczO9c696juncSzTlus5_jySHbA5hc5SaXHfcKPgKQgOovo07hYNiRmKd2ZL1doiJAs-wyS-aTuSvOxPWilUCh0dXhf3qi8Quj8e9vDO-JStEgWNXMUdPed7FKBWA4magwRl1YpcHnQwtznKY6ZZ6yYPK=w779-h779-s-no-gm?authuser=0";
+    const PWA_APP_SHORT_NAME = " PREVIA";
+    const PWA_APP_ICON = "https://lh3.googleusercontent.com/pw/AP1GczO9c696juncSzTlus5_jySHbA5hc5SaXHfcKPgKQgOovo07hYNiRmKd2ZL1doiJAs-wyS-aTuSvOxPWilUCh0dXhf3qi8Quj8e9vDO-JStEgWNXMUdPed7FKBWA4magwRl1YpcHnQwtznKY6ZZ6yYPK=w779-h779-s-no-gm?authuser=0";
 
     const manifestJson = {
       name: PWA_APP_NAME,
@@ -36,8 +36,8 @@
     document.head.appendChild(linkManifest);
   </script>
 
-  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/pw/AP1GczO9c696juncSzTlus5_jySHbA5hc5SaXHfcKPgKQgOovo07hYNiRmKd2ZL1doiJAs-wyS-aTuSvOxPWilUCh0dXhf3qi8Quj8e9vDO-JStEgWNXMUdPed7FKBWA4magwRl1YpcHnQwtznKY6ZZ6yYPK=w779-h779-s-no-gm?authuser=0">
-  <link rel="apple-touch-icon" sizes="180x180" href=" https://lh3.googleusercontent.com/pw/AP1GczO9c696juncSzTlus5_jySHbA5hc5SaXHfcKPgKQgOovo07hYNiRmKd2ZL1doiJAs-wyS-aTuSvOxPWilUCh0dXhf3qi8Quj8e9vDO-JStEgWNXMUdPed7FKBWA4magwRl1YpcHnQwtznKY6ZZ6yYPK=w779-h779-s-no-gm?authuser=0 ">
+  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/pw/AP1GczO9c696juncSzTlus5_jySHbA5hc5SaXHfcKPgKQgOovo07hYNiRmKd2ZL1doiJAs-wyS-aTuSvOxPWilUCh0dXhf3qi8Quj8e9vDO-JStEgWNXMUdPed7FKBWA4magwRl1YpcHnQwtznKY6ZZ6yYPK=w779-h779-s-no-gm?authuser=0
+  <link rel="apple-touch-icon" sizes="180x180" href="https://lh3.googleusercontent.com/pw/AP1GczO9c696juncSzTlus5_jySHbA5hc5SaXHfcKPgKQgOovo07hYNiRmKd2ZL1doiJAs-wyS-aTuSvOxPWilUCh0dXhf3qi8Quj8e9vDO-JStEgWNXMUdPed7FKBWA4magwRl1YpcHnQwtznKY6ZZ6yYPK=w779-h779-s-no-gm?authuser=0 ">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -48,10 +48,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <style>
-    /* ========================================================================= */
-    /* 👉 [CONFIGURAÇÃO DAS CORES DO SISTEMA]                                    */
-    /* ========================================================================= */
-    :root { 
+:root { 
       --bg-page: #2a5e5a;       /* COR DE FUNDO */
       --bg-card: #07382e;       /* COR CAIXA PRINCIPAL */
       --btn-color: #f25b24;     /* COR DE BOTÕES */
@@ -60,8 +57,6 @@
       --input-bg: #e3ece9;      /* COR FUNDO DOS CAMPOS */
       --input-text: #1e293b;    /* COR TEXTO DOS CAMPOS */
     }
-    /* ========================================================================= */
-
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; }
     body { min-height:100vh; background-color:var(--bg-page); color:#1e293b; }
     .sidebar-transition { transition: width 0.3s ease, padding 0.3s ease; }
@@ -81,6 +76,9 @@
     .cal-day-cell.selecionado { outline: 2.5px solid var(--btn-color); font-weight: 800; transform: scale(1.04); }
 
     .tab-login-btn { cursor: pointer !important; z-index: 50 !important; position: relative !important; }
+    
+    /* Previne rolagem ao assinar com o dedo no celular */
+    .canvas-assinatura { touch-action: none; cursor: crosshair; }
   </style>
 </head>
 <body>
@@ -100,14 +98,10 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // =========================================================================
-    // 👉 [LINK DE CADASTRO DO ALUNO]: COLOQUE O LINK COM O NOME DO INSTRUTOR AQUI
-    // =========================================================================
     const LINK_CADASTRO_ALUNO = "https://previatreinamentos.github.io/agendamentocadastroaluno/";
-    // =========================================================================
 
     function abrirLinkCadastroAluno() {
-      if (!LINK_CADASTRO_ALUNO || LINK_CADASTRO_ALUNO.includes("COLOQUE O LINK")) {
+      if (!LINK_CADASTRO_ALUNO || LINK_CADASTRO_ALUNO.includes("https://previatreinamentos.github.io/agendamentocadastroaluno/ ")) {
         alert("Por favor, configure o link de cadastro na constante LINK_CADASTRO_ALUNO dentro do código.");
         return;
       }
@@ -137,10 +131,8 @@
           <p id="txtDica" class="text-[11px] text-slate-400 mt-1">Dica: Por padrão, a sua senha são os 4 primeiros dígitos do CPF ou Celular.</p>
         </div>
         
-        <!-- Botão Acessar -->
         <button type="submit" id="btnEntrar" class="w-full h-12 rounded-xl text-sm font-bold text-white shadow-lg mt-2 flex items-center justify-center gap-2 transition cursor-pointer" style="background-color: var(--btn-color);">Acessar o Painel</button>
 
-        <!-- Botão Menor e Discreto de Cadastro -->
         <div class="pt-2 text-center">
           <button type="button" onclick="abrirLinkCadastroAluno()" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-teal-200 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center gap-2 transition cursor-pointer">
             <i data-lucide="user-plus" class="w-3.5 h-3.5 text-teal-300"></i>
@@ -204,7 +196,7 @@
 
       <div class="p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6">
 
-        <!-- ABA INSTRUTOR COM OS 3 CARDS NATIVOS -->
+        <!-- ABA INSTRUTOR -->
         <section id="aba_agenda_inst" class="space-y-6 hidden">
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
@@ -290,13 +282,37 @@
             </div>
           </div>
 
+          <!-- CARD DO CONTRATO COM ASSINATURA NA TELA -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 text-sm font-bold text-slate-900 uppercase">
+                <i data-lucide="file-signature" class="w-4 h-4 text-orange-600"></i>
+                <span>Contrato de Prestação de Serviços & Termos</span>
+              </div>
+              <span id="badgeStatusContratoAluno" class="text-[11px] font-bold px-3 py-1 rounded-full border bg-slate-50 text-slate-500">Pendente</span>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+              <div class="space-y-1">
+                <div class="text-xs font-bold text-slate-800" id="txtContratoAlunoTitulo">Contrato de Formação Prática (Assinatura na Tela)</div>
+                <div class="text-[11px] text-slate-500">Compreende valores de aula, termo de uso do veículo e autorização de gravação de imagens pedagógicas.</div>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                <button type="button" id="btnAssinarContratoAluno" onclick="abrirModalAssinarContrato('aluno')" class="px-4 py-2 text-white font-bold rounded-xl text-xs shadow transition flex items-center justify-center gap-1.5 flex-1 md:flex-none" style="background-color: var(--btn-color);">
+                  <i data-lucide="pen-tool" class="w-4 h-4"></i> <span id="txtBtnAssinarContrato">Assinar com o Dedo</span>
+                </button>
+                <button type="button" id="btnVerContratoAssinadoAluno" onclick="visualizarContratoAssinadoAluno()" class="px-4 py-2 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 flex-1 md:flex-none">
+                  <i data-lucide="file-check-2" class="w-4 h-4"></i> <span id="txtBtnVerContrato">Ver Minuta do Contrato</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3"><div class="flex items-center gap-2 text-sm font-bold text-slate-900 uppercase"><i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i> Instrutor Vinculado e Veículo Oficial</div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 p-4 rounded-xl border border-slate-200 gap-4"><div><div class="text-xs font-bold text-slate-400 uppercase">Instrutor do Aluno</div><div class="text-sm font-bold text-slate-900" id="cardInstrutorNome">--</div><div class="text-xs text-teal-700 font-semibold mt-0.5" id="cardInstrutorCarro">Veículo cadastrado: --</div></div><button type="button" onclick="abrirModalSaibaMais()" class="px-4 py-2 bg-white border border-[var(--btn-color)] text-[var(--btn-color)] rounded-xl text-xs font-bold hover:bg-orange-50 transition">Saiba Mais / Ver Foto</button></div></div>
         </section>
 
         <!-- ABA AGENDAR VAGAS -->
         <section id="aba_agendar" class="hidden space-y-6">
-          
-          <!-- BANNER DE ALERTA QUANDO O ALUNO ESTIVER BLOQUEADO -->
           <div id="bannerAlunoBloqueadoAgendamento" class="hidden bg-rose-50 border-l-4 border-rose-500 p-4 rounded-2xl flex items-start gap-3">
             <i data-lucide="lock" class="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5"></i>
             <div>
@@ -384,7 +400,6 @@
 
         <!-- ABA CADASTRO DE ALUNOS & LISTA DO INSTRUTOR -->
         <section id="aba_cadastro_aluno" class="hidden space-y-8">
-          <!-- CARD DE CADASTRO -->
           <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm max-w-3xl mx-auto space-y-6">
             <div class="border-b pb-4"><h3 class="text-lg font-black text-slate-900 uppercase">Cadastrar Novo Aluno</h3><p class="text-xs text-slate-500 mt-1">Preencha as informações para registrar o aluno no sistema vinculado ao seu perfil.</p></div>
             <form onsubmit="salvarNovoAlunoPeloInstrutor(event)" class="space-y-4">
@@ -398,13 +413,22 @@
                 <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1">E-mail</label><input type="email" id="cadEmail" class="w-full h-11 px-4 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-orange-500" placeholder="aluno@email.com"></div>
               </div>
               <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1">Endereço Residencial</label><input type="text" id="cadEndereco" class="w-full h-11 px-4 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-orange-500" placeholder="Rua, número, bairro e cidade"></div>
-              <div><label class="block text-xs font-bold text-slate-700 uppercase mb-1">Instrutor Vinculado</label><input type="text" id="cadInstrutor" class="w-full h-11 px-4 border border-slate-200 rounded-xl text-xs font-semibold outline-none bg-slate-50" readonly></div>
               
-              <!-- UPLOAD DA LADV NO FORMULÁRIO DO INSTRUTOR -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Valor da Aula / Pacote (R$)</label>
+                  <input type="text" id="cadValorContrato" class="w-full h-11 px-4 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-orange-500" placeholder="Ex: R$ 80,00 por aula">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Instrutor Vinculado</label>
+                  <input type="text" id="cadInstrutor" class="w-full h-11 px-4 border border-slate-200 rounded-xl text-xs font-semibold outline-none bg-slate-50" readonly>
+                </div>
+              </div>
+              
               <div class="border-t border-slate-100 pt-3">
                 <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5 flex justify-between items-center">
                   <span>Licença de Aprendizagem (LADV do Aluno)</span>
-                  <span class="text-[10px] text-slate-400 font-normal">PDF ou Imagem (Opcional no cadastro)</span>
+                  <span class="text-[10px] text-slate-400 font-normal">PDF ou Imagem (Opcional)</span>
                 </label>
                 <div class="flex items-center gap-3">
                   <input type="file" id="cadLadvFile" accept=".pdf, image/*" class="text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
@@ -416,12 +440,11 @@
             </form>
           </div>
 
-          <!-- LISTA COMPLETA DOS ALUNOS COM WHATSAPP, ÚLTIMA AULA, BLOQUEIO, EDIÇÃO E EXCLUSÃO -->
           <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm max-w-6xl mx-auto space-y-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4">
               <div>
                 <h3 class="text-base font-black text-slate-900 uppercase">Alunos Cadastrados sob seu Perfil</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Gerencie os alunos, visualize a última aula, libere/bloqueie agendamentos e gerencie a LADV.</p>
+                <p class="text-xs text-slate-500 mt-0.5">Gerencie os alunos, visualize a última aula, libere/bloqueie agendamentos e assine o contrato.</p>
               </div>
               <span id="badgeTotalAlunosInstrutor" class="px-3 py-1 bg-teal-50 border border-teal-200 text-teal-800 rounded-full text-xs font-bold">0 Alunos</span>
             </div>
@@ -434,12 +457,13 @@
                     <th class="p-3 font-bold text-slate-600 uppercase">CPF / Login</th>
                     <th class="p-3 font-bold text-slate-600 uppercase">Última Aula</th>
                     <th class="p-3 font-bold text-slate-600 uppercase">LADV</th>
+                    <th class="p-3 font-bold text-slate-600 uppercase">Contrato Digital</th>
                     <th class="p-3 font-bold text-slate-600 uppercase">Agendamento</th>
                     <th class="p-3 font-bold text-slate-600 uppercase text-center">Ações</th>
                   </tr>
                 </thead>
                 <tbody id="tabelaAlunosCadastradosCorpo" class="divide-y divide-slate-100">
-                  <tr><td colspan="6" class="p-4 text-center text-slate-400">Carregando lista de alunos...</td></tr>
+                  <tr><td colspan="7" class="p-4 text-center text-slate-400">Carregando lista de alunos...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -487,7 +511,6 @@
             <div id="resultadoListaCursosAluno" class="hidden p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2"></div>
           </div>
 
-          <!-- BARRA DE AÇÕES -->
           <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
             <div class="relative w-full lg:w-80">
               <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
@@ -499,7 +522,6 @@
                 <span>Criar Avaliação / Critérios</span>
               </button>
               
-              <!-- [EXCLUSIVO ADMIN MASTER]: Botão Cadastrar Novo Curso / Ferramenta -->
               <button type="button" id="btnNovoCursoMaterial" onclick="abrirModalCadastrarMaterial()" class="hidden px-4 py-2.5 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer" style="background-color: var(--btn-color);">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i>
                 <span>Novo Curso / Ferramenta</span>
@@ -524,6 +546,296 @@
 
       </div>
     </main>
+  </div>
+
+  <!-- BANNER PWA: INSTALAR OU ABRIR O APLICATIVO -->
+  <div id="bannerInstalacaoApp" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md bg-black text-white p-4 rounded-2xl shadow-2xl border border-white/10 hidden flex-col sm:flex-row items-center justify-between gap-3 transition-all duration-300">
+    <div class="text-xs font-bold text-center sm:text-left" id="txtBannerInstalacaoApp">
+      Deseja instalar o aplicativo oficial para acesso rápido?
+    </div>
+    <div class="flex items-center gap-3 w-full sm:w-auto justify-center">
+      <button type="button" id="btnAcaoInstalarApp" onclick="acionarInstalacaoApp()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold text-xs rounded-xl shadow transition cursor-pointer flex-1 sm:flex-none text-center">
+        Instalar Aplicativo
+      </button>
+      <button type="button" onclick="fecharBannerInstalacaoApp()" class="text-xs text-slate-400 hover:text-white font-semibold cursor-pointer">
+        Agora não
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: CRIAR NOVA AVALIAÇÃO PRÁTICA COM CRITÉRIOS DINÂMICOS -->
+  <div id="modalCriarAvaliacao" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200 p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 relative transform scale-95 transition-transform duration-200 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="file-spreadsheet" class="w-5 h-5 text-emerald-600"></i>
+          <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-800">Criar Nova Avaliação Prática</h3>
+        </div>
+        <button type="button" onclick="fecharModalCriarAvaliacao()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="salvarNovaAvaliacaoComCriterios(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Título do Modelo de Aula / Avaliação</label>
+          <input type="text" id="novaAvNomeModelo" required placeholder="Ex: Simulado de Exame Prático Detran" class="w-full h-11 px-3 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-emerald-600">
+          <span class="text-[10px] text-slate-400 mt-1 block">Este nome aparecerá para os alunos agendarem e para você avaliar com cálculo automático.</span>
+        </div>
+
+        <div class="space-y-3 pt-2">
+          <div class="flex justify-between items-center">
+            <label class="block text-xs font-bold text-slate-700 uppercase">Critérios Pedagógicos de Avaliação (Notas 2,5 a 10,0)</label>
+            <button type="button" onclick="adicionarLinhaCriterioNovaAvaliacao()" class="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Mais Critério
+            </button>
+          </div>
+
+          <div id="containerListaCriteriosNovos" class="space-y-2 max-h-52 overflow-y-auto p-2 border border-slate-100 rounded-2xl bg-slate-50"></div>
+        </div>
+
+        <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 text-[11px] text-amber-900 leading-relaxed">
+          ⚡ <b>Efeito Automático:</b> Esta avaliação já incluirá a checagem comportamental padrão e a ponderação de nota com parecer pedagógico pronto para PDF e WhatsApp.
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t">
+          <button type="button" onclick="fecharModalCriarAvaliacao()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-xl">Cancelar</button>
+          <button type="submit" id="btnSalvarNovaAvaliacao" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-lg transition">
+            💾 Gravar Avaliação no Firebase
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CADASTRAR NOVO CURSO / FERRAMENTA EDUCACIONAL (EXCLUSIVO MASTER) -->
+  <div id="modalCadastrarMaterial" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200 p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 relative transform scale-95 transition-transform duration-200 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-800">Cadastrar Novo Curso ou Ferramenta (Master)</h3>
+        <button type="button" onclick="fecharModalCadastrarMaterial()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form onsubmit="salvarNovoMaterial(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Título do Curso / Ferramenta</label>
+          <input type="text" id="matTitulo" required placeholder="Ex: Direção Defensiva na Chuva" class="w-full h-11 px-3 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-orange-500">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Categoria</label>
+            <input type="text" id="matCategoria" required value="Teórico" placeholder="Ex: Teórico, Simulador, Baliza" class="w-full h-11 px-3 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-orange-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Acesso Padrão Alunos</label>
+            <select id="matAcessoInicial" class="w-full h-11 px-3 border border-slate-200 rounded-xl text-xs font-semibold outline-none">
+              <option value="todos">Liberado para Todos os Alunos</option>
+              <option value="especifico">Matricular Alunos Manualmente</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Acesso Inicial para Instrutores</label>
+          <select id="matAcessoInstrutoresInicial" class="w-full h-11 px-3 border border-slate-200 rounded-xl text-xs font-semibold outline-none">
+            <option value="todos">Liberado para Todos os Instrutores</option>
+            <option value="especifico">Liberar Instrutores Manualmente</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Breve Descrição</label>
+          <textarea id="matDescricao" rows="2" required placeholder="Explicação sucinta do que o aluno aprenderá..." class="w-full p-3 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-orange-500"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">URL da Imagem de Capa</label>
+          <input type="url" id="matCapa" required placeholder="https://..." value="https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=600&auto=format&fit=crop&q=80" class="w-full h-11 px-3 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-orange-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">URL do Vídeo / Conteúdo Interativo (Embed)</label>
+          <input type="url" id="matUrl" required placeholder="https://www.youtube.com/embed/... ou link web" class="w-full h-11 px-3 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-orange-500">
+        </div>
+        <button type="submit" id="btnSalvarMaterial" class="w-full py-3 text-white font-bold text-xs rounded-xl shadow-lg mt-2" style="background-color: var(--btn-color);">💾 Gravar no Firebase</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: GERENCIAR MATRÍCULAS DO CURSO (ALUNOS) -->
+  <div id="modalGerenciarMatriculas" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200 p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 relative transform scale-95 transition-transform duration-200 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-start border-b pb-3">
+        <div>
+          <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-800">MATRICULAR ALUNOS NO CURSO</h3>
+          <p id="matCursoTituloSub" class="text-xs text-teal-700 font-semibold mt-0.5">--</p>
+        </div>
+        <button type="button" onclick="fecharModalMatriculas()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <input type="hidden" id="matDocIdCurso">
+      <div class="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-xl">
+        <input type="checkbox" id="chkTodosAlunos" onchange="alternarMarcarTodos(this.checked)" class="w-4 h-4 text-orange-600 rounded cursor-pointer">
+        <label for="chkTodosAlunos" class="text-xs font-bold text-orange-950 cursor-pointer">Liberar este curso para TODOS os seus alunos</label>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex justify-between items-center">
+          <div class="text-[10px] font-bold uppercase text-slate-400">SELECIONE SEUS ALUNOS VINCULADOS:</div>
+          <span id="contagemAlunosFiltrados" class="text-[10px] font-bold text-slate-500"></span>
+        </div>
+        <div class="relative w-full">
+          <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400"></i>
+          <input type="text" id="filtroAlunoNoModal" oninput="filtrarAlunosNoModalMatricula()" placeholder="Buscar aluno por nome ou celular..." class="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 text-xs font-semibold outline-none focus:border-orange-500">
+        </div>
+        <div id="listaAlunosCheckboxes" class="max-h-56 overflow-y-auto border border-slate-200 rounded-xl p-2 space-y-1 divide-y divide-slate-100">
+          <div class="p-3 text-center text-xs text-slate-400">Carregando seus alunos vinculados...</div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t">
+        <button type="button" onclick="fecharModalMatriculas()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-xl">Cancelar</button>
+        <button type="button" id="btnSalvarMatriculas" onclick="salvarMatriculasNoFirebase()" class="px-5 py-2.5 text-white font-bold text-xs rounded-xl shadow-lg" style="background-color: var(--btn-color);">Salvar Matrículas</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: LIBERAR CURSOS PARA INSTRUTORES (EXCLUSIVO MASTER) -->
+  <div id="modalMatriculasInstrutores" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200 p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 relative transform scale-95 transition-transform duration-200 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-start border-b pb-3">
+        <div>
+          <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-800">CADASTRAR INSTRUTOR NO CURSO</h3>
+          <p id="matInstCursoTituloSub" class="text-xs text-teal-700 font-semibold mt-0.5">Selecione os instrutores autorizados</p>
+        </div>
+        <button type="button" onclick="fecharModalLiberarParaInstrutores()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      
+      <input type="hidden" id="matDocIdCursoInstrutor">
+
+      <div class="flex items-center gap-2 p-3 bg-teal-50 border border-teal-200 rounded-xl">
+        <input type="checkbox" id="chkTodosInstrutores" onchange="alternarMarcarTodosInstrutores(this.checked)" class="w-4 h-4 text-teal-600 rounded cursor-pointer">
+        <label for="chkTodosInstrutores" class="text-xs font-bold text-teal-950 cursor-pointer">Liberar este curso para TODOS os instrutores</label>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex justify-between items-center">
+          <div class="text-[10px] font-bold uppercase text-slate-400">SELECIONE OS INSTRUTORES:</div>
+          <span id="contagemInstrutoresFiltrados" class="text-[10px] font-bold text-slate-500"></span>
+        </div>
+        <div class="relative w-full">
+          <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400"></i>
+          <input type="text" id="filtroInstrutorNoModal" oninput="filtrarInstrutoresNoModal()" placeholder="Buscar instrutor por nome..." class="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 text-xs font-semibold outline-none focus:border-teal-700">
+        </div>
+        <div id="listaInstrutoresCheckboxes" class="max-h-56 overflow-y-auto border border-slate-200 rounded-xl p-2 space-y-1 divide-y divide-slate-100">
+          <div class="p-3 text-center text-xs text-slate-400">Carregando instrutores...</div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t">
+        <button type="button" onclick="fecharModalLiberarParaInstrutores()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-xl">Cancelar</button>
+        <button type="button" id="btnSalvarMatriculasInstrutores" onclick="salvarLiberacaoInstrutoresNoFirebase()" class="px-5 py-2.5 text-white font-bold text-xs rounded-xl shadow-lg" style="background-color: var(--btn-color);">Salvar Liberação</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ASSINATURA NA TELA (DESENHO COM O DEDO OU MOUSE) -->
+  <div id="modalAssinarContratoTela" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200 p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 relative transform scale-95 transition-transform duration-200 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="pen-tool" class="w-5 h-5 text-orange-600"></i>
+          <div>
+            <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-800" id="tituloModalAssinatura">Assinar Contrato na Tela</h3>
+            <p class="text-[11px] text-slate-500 font-semibold" id="subtituloModalAssinatura">Assine usando a ponta do dedo ou o mouse</p>
+          </div>
+        </div>
+        <button type="button" onclick="fecharModalAssinaturaTela()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <input type="hidden" id="assinaturaTargetAlunoId">
+      <input type="hidden" id="assinaturaPerfilAutor">
+
+      <div class="space-y-3">
+        <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-[11px] text-amber-900">
+          ✍️ <b>Assine no campo branco abaixo:</b> Sua assinatura será fixada no contrato junto ao seu CPF, Nome e carimbo de data/hora eletrônico oficial.
+        </div>
+
+        <div class="border-2 border-dashed border-slate-300 rounded-2xl overflow-hidden bg-white shadow-inner flex flex-col items-center">
+          <canvas id="canvasAssinaturaContrato" width="440" height="180" class="canvas-assinatura w-full bg-slate-50"></canvas>
+        </div>
+
+        <div class="flex justify-between items-center pt-1">
+          <button type="button" onclick="limparCanvasAssinatura()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition flex items-center gap-1">
+            <i data-lucide="eraser" class="w-3.5 h-3.5"></i> Limpar e Refazer
+          </button>
+          <span class="text-[10px] text-slate-400 italic">Área sensível ao toque</span>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t">
+        <button type="button" onclick="fecharModalAssinaturaTela()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-xl">Cancelar</button>
+        <button type="button" id="btnConfirmarAssinaturaTela" onclick="confirmarSalvarAssinaturaContrato()" class="px-5 py-2.5 text-white font-bold text-xs rounded-xl shadow-lg" style="background-color: var(--btn-color);">Confirmar Assinatura</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VISUALIZAR DOCUMENTO (PDF OU IMAGEM - LADV OU CONTRATO) -->
+  <div id="modalVisualizarDocumento" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200 p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 relative transform scale-95 transition-transform duration-200 space-y-4 max-h-[92vh] flex flex-col">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="file-text" class="w-5 h-5 text-teal-700"></i>
+          <div>
+            <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-800" id="modalDocTitulo">Documento</h3>
+            <p class="text-[11px] text-slate-500 font-semibold" id="modalDocSubtitulo">Visualização oficial</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" id="btnBaixarDocumentoModal" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 transition">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i> Baixar
+          </button>
+          <button type="button" onclick="fecharModalVisualizarDocumento()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+      </div>
+
+      <div class="flex-1 w-full bg-slate-100 rounded-2xl overflow-hidden min-h-[55vh] flex items-center justify-center border border-slate-200 relative">
+        <img id="imgDocPreview" src="" class="max-h-[70vh] max-w-full object-contain hidden" alt="Documento">
+        <iframe id="iframeDocPdfPreview" src="" class="w-full h-[70vh] border-0 hidden"></iframe>
+        <div id="txtDocNaoCarregado" class="text-xs text-slate-400 font-semibold hidden">Não foi possível carregar a visualização do arquivo.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: UPLOAD DE LADV -->
+  <div id="modalUploadDocumentoGenerico" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200 p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 relative transform scale-95 transition-transform duration-200 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-800" id="tituloModalUploadDoc">Cadastrar Documento</h3>
+        <button type="button" onclick="fecharModalUploadDocumentoGenerico()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <input type="hidden" id="uploadDocTargetId">
+      <input type="hidden" id="uploadDocTipoCampo">
+
+      <div class="space-y-3">
+        <p class="text-xs text-slate-600" id="descModalUploadDoc">Selecione o arquivo em PDF ou imagem legível.</p>
+        
+        <div id="dropZoneDocModal" class="border-2 border-dashed border-slate-300 hover:border-orange-500 rounded-2xl p-5 text-center transition cursor-pointer bg-slate-50 hover:bg-orange-50/30 flex flex-col items-center justify-center gap-2">
+          <input type="file" id="arquivoDocInputModal" accept=".pdf, image/png, image/jpeg, image/jpg" class="hidden" onchange="processarArquivoDocModal(event)">
+          <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
+            <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+          </div>
+          <div class="text-xs font-bold text-slate-700">Clique para selecionar ou arraste o arquivo</div>
+          <div class="text-[11px] text-slate-400">PDF, JPG ou PNG (Até 5MB)</div>
+        </div>
+
+        <div id="previewDocModalContainer" class="hidden p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+          <div class="truncate">
+            <div id="previewDocModalNome" class="text-xs font-bold text-slate-800 truncate">arquivo.pdf</div>
+            <div id="previewDocModalTamanho" class="text-[10px] text-slate-500 font-semibold">0 KB</div>
+          </div>
+          <button type="button" onclick="limparSelecaoDocModal()" class="text-slate-400 hover:text-rose-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t">
+        <button type="button" onclick="fecharModalUploadDocumentoGenerico()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-xl">Cancelar</button>
+        <button type="button" id="btnSalvarDocModal" onclick="confirmarSalvarDocumentoNoFirebase()" class="px-5 py-2.5 text-white font-bold text-xs rounded-xl shadow-lg" style="background-color: var(--btn-color);">Salvar Arquivo</button>
+      </div>
+    </div>
   </div>
 
   <!-- MODAL: EDITAR ALUNO (INSTRUTOR) -->
@@ -560,6 +872,10 @@
           </div>
         </div>
         <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Valor Contratado da Aula / Pacote</label>
+          <input type="text" id="editAlunoValorContrato" placeholder="Ex: R$ 80,00" class="w-full h-11 px-4 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-orange-500">
+        </div>
+        <div>
           <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Endereço Residencial</label>
           <input type="text" id="editAlunoEndereco" class="w-full h-11 px-4 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-orange-500">
         </div>
@@ -568,71 +884,6 @@
           <button type="submit" id="btnSalvarEdicaoAluno" class="px-5 py-2.5 text-white font-bold text-xs rounded-xl shadow-lg" style="background-color: var(--btn-color);">Salvar Alterações</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- MODAL: VISUALIZAR LADV (PDF OU IMAGEM) -->
-  <div id="modalVisualizarLadv" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200 p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-6 relative transform scale-95 transition-transform duration-200 space-y-4 max-h-[92vh] flex flex-col">
-      <div class="flex justify-between items-center border-b pb-3">
-        <div class="flex items-center gap-2">
-          <i data-lucide="file-badge" class="w-5 h-5 text-teal-700"></i>
-          <div>
-            <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-800" id="modalLadvTituloAluno">Licença de Aprendizagem (LADV)</h3>
-            <p class="text-[11px] text-slate-500 font-semibold" id="modalLadvSubtitulo">Visualização oficial do documento</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <button type="button" id="btnBaixarLadvModal" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 transition">
-            <i data-lucide="download" class="w-3.5 h-3.5"></i> Baixar
-          </button>
-          <button type="button" onclick="fecharModalVisualizarLadv()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
-        </div>
-      </div>
-
-      <div class="flex-1 w-full bg-slate-100 rounded-2xl overflow-hidden min-h-[50vh] flex items-center justify-center border border-slate-200 relative">
-        <img id="imgLadvPreview" src="" class="max-h-[68vh] max-w-full object-contain hidden" alt="LADV do Aluno">
-        <iframe id="iframeLadvPdfPreview" src="" class="w-full h-[68vh] border-0 hidden"></iframe>
-        <div id="txtLadvNaoCarregada" class="text-xs text-slate-400 font-semibold hidden">Não foi possível carregar a visualização do arquivo.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: UPLOAD / ATUALIZAR LADV (ALUNO OU INSTRUTOR) -->
-  <div id="modalUploadLadvGenerico" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200 p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 relative transform scale-95 transition-transform duration-200 space-y-4">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-800" id="tituloModalUploadLadv">Cadastrar / Atualizar LADV</h3>
-        <button type="button" onclick="fecharModalUploadLadvGenerico()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-
-      <input type="hidden" id="uploadLadvTargetDocId">
-
-      <div class="space-y-3">
-        <p class="text-xs text-slate-600" id="descModalUploadLadv">Selecione o arquivo da sua Licença de Aprendizagem (LADV) em PDF ou imagem legível.</p>
-        
-        <div id="dropZoneLadvModal" class="border-2 border-dashed border-slate-300 hover:border-orange-500 rounded-2xl p-5 text-center transition cursor-pointer bg-slate-50 hover:bg-orange-50/30 flex flex-col items-center justify-center gap-2">
-          <input type="file" id="arquivoLadvInputModal" accept=".pdf, image/png, image/jpeg, image/jpg" class="hidden" onchange="processarArquivoLadvModal(event)">
-          <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
-            <i data-lucide="upload-cloud" class="w-5 h-5"></i>
-          </div>
-          <div class="text-xs font-bold text-slate-700">Clique para selecionar ou arraste o arquivo</div>
-          <div class="text-[11px] text-slate-400">PDF, JPG ou PNG (Até 5MB)</div>
-        </div>
-
-        <div id="previewLadvModalContainer" class="hidden p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
-          <div class="truncate">
-            <div id="previewLadvModalNome" class="text-xs font-bold text-slate-800 truncate">arquivo.pdf</div>
-            <div id="previewLadvModalTamanho" class="text-[10px] text-slate-500 font-semibold">0 KB</div>
-          </div>
-          <button type="button" onclick="limparSelecaoLadvModal()" class="text-slate-400 hover:text-rose-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-2 pt-3 border-t">
-        <button type="button" onclick="fecharModalUploadLadvGenerico()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-xl">Cancelar</button>
-        <button type="button" id="btnSalvarLadvModal" onclick="confirmarSalvarLadvNoFirebase()" class="px-5 py-2.5 text-white font-bold text-xs rounded-xl shadow-lg" style="background-color: var(--btn-color);">Salvar LADV</button>
-      </div>
     </div>
   </div>
 
@@ -757,15 +1008,21 @@
     let todosMateriaisInstrutor = [];
     let todosAlunosCadastrados = [];
     let todosInstrutoresCadastrados = [];
+    let materialSelecionadoParaMatricula = null;
+    let mapaSelecaoTemporariaMatriculas = {};
+    let mapaSelecaoTemporariaInstrutores = {};
 
-    // Variáveis auxiliares para manipulação da LADV
-    let tempLadvModalBase64 = null;
-    let tempLadvModalNome = null;
-    let tempLadvModalTipo = null;
+    let tempDocModalBase64 = null;
+    let tempDocModalNome = null;
+    let tempDocModalTipo = null;
     let tempLadvCadNovoBase64 = null;
     let tempLadvCadNovoNome = null;
     let tempLadvCadNovoTipo = null;
-    let ladvAtualParaVisualizar = null;
+
+    let canvasAssinatura = null;
+    let ctxAssinatura = null;
+    let desenhandoAssinatura = false;
+    let assinaturaDesenhadaVazia = true;
 
     let deferredPromptApp = null;
 
@@ -859,6 +1116,7 @@
           document.getElementById('cardInstrutorCarro').innerText = 'Veículo cadastrado: ' + (usuarioLogado.veiculo || 'Ford Ka');
           
           atualizarCardLadvAlunoNaTela();
+          atualizarCardContratoAlunoNaTela();
           navegarParaAba('relatorio');
         } else {
           document.getElementById('menuNavAluno').classList.add('hidden');
@@ -943,7 +1201,7 @@
 
     function alternarRecolherSidebar() { document.getElementById('sidebarMenu').classList.toggle('collapsed'); }
 
-    /* ==================== [LADV: ALUNO (TELA 1)] ==================== */
+    /* ==================== [LADV: ALUNO] ==================== */
     function atualizarCardLadvAlunoNaTela() {
       const badge = document.getElementById('badgeStatusLadvAluno');
       const txtNome = document.getElementById('txtLadvAlunoNome');
@@ -976,22 +1234,334 @@
         alert("Nenhum arquivo de LADV disponível para este aluno.");
         return;
       }
-      abrirModalVisualizacaoLadvGenerico({
-        nome: usuarioLogado.nome,
-        ladvArquivo: usuarioLogado.ladvArquivo || usuarioLogado.ladvUrl,
-        ladvNome: usuarioLogado.ladvNome || "LADV_Aluno.pdf",
-        ladvTipo: usuarioLogado.ladvTipo || ""
+      abrirModalVisualizacaoDocGenerico({
+        titulo: `LADV - ${usuarioLogado.nome}`,
+        arquivo: usuarioLogado.ladvArquivo || usuarioLogado.ladvUrl,
+        nome: usuarioLogado.ladvNome || "LADV_Aluno.pdf",
+        tipo: usuarioLogado.ladvTipo || ""
       });
     }
 
     function abrirModalUploadLadvAluno() {
-      abrirModalUploadGenerico(usuarioLogado.id, `LADV - ${usuarioLogado.nome}`);
+      abrirModalUploadGenerico(usuarioLogado.id, 'ladv', `LADV - ${usuarioLogado.nome}`, "Selecione o arquivo da sua Licença de Aprendizagem (PDF ou imagem).");
     }
 
-    /* ==================== [LISTA DE ALUNOS COM WHATSAPP, ÚLTIMA AULA, BLOQUEIO, EDIÇÃO E DELETE] ==================== */
+    /* ==================== [CONTRATO DIGITAL COM ASSINATURA NA TELA] ==================== */
+    function atualizarCardContratoAlunoNaTela() {
+      const badge = document.getElementById('badgeStatusContratoAluno');
+      const btnAssinar = document.getElementById('btnAssinarContratoAluno');
+      const txtBtnAssinar = document.getElementById('txtBtnAssinarContrato');
+      const btnVer = document.getElementById('btnVerContratoAssinadoAluno');
+      const txtBtnVer = document.getElementById('txtBtnVerContrato');
+
+      const alunoAssinou = usuarioLogado && !!usuarioLogado.contratoAssinaturaAlunoBase64;
+      const instrutorAssinou = usuarioLogado && !!usuarioLogado.contratoAssinaturaInstrutorBase64;
+
+      btnVer.classList.remove('hidden');
+
+      if (alunoAssinou && instrutorAssinou) {
+        badge.innerText = "● 100% Homologado e Assinado";
+        badge.className = "text-[11px] font-bold px-3 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200";
+        btnAssinar.disabled = true;
+        btnAssinar.className = "px-4 py-2 bg-slate-200 text-slate-500 font-bold rounded-xl text-xs border border-slate-300 flex items-center justify-center gap-1.5 flex-1 md:flex-none cursor-not-allowed";
+        txtBtnAssinar.innerText = "✅ Assinatura Registrada";
+        txtBtnVer.innerText = "Ver Contrato Completo";
+      } else if (alunoAssinou) {
+        badge.innerText = "● Assinado por Você (Aguardando Instrutor)";
+        badge.className = "text-[11px] font-bold px-3 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-200";
+        btnAssinar.disabled = true;
+        btnAssinar.className = "px-4 py-2 bg-slate-200 text-slate-500 font-bold rounded-xl text-xs border border-slate-300 flex items-center justify-center gap-1.5 flex-1 md:flex-none cursor-not-allowed";
+        txtBtnAssinar.innerText = "✅ Assinatura Registrada";
+        txtBtnVer.innerText = "Ver Contrato Assinado";
+      } else {
+        badge.innerText = "● Pendente de Sua Assinatura";
+        badge.className = "text-[11px] font-bold px-3 py-1 rounded-full border bg-amber-50 text-amber-800 border-amber-200";
+        btnAssinar.disabled = false;
+        btnAssinar.className = "px-4 py-2 text-white font-bold rounded-xl text-xs shadow transition flex items-center justify-center gap-1.5 flex-1 md:flex-none cursor-pointer";
+        btnAssinar.style.backgroundColor = "var(--btn-color)";
+        txtBtnAssinar.innerText = "Assinar com o Dedo";
+        txtBtnVer.innerText = "Ver Minuta do Contrato";
+      }
+      lucide.createIcons();
+    }
+
+    function gerarPdfContratoCompleto(aluno) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      
+      doc.setFillColor(1, 9, 92);
+      doc.rect(0, 0, 595, 65, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.text("CENTESP - CONTRATO DE PRESTAÇÃO DE SERVIÇOS EDUCACIONAIS", 40, 38);
+
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(10);
+      
+      let y = 90;
+      doc.setFont("helvetica", "bold");
+      doc.text("1. IDENTIFICAÇÃO DAS PARTES", 40, y);
+      y += 16;
+      doc.setFont("helvetica", "normal");
+      doc.text(`CONTRATANTE (ALUNO): ${aluno.nome}`, 40, y); y += 14;
+      doc.text(`CPF: ${aluno.cpf}  |  Telefone: ${aluno.telefone || '--'}`, 40, y); y += 14;
+      doc.text(`Endereço: ${aluno.endereco || 'Não informado'}`, 40, y); y += 18;
+
+      doc.text(`CONTRATADO (INSTRUTOR): ${aluno.instrutor || 'CENTESP Treinamentos'}`, 40, y); y += 14;
+      doc.text(`Veículo de Treinamento: ${aluno.veiculo || 'Ford Ka'}`, 40, y); y += 22;
+
+      doc.setFont("helvetica", "bold");
+      doc.text("2. DO OBJETO E VALORES DOS SERVIÇOS", 40, y);
+      y += 16;
+      doc.setFont("helvetica", "normal");
+      const clausula2 = `O presente contrato tem por objeto o desenvolvimento de habilidades de condução veicular prática. Valor ajustado: ${aluno.valorContrato || 'Conforme pacote ou tabela padrão acordada entre as partes'}. Todas as aulas são registradas e auditadas via plataforma CENTESP.`;
+      const split2 = doc.splitTextToSize(clausula2, 515);
+      doc.text(split2, 40, y);
+      y += split2.length * 13 + 12;
+
+      doc.setFont("helvetica", "bold");
+      doc.text("3. USO DO VEÍCULO E CONDUTA DE SEGURANÇA", 40, y);
+      y += 16;
+      doc.setFont("helvetica", "normal");
+      const clausula3 = "O veículo utilizado para instrução prática dispõe dos equipamentos de segurança exigidos pela legislação de trânsito. O aluno compromete-se a acatar as diretrizes técnicas e operacionais do instrutor, sendo vedado iniciar qualquer aula prática sem o porte da respectiva LADV ativa.";
+      const split3 = doc.splitTextToSize(clausula3, 515);
+      doc.text(split3, 40, y);
+      y += split3.length * 13 + 12;
+
+      doc.setFont("helvetica", "bold");
+      doc.text("4. AUTORIZAÇÃO DE USO DE IMAGEM, VOZ E EVIDÊNCIAS", 40, y);
+      y += 16;
+      doc.setFont("helvetica", "normal");
+      const clausula4 = "O aluno expressamente autoriza a gravação, captação de áudio/vídeo e registro de fotos durante os procedimentos avaliativos práticos, estritamente para finalidade pedagógica, comprovação de execução de trajetos e inserção no histórico de evolução do sistema.";
+      const split4 = doc.splitTextToSize(clausula4, 515);
+      doc.text(split4, 40, y);
+      y += split4.length * 13 + 12;
+
+      doc.setFont("helvetica", "bold");
+      doc.text("5. DECLARAÇÃO DE ASSINATURA ELETRÔNICA", 40, y);
+      y += 16;
+      doc.setFont("helvetica", "normal");
+      const clausula5 = "As partes reconhecem a validade jurídica das rubricas eletrônicas colhidas na tela deste dispositivo como plenamente eficazes (Art. 10, § 2º da MP 2.200-2/2001 e Lei Federal nº 14.063/2020).";
+      const split5 = doc.splitTextToSize(clausula5, 515);
+      doc.text(split5, 40, y);
+      y += split5.length * 13 + 24;
+
+      doc.setFont("helvetica", "bold");
+      doc.text("ASSINATURAS DIGITAIS:", 40, y);
+      y += 20;
+
+      // Quadro da Assinatura do Aluno
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(40, y, 240, 75);
+      if (aluno.contratoAssinaturaAlunoBase64) {
+        try { doc.addImage(aluno.contratoAssinaturaAlunoBase64, 'PNG', 45, y + 5, 230, 45); } catch(e){}
+      }
+      doc.setFontSize(8);
+      doc.text(`ALUNO: ${aluno.nome}`, 45, y + 58);
+      doc.text(`CPF: ${aluno.cpf} ${aluno.contratoDataAluno ? '• ' + aluno.contratoDataAluno : ''}`, 45, y + 68);
+
+      // Quadro da Assinatura do Instrutor
+      doc.rect(315, y, 240, 75);
+      if (aluno.contratoAssinaturaInstrutorBase64) {
+        try { doc.addImage(aluno.contratoAssinaturaInstrutorBase64, 'PNG', 320, y + 5, 230, 45); } catch(e){}
+      }
+      doc.text(`INSTRUTOR: ${aluno.instrutor || 'Amauri de Souza'}`, 320, y + 58);
+      doc.text(`Homologado CENTESP ${aluno.contratoDataInstrutor ? '• ' + aluno.contratoDataInstrutor : ''}`, 320, y + 68);
+
+      return doc;
+    }
+
+    function visualizarContratoAssinadoAluno(alunoCustom = null) {
+      const aluno = alunoCustom || usuarioLogado;
+      if (!aluno) return;
+
+      const doc = gerarPdfContratoCompleto(aluno);
+      const pdfBase64 = doc.output('datauristring');
+
+      abrirModalVisualizacaoDocGenerico({
+        titulo: `Contrato Digital - ${aluno.nome}`,
+        arquivo: pdfBase64,
+        nome: `Contrato_${aluno.nome.replace(/\s+/g, '_')}.pdf`,
+        tipo: 'application/pdf'
+      });
+    }
+
+    function abrirModalAssinarContrato(perfilAutor, idAlunoAlvo = null) {
+      const alvoId = idAlunoAlvo || usuarioLogado.id;
+      
+      if (perfilAutor === 'aluno' && usuarioLogado && usuarioLogado.contratoAssinaturaAlunoBase64) {
+        alert("O seu contrato já foi assinado e validado juridicamente. A assinatura é definitiva e não pode ser refeita.");
+        return;
+      }
+      if (perfilAutor === 'instrutor') {
+        const alunoAlvo = todosAlunosCadastrados.find(a => a.id === alvoId);
+        if (alunoAlvo && alunoAlvo.contratoAssinaturaInstrutorBase64) {
+          alert("Este contrato já foi homologado e assinado pelo instrutor. O registro é definitivo e não pode ser refeito.");
+          return;
+        }
+      }
+
+      document.getElementById('assinaturaTargetAlunoId').value = alvoId;
+      document.getElementById('assinaturaPerfilAutor').value = perfilAutor;
+
+      const titulo = document.getElementById('tituloModalAssinatura');
+      const sub = document.getElementById('subtituloModalAssinatura');
+
+      if (perfilAutor === 'aluno') {
+        titulo.innerText = "Assinatura do Aluno";
+        sub.innerText = "Desenhe sua assinatura com o dedo no espaço abaixo (registro definitivo)";
+      } else {
+        titulo.innerText = "Assinatura do Instrutor";
+        sub.innerText = "Desenhe a rubrica oficial de homologação do instrutor (registro definitivo)";
+      }
+
+      const m = document.getElementById('modalAssinarContratoTela');
+      m.classList.remove('hidden');
+      setTimeout(() => { 
+        m.classList.remove('opacity-0'); 
+        m.querySelector('div').classList.remove('scale-95');
+        inicializarCanvasAssinatura();
+      }, 10);
+      lucide.createIcons();
+    }
+
+    function fecharModalAssinaturaTela() {
+      const m = document.getElementById('modalAssinarContratoTela');
+      m.classList.add('opacity-0');
+      m.querySelector('div').classList.add('scale-95');
+      setTimeout(() => m.classList.add('hidden'), 200);
+    }
+
+    function inicializarCanvasAssinatura() {
+      canvasAssinatura = document.getElementById('canvasAssinaturaContrato');
+      ctxAssinatura = canvasAssinatura.getContext('2d');
+      
+      canvasAssinatura.width = canvasAssinatura.offsetWidth || 440;
+      canvasAssinatura.height = 180;
+      limparCanvasAssinatura();
+
+      ctxAssinatura.lineWidth = 2.5;
+      ctxAssinatura.lineCap = 'round';
+      ctxAssinatura.lineJoin = 'round';
+      ctxAssinatura.strokeStyle = '#01095c';
+
+      function getPos(e) {
+        const rect = canvasAssinatura.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: clientX - rect.left,
+          y: clientY - rect.top
+        };
+      }
+
+      function startDraw(e) {
+        desenhandoAssinatura = true;
+        assinaturaDesenhadaVazia = false;
+        const pos = getPos(e);
+        ctxAssinatura.beginPath();
+        ctxAssinatura.moveTo(pos.x, pos.y);
+        e.preventDefault();
+      }
+
+      function moveDraw(e) {
+        if (!desenhandoAssinatura) return;
+        const pos = getPos(e);
+        ctxAssinatura.lineTo(pos.x, pos.y);
+        ctxAssinatura.stroke();
+        e.preventDefault();
+      }
+
+      function endDraw(e) {
+        desenhandoAssinatura = false;
+      }
+
+      canvasAssinatura.onmousedown = startDraw;
+      canvasAssinatura.onmousemove = moveDraw;
+      window.onmouseup = endDraw;
+
+      canvasAssinatura.ontouchstart = startDraw;
+      canvasAssinatura.ontouchmove = moveDraw;
+      canvasAssinatura.ontouchend = endDraw;
+    }
+
+    function limparCanvasAssinatura() {
+      if (!ctxAssinatura || !canvasAssinatura) return;
+      ctxAssinatura.fillStyle = "#ffffff";
+      ctxAssinatura.fillRect(0, 0, canvasAssinatura.width, canvasAssinatura.height);
+      assinaturaDesenhadaVazia = true;
+    }
+
+    async function confirmarSalvarAssinaturaContrato() {
+      if (assinaturaDesenhadaVazia) {
+        alert("Por favor, desenhe sua assinatura no campo antes de confirmar.");
+        return;
+      }
+
+      const docId = document.getElementById('assinaturaTargetAlunoId').value;
+      const perfilAutor = document.getElementById('assinaturaPerfilAutor').value;
+
+      if (perfilAutor === 'aluno' && usuarioLogado && usuarioLogado.contratoAssinaturaAlunoBase64) {
+        alert("Sua assinatura já foi gravada anteriormente e não pode ser sobrescrita.");
+        fecharModalAssinaturaTela();
+        return;
+      }
+
+      const btn = document.getElementById('btnConfirmarAssinaturaTela');
+      btn.innerText = "Gravando assinatura...";
+      btn.disabled = true;
+
+      const dataHoraStr = new Date().toLocaleString('pt-BR');
+      const assinaturaPng = canvasAssinatura.toDataURL('image/png');
+
+      try {
+        let updateData = {};
+        if (perfilAutor === 'aluno') {
+          updateData = {
+            contratoAssinaturaAlunoBase64: assinaturaPng,
+            contratoDataAluno: dataHoraStr,
+            contratoAtualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+          };
+        } else {
+          updateData = {
+            contratoAssinaturaInstrutorBase64: assinaturaPng,
+            contratoDataInstrutor: dataHoraStr,
+            contratoAtualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+          };
+        }
+
+        await db.collection("usuarios").doc(docId).update(updateData);
+
+        alert("Assinatura digital gravada com sucesso! O documento está protegido contra alterações.");
+
+        if (usuarioLogado && usuarioLogado.id === docId) {
+          if (perfilAutor === 'aluno') {
+            usuarioLogado.contratoAssinaturaAlunoBase64 = assinaturaPng;
+            usuarioLogado.contratoDataAluno = dataHoraStr;
+          } else {
+            usuarioLogado.contratoAssinaturaInstrutorBase64 = assinaturaPng;
+            usuarioLogado.contratoDataInstrutor = dataHoraStr;
+          }
+          atualizarCardContratoAlunoNaTela();
+        }
+
+        fecharModalAssinaturaTela();
+
+        if (perfilAtual === 'instrutor') {
+          carregarListaAlunosDoInstrutor();
+        }
+      } catch (err) {
+        alert("Erro ao gravar assinatura: " + err.message);
+      } finally {
+        btn.innerText = "Confirmar Assinatura";
+        btn.disabled = false;
+      }
+    }
+
+    /* ==================== [LISTA DE ALUNOS COM CONTRATO DIGITAL E AÇÕES] ==================== */
     async function carregarListaAlunosDoInstrutor() {
       const corpo = document.getElementById('tabelaAlunosCadastradosCorpo');
-      corpo.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">Buscando alunos vinculados...</td></tr>';
+      corpo.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400">Buscando alunos vinculados...</td></tr>';
       try {
         const snap = await db.collection("usuarios")
           .where("tipo", "==", "aluno")
@@ -1010,11 +1580,10 @@
         document.getElementById('badgeTotalAlunosInstrutor').innerText = `${todosAlunosCadastrados.length} Aluno(s)`;
 
         if (todosAlunosCadastrados.length === 0) {
-          corpo.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">Nenhum aluno cadastrado para o seu perfil no momento.</td></tr>';
+          corpo.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum aluno cadastrado para o seu perfil no momento.</td></tr>';
           return;
         }
 
-        // Buscar histórico de aulas para identificar a data da última aula de cada aluno
         const snapHist = await db.collection("historico_aulas")
           .where("instrutor", "==", usuarioLogado.nome)
           .get();
@@ -1025,12 +1594,10 @@
           const cpfAluno = aula.cpf;
           if (!cpfAluno) return;
 
-          // Se a aula foi concluída ou agendada
           if (aula.data) {
             if (!mapaUltimaAula[cpfAluno]) {
               mapaUltimaAula[cpfAluno] = aula.data;
             } else {
-              // Comparação simples de datas no formato DD/MM/AAAA
               const partesNova = aula.data.split('/');
               const partesAtual = mapaUltimaAula[cpfAluno].split('/');
               if (partesNova.length === 3 && partesAtual.length === 3) {
@@ -1047,42 +1614,64 @@
         todosAlunosCadastrados.forEach(al => {
           const tr = document.createElement('tr');
           const temLadv = (al.ladvArquivo || al.ladvUrl);
+          const alunoAssinou = !!al.contratoAssinaturaAlunoBase64;
+          const instrutorAssinou = !!al.contratoAssinaturaInstrutorBase64;
           const estaBloqueado = (al.bloqueadoAgendamento === true || al.bloqueadoAgendamento === 'true');
           const ultimaAulaStr = mapaUltimaAula[al.cpf];
 
-          // Badge da Última Aula
           const badgeUltimaAula = ultimaAulaStr 
             ? `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200">📅 ${ultimaAulaStr}</span>`
             : `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">Nunca teve aula</span>`;
 
-          // Badge de LADV
           const badgeLadv = temLadv
-            ? `<button type="button" onclick="visualizarLadvAlunoEspecifico('${al.id}')" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-1 transition shadow-sm"><i data-lucide="eye" class="w-3 h-3"></i> Ver LADV</button>`
-            : `<button type="button" onclick="abrirModalUploadInstrutorParaAluno('${al.id}', '${al.nome}')" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1 transition"><i data-lucide="upload" class="w-3 h-3 text-orange-600"></i> Anexar</button>`;
+            ? `<button type="button" onclick="visualizarLadvAlunoEspecifico('${al.id}')" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-1 transition shadow-sm"><i data-lucide="eye" class="w-3.5 h-3.5"></i> LADV</button>`
+            : `<button type="button" onclick="abrirModalUploadInstrutorParaAluno('${al.id}', '${al.nome}')" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1 transition"><i data-lucide="upload" class="w-3.5 h-3.5 text-orange-600"></i> Anexar</button>`;
 
-          // Botão WhatsApp
+          let badgeContrato = '';
+          if (alunoAssinou && instrutorAssinou) {
+            badgeContrato = `
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="visualizarContratoAlunoDaLista('${al.id}')" class="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-1 shadow-sm"><i data-lucide="file-check-2" class="w-3.5 h-3.5"></i> 100% Assinado</button>
+              </div>`;
+          } else if (instrutorAssinou) {
+            badgeContrato = `
+              <div class="flex items-center gap-1">
+                <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300">Homologado (Aguard. Aluno)</span>
+                <button type="button" onclick="visualizarContratoAlunoDaLista('${al.id}')" class="p-1 text-slate-400 hover:text-slate-700" title="Ver minuta"><i data-lucide="eye" class="w-3.5 h-3.5"></i></button>
+              </div>`;
+          } else if (alunoAssinou) {
+            badgeContrato = `
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="abrirModalAssinarContrato('instrutor', '${al.id}')" class="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 flex items-center gap-1 shadow-sm"><i data-lucide="pen-tool" class="w-3.5 h-3.5"></i> Assinar p/ Instrutor</button>
+                <button type="button" onclick="visualizarContratoAlunoDaLista('${al.id}')" class="p-1 text-slate-400 hover:text-slate-700" title="Ver minuta"><i data-lucide="eye" class="w-3.5 h-3.5"></i></button>
+              </div>`;
+          } else {
+            badgeContrato = `
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="abrirModalAssinarContrato('instrutor', '${al.id}')" class="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1"><i data-lucide="pen-tool" class="w-3.5 h-3.5 text-orange-600"></i> Assinar</button>
+                <button type="button" onclick="visualizarContratoAlunoDaLista('${al.id}')" class="p-1 text-slate-400 hover:text-slate-700" title="Ver minuta"><i data-lucide="file-text" class="w-3.5 h-3.5"></i></button>
+              </div>`;
+          }
+
           const telLimpo = (al.telefone || al.cpf || '').replace(/\D/g, '');
-          const msgWhats = encodeURIComponent(`Olá ${al.nome}, sou seu instrutor ${usuarioLogado.nome} da PREVIA Treinamentos.`);
+          const msgWhats = encodeURIComponent(`Olá ${al.nome}, sou seu instrutor ${usuarioLogado.nome} da CENTESP.`);
           const btnWhats = telLimpo 
             ? `<a href="https://api.whatsapp.com/send?phone=55${telLimpo}&text=${msgWhats}" target="_blank" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 rounded-lg transition shadow-sm" title="Conversar no WhatsApp"><i data-lucide="message-circle" class="w-4 h-4"></i></a>`
             : `<span class="text-slate-300 p-1.5"><i data-lucide="message-circle" class="w-4 h-4"></i></span>`;
 
-          // Botão Bloquear / Desbloquear Agendamento
           const btnBloqueio = estaBloqueado
             ? `<button type="button" onclick="alternarBloqueioAluno('${al.id}', false)" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700 rounded-lg text-xs font-bold flex items-center gap-1 transition" title="Clique para DESBLOQUEAR agendamento"><i data-lucide="lock" class="w-3.5 h-3.5"></i> Bloqueado</button>`
             : `<button type="button" onclick="alternarBloqueioAluno('${al.id}', true)" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 rounded-lg text-xs font-bold flex items-center gap-1 transition" title="Clique para BLOQUEAR agendamento"><i data-lucide="unlock" class="w-3.5 h-3.5"></i> Liberado</button>`;
 
-          // Botão Editar
           const btnEditar = `<button type="button" onclick="abrirModalEditarAluno('${al.id}')" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition" title="Editar dados do aluno"><i data-lucide="edit-3" class="w-4 h-4"></i></button>`;
-
-          // Botão Deletar
           const btnDeletar = `<button type="button" onclick="excluirAluno('${al.id}', '${al.nome}')" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg transition" title="Deletar aluno"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
 
           tr.innerHTML = `
-            <td class="p-3 font-bold text-slate-900 truncate max-w-[160px]">${al.nome}</td>
+            <td class="p-3 font-bold text-slate-900 truncate max-w-[150px]">${al.nome}</td>
             <td class="p-3 font-semibold text-slate-700">${al.cpf}</td>
             <td class="p-3">${badgeUltimaAula}</td>
             <td class="p-3">${badgeLadv}</td>
+            <td class="p-3">${badgeContrato}</td>
             <td class="p-3">${btnBloqueio}</td>
             <td class="p-3">
               <div class="flex items-center justify-center gap-1.5">
@@ -1097,11 +1686,16 @@
 
         lucide.createIcons();
       } catch (e) {
-        corpo.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-rose-500">Erro ao carregar alunos.</td></tr>';
+        corpo.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-rose-500">Erro ao carregar alunos.</td></tr>';
       }
     }
 
-    /* Alternar Bloqueio / Desbloqueio de Agendamento do Aluno */
+    function visualizarContratoAlunoDaLista(idAluno) {
+      const aluno = todosAlunosCadastrados.find(a => a.id === idAluno);
+      if (!aluno) return;
+      visualizarContratoAssinadoAluno(aluno);
+    }
+
     async function alternarBloqueioAluno(idAluno, novoStatusBloqueio) {
       const aluno = todosAlunosCadastrados.find(a => a.id === idAluno);
       const confirmMsg = novoStatusBloqueio 
@@ -1123,7 +1717,6 @@
       }
     }
 
-    /* Modal e Funções de Edição do Aluno */
     function abrirModalEditarAluno(idAluno) {
       const aluno = todosAlunosCadastrados.find(a => a.id === idAluno);
       if (!aluno) return;
@@ -1135,6 +1728,7 @@
       document.getElementById('editAlunoSenha').value = aluno.senha || '';
       document.getElementById('editAlunoEmail').value = aluno.email || '';
       document.getElementById('editAlunoEndereco').value = aluno.endereco || '';
+      document.getElementById('editAlunoValorContrato').value = aluno.valorContrato || '';
 
       const m = document.getElementById('modalEditarAluno');
       m.classList.remove('hidden');
@@ -1163,6 +1757,7 @@
           senha: document.getElementById('editAlunoSenha').value.trim(),
           email: document.getElementById('editAlunoEmail').value.trim(),
           endereco: document.getElementById('editAlunoEndereco').value.trim(),
+          valorContrato: document.getElementById('editAlunoValorContrato').value.trim(),
           atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
         });
 
@@ -1177,7 +1772,6 @@
       }
     }
 
-    /* Exclusão do Aluno */
     async function excluirAluno(idAluno, nomeAluno) {
       const confirmacao = prompt(`Atenção: A exclusão é irreversível!\nPara confirmar que deseja excluir permanentemente o(a) aluno(a) "${nomeAluno}", digite "DELETAR" abaixo:`);
       if (confirmacao !== 'DELETAR') {
@@ -1200,34 +1794,34 @@
         alert("Este aluno não possui LADV anexada.");
         return;
       }
-      abrirModalVisualizacaoLadvGenerico({
-        nome: aluno.nome,
-        ladvArquivo: aluno.ladvArquivo || aluno.ladvUrl,
-        ladvNome: aluno.ladvNome || "LADV_Aluno.pdf",
-        ladvTipo: aluno.ladvTipo || ""
+      abrirModalVisualizacaoDocGenerico({
+        titulo: `LADV - ${aluno.nome}`,
+        arquivo: aluno.ladvArquivo || aluno.ladvUrl,
+        nome: aluno.ladvNome || "LADV_Aluno.pdf",
+        tipo: aluno.ladvTipo || ""
       });
     }
 
     function abrirModalUploadInstrutorParaAluno(idAluno, nomeAluno) {
-      abrirModalUploadGenerico(idAluno, `LADV - Aluno(a) ${nomeAluno}`);
+      abrirModalUploadGenerico(idAluno, 'ladv', `LADV - Aluno(a) ${nomeAluno}`, "Selecione a LADV em PDF ou imagem legível.");
     }
 
-    /* ==================== [CONTROLE DO MODAL DE VISUALIZAÇÃO DA LADV] ==================== */
-    function abrirModalVisualizacaoLadvGenerico(dados) {
-      ladvAtualParaVisualizar = dados;
-      const m = document.getElementById('modalVisualizarLadv');
-      document.getElementById('modalLadvTituloAluno').innerText = `LADV - ${dados.nome}`;
+    /* Modais de Documentos e Uploads */
+    function abrirModalVisualizacaoDocGenerico(dados) {
+      const m = document.getElementById('modalVisualizarDocumento');
+      document.getElementById('modalDocTitulo').innerText = dados.titulo || "Documento";
+      document.getElementById('modalDocSubtitulo').innerText = dados.nome || "Visualização oficial";
       
-      const img = document.getElementById('imgLadvPreview');
-      const iframe = document.getElementById('iframeLadvPdfPreview');
-      const txtErro = document.getElementById('txtLadvNaoCarregada');
+      const img = document.getElementById('imgDocPreview');
+      const iframe = document.getElementById('iframeDocPdfPreview');
+      const txtErro = document.getElementById('txtDocNaoCarregado');
 
       img.classList.add('hidden');
       iframe.classList.add('hidden');
       txtErro.classList.add('hidden');
 
-      const src = dados.ladvArquivo;
-      const ehPdf = (dados.ladvTipo && dados.ladvTipo.includes('pdf')) || (dados.ladvNome && dados.ladvNome.toLowerCase().endsWith('.pdf')) || (src && src.startsWith('data:application/pdf'));
+      const src = dados.arquivo;
+      const ehPdf = (dados.tipo && dados.tipo.includes('pdf')) || (dados.nome && dados.nome.toLowerCase().endsWith('.pdf')) || (src && src.startsWith('data:application/pdf'));
 
       if (ehPdf) {
         iframe.src = src;
@@ -1239,10 +1833,10 @@
         txtErro.classList.remove('hidden');
       }
 
-      document.getElementById('btnBaixarLadvModal').onclick = () => {
+      document.getElementById('btnBaixarDocumentoModal').onclick = () => {
         const a = document.createElement('a');
         a.href = src;
-        a.download = dados.ladvNome || `LADV_${dados.nome.replace(/\s+/g, '_')}`;
+        a.download = dados.nome || `Documento_${new Date().getTime()}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -1253,37 +1847,38 @@
       lucide.createIcons();
     }
 
-    function fecharModalVisualizarLadv() {
-      const m = document.getElementById('modalVisualizarLadv');
+    function fecharModalVisualizarDocumento() {
+      const m = document.getElementById('modalVisualizarDocumento');
       m.classList.add('opacity-0');
       m.querySelector('div').classList.add('scale-95');
       setTimeout(() => {
-        document.getElementById('imgLadvPreview').src = '';
-        document.getElementById('iframeLadvPdfPreview').src = '';
+        document.getElementById('imgDocPreview').src = '';
+        document.getElementById('iframeDocPdfPreview').src = '';
         m.classList.add('hidden');
       }, 200);
     }
 
-    /* ==================== [CONTROLE DO MODAL DE UPLOAD DE LADV] ==================== */
-    function abrirModalUploadGenerico(docIdAlvo, tituloSub) {
-      document.getElementById('uploadLadvTargetDocId').value = docIdAlvo;
-      document.getElementById('tituloModalUploadLadv').innerText = tituloSub || "Cadastrar / Atualizar LADV";
-      limparSelecaoLadvModal();
+    function abrirModalUploadGenerico(docIdAlvo, tipoCampo, tituloSub, descSub) {
+      document.getElementById('uploadDocTargetId').value = docIdAlvo;
+      document.getElementById('uploadDocTipoCampo').value = tipoCampo;
+      document.getElementById('tituloModalUploadDoc').innerText = tituloSub || "Cadastrar Documento";
+      document.getElementById('descModalUploadDoc').innerText = descSub || "Selecione o arquivo em PDF ou imagem legível.";
+      limparSelecaoDocModal();
 
-      const m = document.getElementById('modalUploadLadvGenerico');
+      const m = document.getElementById('modalUploadDocumentoGenerico');
       m.classList.remove('hidden');
       setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
       lucide.createIcons();
     }
 
-    function fecharModalUploadLadvGenerico() {
-      const m = document.getElementById('modalUploadLadvGenerico');
+    function fecharModalUploadDocumentoGenerico() {
+      const m = document.getElementById('modalUploadDocumentoGenerico');
       m.classList.add('opacity-0');
       m.querySelector('div').classList.add('scale-95');
       setTimeout(() => m.classList.add('hidden'), 200);
     }
 
-    function processarArquivoLadvModal(event) {
+    function processarArquivoDocModal(event) {
       const file = event.target.files[0];
       if (!file) return;
 
@@ -1295,74 +1890,74 @@
 
       const reader = new FileReader();
       reader.onload = function(e) {
-        tempLadvModalBase64 = e.target.result;
-        tempLadvModalNome = file.name;
-        tempLadvModalTipo = file.type;
+        tempDocModalBase64 = e.target.result;
+        tempDocModalNome = file.name;
+        tempDocModalTipo = file.type;
 
-        document.getElementById('previewLadvModalNome').innerText = file.name;
-        document.getElementById('previewLadvModalTamanho').innerText = (file.size / 1024).toFixed(1) + ' KB';
+        document.getElementById('previewDocModalNome').innerText = file.name;
+        document.getElementById('previewDocModalTamanho').innerText = (file.size / 1024).toFixed(1) + ' KB';
 
-        document.getElementById('dropZoneLadvModal').classList.add('hidden');
-        document.getElementById('previewLadvModalContainer').classList.remove('hidden');
+        document.getElementById('dropZoneDocModal').classList.add('hidden');
+        document.getElementById('previewDocModalContainer').classList.remove('hidden');
         lucide.createIcons();
       };
       reader.readAsDataURL(file);
     }
 
-    function limparSelecaoLadvModal() {
-      tempLadvModalBase64 = null;
-      tempLadvModalNome = null;
-      tempLadvModalTipo = null;
-      document.getElementById('arquivoLadvInputModal').value = '';
-      document.getElementById('previewLadvModalContainer').classList.add('hidden');
-      document.getElementById('dropZoneLadvModal').classList.remove('hidden');
+    function limparSelecaoDocModal() {
+      tempDocModalBase64 = null;
+      tempDocModalNome = null;
+      tempDocModalTipo = null;
+      document.getElementById('arquivoDocInputModal').value = '';
+      document.getElementById('previewDocModalContainer').classList.add('hidden');
+      document.getElementById('dropZoneDocModal').classList.remove('hidden');
     }
 
-    async function confirmarSalvarLadvNoFirebase() {
-      const docId = document.getElementById('uploadLadvTargetDocId').value;
-      if (!tempLadvModalBase64) {
-        alert("Por favor, selecione um arquivo de LADV antes de salvar.");
+    async function confirmarSalvarDocumentoNoFirebase() {
+      const docId = document.getElementById('uploadDocTargetId').value;
+      if (!tempDocModalBase64) {
+        alert("Por favor, selecione um arquivo antes de salvar.");
         return;
       }
 
-      const btn = document.getElementById('btnSalvarLadvModal');
+      const btn = document.getElementById('btnSalvarDocModal');
       btn.innerText = "Salvando...";
       btn.disabled = true;
 
       try {
         await db.collection("usuarios").doc(docId).update({
-          ladvArquivo: tempLadvModalBase64,
-          ladvNome: tempLadvModalNome,
-          ladvTipo: tempLadvModalTipo,
+          ladvArquivo: tempDocModalBase64,
+          ladvNome: tempDocModalNome,
+          ladvTipo: tempDocModalTipo,
           ladvAtualizadaEm: firebase.firestore.FieldValue.serverTimestamp()
         });
 
         alert("LADV cadastrada e vinculada com sucesso!");
 
         if (usuarioLogado && usuarioLogado.id === docId) {
-          usuarioLogado.ladvArquivo = tempLadvModalBase64;
-          usuarioLogado.ladvNome = tempLadvModalNome;
-          usuarioLogado.ladvTipo = tempLadvModalTipo;
+          usuarioLogado.ladvArquivo = tempDocModalBase64;
+          usuarioLogado.ladvNome = tempDocModalNome;
+          usuarioLogado.ladvTipo = tempDocModalTipo;
           atualizarCardLadvAlunoNaTela();
         }
 
-        fecharModalUploadLadvGenerico();
+        fecharModalUploadDocumentoGenerico();
 
         if (perfilAtual === 'instrutor') {
           carregarListaAlunosDoInstrutor();
         }
       } catch (err) {
-        alert("Erro ao salvar LADV: " + err.message);
+        alert("Erro ao salvar arquivo: " + err.message);
       } finally {
-        btn.innerText = "Salvar LADV";
+        btn.innerText = "Salvar Arquivo";
         btn.disabled = false;
       }
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      const dropZone = document.getElementById('dropZoneLadvModal');
+      const dropZone = document.getElementById('dropZoneDocModal');
       if (dropZone) {
-        dropZone.onclick = () => document.getElementById('arquivoLadvInputModal').click();
+        dropZone.onclick = () => document.getElementById('arquivoDocInputModal').click();
       }
 
       const inpLadvForm = document.getElementById('cadLadvFile');
@@ -1410,17 +2005,18 @@
           senha: senhaDigitada || senhaPadrao,
           email: document.getElementById('cadEmail').value.trim(),
           endereco: document.getElementById('cadEndereco').value.trim(),
+          valorContrato: document.getElementById('cadValorContrato').value.trim(),
           tipo: 'aluno',
           instrutor: usuarioLogado.nome,
           veiculo: usuarioLogado.veiculo || 'Ford Ka',
           ladvArquivo: tempLadvCadNovoBase64 || null,
           ladvNome: tempLadvCadNovoNome || null,
           ladvTipo: tempLadvCadNovoTipo || null,
-          bloqueadoAgendamento: false, // Inicia liberado por padrão
+          bloqueadoAgendamento: false,
           criadoEm: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        alert('Aluno cadastrado e vinculado exclusivamente ao seu perfil com sucesso!');
+        alert('Aluno cadastrado com sucesso! O contrato com assinatura eletrônica já está pronto no sistema.');
         e.target.reset();
         document.getElementById('cadInstrutor').value = usuarioLogado.nome;
         document.getElementById('cadLadvNomePreview').innerText = "Nenhum arquivo anexado";
@@ -1437,7 +2033,7 @@
       }
     }
 
-    /* Demais Funções de Agenda e Histórico */
+    /* Agenda & Histórico */
     async function carregarAgendaInstrutor(limparFiltro = false) {
       const corpo = document.getElementById('tabelaAgendaInstrutorCorpo');
       corpo.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Carregando dados em tempo real...</td></tr>';
@@ -1630,14 +2226,12 @@
       } catch (err) { alert('Erro ao gerar grade: ' + err.message); } finally { btn.innerText = '⚡ Gerar Grade do Dia Todo'; btn.disabled = false; }
     }
 
-    /* Agendamento Aluno (Com checagem em tempo real de bloqueio) */
     async function carregarVagasAluno(limparFiltro = false) {
       const corpo = document.getElementById('tabelaVagasAlunoCorpo');
       corpo.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Buscando horários disponíveis...</td></tr>';
       fecharBoxMinhasAulasDia();
 
       try {
-        // Atualiza os dados mais recentes do aluno logado para checar bloqueio
         const snapUserAtual = await db.collection("usuarios").doc(usuarioLogado.id).get();
         if (snapUserAtual.exists) {
           usuarioLogado = snapUserAtual.data();
@@ -1971,7 +2565,7 @@
             const q = doc.data();
             const valor = String(detalhes['ped_' + q.colLetter] || detalhes[q.colLetter] || 'muitobom').toLowerCase();
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td class="p-3 font-semibold text-slate-700 border-r border-slate-100">Critério</td><td class="p-3 text-slate-800 border-r border-slate-100">${q.descricao}</td><td class="p-3 text-center border-r border-slate-100 text-sm">${valor === 'insuficiente' ? '❌' : ''}</td><td class="p-3 text-center border-r border-slate-100 text-sm">${valor === 'regular' ? '⚠️' : ''}</td><td class="p-3 text-center border-r border-slate-100 text-sm">${valor === 'bom' ? '✔' : ''}</td><td class="p-3 text-center text-sm">${valor === 'muitobom' ? '⭐' : ''}</td>`;
+            tr.innerHTML = `<td class="p-3 font-semibold text-slate-700 border-r border-slate-100">Critério</td><td class="p-3 text-slate-800 border-r border-slate-100">${q.descricao}</td><td class="p-3 text-center border-r border-slate-100 text-sm">${valor === 'insuficiente' ? '❌' : ''}</td><td class="p-3 text-center border-r border-slate-100 text-sm">${valor === 'regular' ? '⚠' : ''}</td><td class="p-3 text-center border-r border-slate-100 text-sm">${valor === 'bom' ? '✔' : ''}</td><td class="p-3 text-center text-sm">${valor === 'muitobom' ? '⭐' : ''}</td>`;
             corpoPed.appendChild(tr);
           });
         }
@@ -2110,11 +2704,11 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ unit: 'pt', format: 'a4' });
         
-        doc.setFillColor(4, 46, 42); 
+        doc.setFillColor(1, 9, 92); 
         doc.rect(0, 0, 595, 60, 'F');
         doc.setTextColor(255, 255, 255); 
         doc.setFontSize(16); 
-        doc.text("FICHA DE AVALIAÇÃO PRÁTICA - PREVIA", 40, 38);
+        doc.text("FICHA DE AVALIAÇÃO PRÁTICA - CENTESP", 40, 38);
         
         doc.setTextColor(30, 41, 59); 
         doc.setFontSize(11);
@@ -2123,7 +2717,7 @@
         doc.text(`Data: ${aula.data} (${aula.inicio} às ${aula.fim})`, 40, 126);
         doc.text(`Instrutor: ${aula.instrutor || 'Amauri de Souza'}`, 40, 144);
         
-        doc.setFillColor(240, 90, 36); 
+        doc.setFillColor(255, 70, 29); 
         doc.roundedRect(420, 80, 135, 65, 8, 8, 'F');
         doc.setTextColor(255, 255, 255); 
         doc.setFontSize(10); 
@@ -2139,7 +2733,7 @@
         const splitObs = doc.splitTextToSize(aula.obs || 'O aluno demonstrou excelente aproveitamento técnico nos percursos práticos.', 515);
         doc.text(splitObs, 40, 205);
         if (detalhes.evidenciaLink) { 
-          doc.setTextColor(240, 90, 36); 
+          doc.setTextColor(255, 70, 29); 
           doc.text(`Link de Evidência Anexado: ${detalhes.evidenciaLink}`, 40, 250); 
         }
         doc.save(`Avaliacao_${aula.titulo}_${aula.data.replace(/\//g, '-')}.pdf`);
@@ -2391,6 +2985,446 @@
       badge.className = 'text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full';
     }
 
+    function abrirModalCriarAvaliacao() {
+      const container = document.getElementById('containerListaCriteriosNovos');
+      container.innerHTML = '';
+      
+      const criteriosIniciais = [
+        "Uso correto dos pedais, embreagem e ponto de tração",
+        "Atenção à sinalização, preferência e cruzamentos",
+        "Alinhamento, baliza entre balizas e uso de retrovisores"
+      ];
+      criteriosIniciais.forEach(crit => adicionarLinhaCriterioNovaAvaliacao(crit));
+
+      document.getElementById('novaAvNomeModelo').value = '';
+      const m = document.getElementById('modalCriarAvaliacao');
+      m.classList.remove('hidden');
+      setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
+      lucide.createIcons();
+    }
+
+    function fecharModalCriarAvaliacao() {
+      const m = document.getElementById('modalCriarAvaliacao');
+      m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
+      setTimeout(() => m.classList.add('hidden'), 200);
+    }
+
+    function adicionarLinhaCriterioNovaAvaliacao(textoValor = '') {
+      const container = document.getElementById('containerListaCriteriosNovos');
+      const idx = container.querySelectorAll('.linha-criterio-novo').length + 1;
+
+      const div = document.createElement('div');
+      div.className = 'linha-criterio-novo flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-200';
+      div.innerHTML = `
+        <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center justify-center flex-shrink-0">${idx}</span>
+        <input type="text" required value="${textoValor}" placeholder="Descreva o critério avaliativo..." class="inp-crit-desc flex-1 h-9 px-3 border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-emerald-600">
+        <button type="button" onclick="this.parentElement.remove(); reordenarNumerosCriterios();" class="p-1.5 text-slate-400 hover:text-rose-600 transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+      `;
+      container.appendChild(div);
+      lucide.createIcons();
+    }
+
+    function reordenarNumerosCriterios() {
+      const linhas = document.querySelectorAll('#containerListaCriteriosNovos .linha-criterio-novo');
+      linhas.forEach((linha, i) => {
+        const span = linha.querySelector('span');
+        if (span) span.innerText = i + 1;
+      });
+    }
+
+    async function salvarNovaAvaliacaoComCriterios(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSalvarNovaAvaliacao');
+      btn.innerText = 'Salvando avaliação...'; btn.disabled = true;
+
+      const nomeModelo = document.getElementById('novaAvNomeModelo').value.trim();
+      const inputs = document.querySelectorAll('#containerListaCriteriosNovos .inp-crit-desc');
+
+      if (!nomeModelo) {
+        alert('Informe o título do modelo de avaliação.');
+        btn.innerText = '💾 Gravar Avaliação no Firebase'; btn.disabled = false;
+        return;
+      }
+
+      if (inputs.length === 0) {
+        alert('Adicione pelo menos um critério pedagógico de avaliação.');
+        btn.innerText = '💾 Gravar Avaliação no Firebase'; btn.disabled = false;
+        return;
+      }
+
+      try {
+        const batch = db.batch();
+
+        const refModelo = db.collection("modelos_aula").doc();
+        batch.set(refModelo, {
+          nome: nomeModelo,
+          titulo: nomeModelo,
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        inputs.forEach((inp, idx) => {
+          const refQuestao = db.collection("questoes_aula").doc();
+          batch.set(refQuestao, {
+            modelo: nomeModelo,
+            descricao: inp.value.trim(),
+            colLetter: `q${idx + 1}`,
+            ordem: idx + 1,
+            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        });
+
+        await batch.commit();
+        alert(`Modelo de avaliação "${nomeModelo}" criado com ${inputs.length} critérios e ativado com sucesso!`);
+        fecharModalCriarAvaliacao();
+      } catch (err) {
+        alert('Erro ao criar avaliação no Firebase: ' + err.message);
+      } finally {
+        btn.innerText = '💾 Gravar Avaliação no Firebase'; btn.disabled = false;
+      }
+    }
+
+    function abrirModalCadastrarMaterial() {
+      if (!ehAdminMaster) {
+        alert('Apenas o Admin Master possui permissão para cadastrar novos cursos e ferramentas.');
+        return;
+      }
+      const m = document.getElementById('modalCadastrarMaterial');
+      m.classList.remove('hidden');
+      setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
+      lucide.createIcons();
+    }
+
+    function fecharModalCadastrarMaterial() {
+      const m = document.getElementById('modalCadastrarMaterial');
+      m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
+      setTimeout(() => m.classList.add('hidden'), 200);
+    }
+
+    async function salvarNovoMaterial(e) {
+      e.preventDefault();
+      if (!ehAdminMaster) {
+        alert('Apenas o Admin Master pode executar esta ação.');
+        return;
+      }
+      const btn = document.getElementById('btnSalvarMaterial');
+      btn.innerText = 'Salvando no Firebase...'; btn.disabled = true;
+
+      const titulo = document.getElementById('matTitulo').value.trim();
+      const categoria = document.getElementById('matCategoria').value.trim();
+      const descricao = document.getElementById('matDescricao').value.trim();
+      const capa = document.getElementById('matCapa').value.trim();
+      const url = document.getElementById('matUrl').value.trim();
+      const acesso = document.getElementById('matAcessoInicial').value;
+      const acessoInst = document.getElementById('matAcessoInstrutoresInicial').value;
+
+      try {
+        await db.collection("cursos_ead").add({
+          titulo: titulo,
+          categoria: categoria,
+          descricao: descricao,
+          capa: capa,
+          url: url,
+          destinadoA: acesso === 'todos' ? 'todos' : [],
+          destinadoInstrutores: acessoInst === 'todos' ? 'todos' : [],
+          criadoPor: usuarioLogado.nome,
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert('Curso / Ferramenta cadastrado com sucesso!');
+        e.target.reset();
+        fecharModalCadastrarMaterial();
+        carregarMateriaisEducacionaisInstrutor();
+      } catch (err) {
+        alert('Erro ao cadastrar material: ' + err.message);
+      } finally {
+        btn.innerText = '💾 Gravar no Firebase'; btn.disabled = false;
+      }
+    }
+
+    function abrirModalMatriculas(idCurso) {
+      materialSelecionadoParaMatricula = todosMateriaisInstrutor.find(m => m.id === idCurso);
+      if (!materialSelecionadoParaMatricula) return;
+
+      document.getElementById('matDocIdCurso').value = idCurso;
+      document.getElementById('matCursoTituloSub').innerText = materialSelecionadoParaMatricula.titulo;
+      document.getElementById('filtroAlunoNoModal').value = '';
+
+      const ehAbertoTodos = (!materialSelecionadoParaMatricula.destinadoA || materialSelecionadoParaMatricula.destinadoA === 'todos' || materialSelecionadoParaMatricula.destinadoA === '');
+      const chkTodos = document.getElementById('chkTodosAlunos');
+      chkTodos.checked = ehAbertoTodos;
+
+      let matriculadosArray = [];
+      if (Array.isArray(materialSelecionadoParaMatricula.destinadoA)) {
+        matriculadosArray = materialSelecionadoParaMatricula.destinadoA;
+      } else if (typeof materialSelecionadoParaMatricula.destinadoA === 'string' && !ehAbertoTodos) {
+        matriculadosArray = [materialSelecionadoParaMatricula.destinadoA];
+      }
+
+      mapaSelecaoTemporariaMatriculas = {};
+      todosAlunosCadastrados.forEach(a => {
+        mapaSelecaoTemporariaMatriculas[a.cpf] = ehAbertoTodos || matriculadosArray.includes(a.cpf) || matriculadosArray.includes(a.telefone);
+      });
+
+      renderizarListaAlunosCheckboxes(todosAlunosCadastrados, ehAbertoTodos);
+
+      const m = document.getElementById('modalGerenciarMatriculas');
+      m.classList.remove('hidden');
+      setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
+      lucide.createIcons();
+    }
+
+    function renderizarListaAlunosCheckboxes(lista, desabilitados) {
+      const listaDiv = document.getElementById('listaAlunosCheckboxes');
+      const badgeCont = document.getElementById('contagemAlunosFiltrados');
+      listaDiv.innerHTML = '';
+      badgeCont.innerText = `${lista.length} de ${todosAlunosCadastrados.length} de seus alunos`;
+
+      if (lista.length === 0) {
+        listaDiv.innerHTML = '<div class="p-3 text-center text-xs text-slate-400">Nenhum aluno vinculado localizado.</div>';
+        return;
+      }
+
+      lista.forEach(aluno => {
+        const marcado = mapaSelecaoTemporariaMatriculas[aluno.cpf] || false;
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 transition';
+        row.innerHTML = `
+          <div class="flex items-center gap-2.5 overflow-hidden">
+            <input type="checkbox" value="${aluno.cpf}" ${marcado ? 'checked' : ''} ${desabilitados ? 'disabled' : ''} onchange="atualizarSelecaoAlunoMatricula('${aluno.cpf}', this.checked)" class="chk-aluno-item w-4 h-4 text-orange-600 rounded cursor-pointer">
+            <div class="truncate">
+              <div class="text-xs font-bold text-slate-800 truncate">${aluno.nome}</div>
+              <div class="text-[10px] text-slate-400 font-semibold">${aluno.cpf}</div>
+            </div>
+          </div>
+          <span class="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md flex-shrink-0">Seu Aluno</span>
+        `;
+        listaDiv.appendChild(row);
+      });
+    }
+
+    function filtrarAlunosNoModalMatricula() {
+      const termo = document.getElementById('filtroAlunoNoModal').value.toLowerCase().trim();
+      const chkTodos = document.getElementById('chkTodosAlunos').checked;
+      if (!termo) {
+        renderizarListaAlunosCheckboxes(todosAlunosCadastrados, chkTodos);
+        return;
+      }
+      const filtrados = todosAlunosCadastrados.filter(a => 
+        (a.nome && a.nome.toLowerCase().includes(termo)) ||
+        (a.cpf && a.cpf.toLowerCase().includes(termo)) ||
+        (a.telefone && a.telefone.toLowerCase().includes(termo))
+      );
+      renderizarListaAlunosCheckboxes(filtrados, chkTodos);
+    }
+
+    function atualizarSelecaoAlunoMatricula(cpf, valor) {
+      mapaSelecaoTemporariaMatriculas[cpf] = valor;
+    }
+
+    function alternarMarcarTodos(marcado) {
+      todosAlunosCadastrados.forEach(a => {
+        mapaSelecaoTemporariaMatriculas[a.cpf] = marcado;
+      });
+      filtrarAlunosNoModalMatricula();
+    }
+
+    function fecharModalMatriculas() {
+      const m = document.getElementById('modalGerenciarMatriculas');
+      m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
+      setTimeout(() => m.classList.add('hidden'), 200);
+    }
+
+    async function salvarMatriculasNoFirebase() {
+      const idCurso = document.getElementById('matDocIdCurso').value;
+      const chkTodos = document.getElementById('chkTodosAlunos').checked;
+      const btn = document.getElementById('btnSalvarMatriculas');
+      btn.innerText = 'Gravando matrículas...'; btn.disabled = true;
+
+      try {
+        let novoDestinadoA;
+        if (chkTodos) {
+          novoDestinadoA = 'todos';
+        } else {
+          const selecionados = [];
+          Object.keys(mapaSelecaoTemporariaMatriculas).forEach(cpf => {
+            if (mapaSelecaoTemporariaMatriculas[cpf] === true) {
+              selecionados.push(cpf);
+            }
+          });
+          novoDestinadoA = selecionados;
+        }
+
+        await db.collection("cursos_ead").doc(idCurso).update({
+          destinadoA: novoDestinadoA,
+          atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert('Matrículas atualizadas com sucesso no Firebase!');
+        fecharModalMatriculas();
+        carregarMateriaisEducacionaisInstrutor();
+      } catch (err) {
+        alert('Erro ao atualizar matrículas: ' + err.message);
+      } finally {
+        btn.innerText = 'Salvar Matrículas'; btn.disabled = false;
+      }
+    }
+
+    async function abrirModalLiberarParaInstrutoresDireto(idCurso) {
+      if (!ehAdminMaster) {
+        alert('Apenas o Admin Master pode gerenciar a liberação para instrutores.');
+        return;
+      }
+
+      const curso = todosMateriaisInstrutor.find(c => c.id === idCurso);
+      if (!curso) return;
+
+      document.getElementById('matDocIdCursoInstrutor').value = idCurso;
+      document.getElementById('matInstCursoTituloSub').innerText = `Curso: ${curso.titulo}`;
+      document.getElementById('filtroInstrutorNoModal').value = '';
+
+      if (todosInstrutoresCadastrados.length === 0) {
+        const snap = await db.collection("usuarios").where("tipo", "in", ["instrutor", "admin"]).get();
+        todosInstrutoresCadastrados = [];
+        snap.forEach(d => {
+          const inst = d.data();
+          inst.id = d.id;
+          todosInstrutoresCadastrados.push(inst);
+        });
+      }
+
+      const ehAbertoTodos = (!curso.destinadoInstrutores || curso.destinadoInstrutores === 'todos' || curso.destinadoInstrutores === '');
+      const chkTodos = document.getElementById('chkTodosInstrutores');
+      chkTodos.checked = ehAbertoTodos;
+
+      let matriculados = [];
+      if (Array.isArray(curso.destinadoInstrutores)) {
+        matriculados = curso.destinadoInstrutores;
+      } else if (typeof curso.destinadoInstrutores === 'string' && !ehAbertoTodos) {
+        matriculados = [curso.destinadoInstrutores];
+      }
+
+      mapaSelecaoTemporariaInstrutores = {};
+      todosInstrutoresCadastrados.forEach(inst => {
+        mapaSelecaoTemporariaInstrutores[inst.cpf] = ehAbertoTodos || matriculados.includes(inst.cpf) || matriculados.includes(inst.nome);
+      });
+
+      renderizarListaInstrutoresCheckboxes(todosInstrutoresCadastrados, ehAbertoTodos);
+
+      const m = document.getElementById('modalMatriculasInstrutores');
+      m.classList.remove('hidden');
+      setTimeout(() => { m.classList.remove('opacity-0'); m.querySelector('div').classList.remove('scale-95'); }, 10);
+      lucide.createIcons();
+    }
+
+    function fecharModalLiberarParaInstrutores() {
+      const m = document.getElementById('modalMatriculasInstrutores');
+      m.classList.add('opacity-0'); m.querySelector('div').classList.add('scale-95');
+      setTimeout(() => m.classList.add('hidden'), 200);
+    }
+
+    function renderizarListaInstrutoresCheckboxes(lista, desabilitados) {
+      const listaDiv = document.getElementById('listaInstrutoresCheckboxes');
+      const badgeCont = document.getElementById('contagemInstrutoresFiltrados');
+      listaDiv.innerHTML = '';
+      badgeCont.innerText = `${lista.length} de ${todosInstrutoresCadastrados.length} instrutores`;
+
+      if (lista.length === 0) {
+        listaDiv.innerHTML = '<div class="p-3 text-center text-xs text-slate-400">Nenhum instrutor localizado.</div>';
+        return;
+      }
+
+      lista.forEach(inst => {
+        const marcado = mapaSelecaoTemporariaInstrutores[inst.cpf] || false;
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 transition';
+        row.innerHTML = `
+          <div class="flex items-center gap-2.5 overflow-hidden">
+            <input type="checkbox" value="${inst.cpf}" ${marcado ? 'checked' : ''} ${desabilitados ? 'disabled' : ''} onchange="atualizarSelecaoInstrutor('${inst.cpf}', this.checked)" class="chk-inst-item w-4 h-4 text-teal-600 rounded cursor-pointer">
+            <div class="truncate">
+              <div class="text-xs font-bold text-slate-800 truncate">${inst.nome}</div>
+              <div class="text-[10px] text-slate-400 font-semibold">${inst.cpf} ${inst.adminMaster ? '(Admin Master)' : ''}</div>
+            </div>
+          </div>
+          <span class="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md flex-shrink-0">Instrutor</span>
+        `;
+        listaDiv.appendChild(row);
+      });
+    }
+
+    function filtrarInstrutoresNoModal() {
+      const termo = document.getElementById('filtroInstrutorNoModal').value.toLowerCase().trim();
+      const chkTodos = document.getElementById('chkTodosInstrutores').checked;
+      if (!termo) {
+        renderizarListaInstrutoresCheckboxes(todosInstrutoresCadastrados, chkTodos);
+        return;
+      }
+      const filtrados = todosInstrutoresCadastrados.filter(i => 
+        (i.nome && i.nome.toLowerCase().includes(termo)) ||
+        (i.cpf && i.cpf.toLowerCase().includes(termo))
+      );
+      renderizarListaInstrutoresCheckboxes(filtrados, chkTodos);
+    }
+
+    function atualizarSelecaoInstrutor(cpf, valor) {
+      mapaSelecaoTemporariaInstrutores[cpf] = valor;
+    }
+
+    function alternarMarcarTodosInstrutores(marcado) {
+      todosInstrutoresCadastrados.forEach(i => {
+        mapaSelecaoTemporariaInstrutores[i.cpf] = marcado;
+      });
+      filtrarInstrutoresNoModal();
+    }
+
+    async function salvarLiberacaoInstrutoresNoFirebase() {
+      const idCurso = document.getElementById('matDocIdCursoInstrutor').value;
+      const chkTodos = document.getElementById('chkTodosInstrutores').checked;
+      const btn = document.getElementById('btnSalvarMatriculasInstrutores');
+      btn.innerText = 'Gravando liberação...'; btn.disabled = true;
+
+      try {
+        let novoDestinado;
+        if (chkTodos) {
+          novoDestinado = 'todos';
+        } else {
+          const selecionados = [];
+          Object.keys(mapaSelecaoTemporariaInstrutores).forEach(cpf => {
+            if (mapaSelecaoTemporariaInstrutores[cpf] === true) {
+              selecionados.push(cpf);
+            }
+          });
+          novoDestinado = selecionados;
+        }
+
+        await db.collection("cursos_ead").doc(idCurso).update({
+          destinadoInstrutores: novoDestinado,
+          atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert('Instrutores atualizados com sucesso no curso!');
+        fecharModalLiberarParaInstrutores();
+        carregarMateriaisEducacionaisInstrutor();
+      } catch (err) {
+        alert('Erro ao salvar liberação de instrutores: ' + err.message);
+      } finally {
+        btn.innerText = 'Salvar Liberação'; btn.disabled = false;
+      }
+    }
+
+    function abrirPlayerFerramenta(fEnc) {
+      const f = JSON.parse(decodeURIComponent(fEnc));
+      document.getElementById('tituloPlayerFerramenta').innerText = f.titulo;
+      document.getElementById('iframeFerramenta').src = f.url || f.urlEmbed || f.urlOriginal;
+      document.getElementById('boxPlayerFerramenta').classList.remove('hidden');
+      document.getElementById('gridFerramentasCards').classList.add('hidden');
+    }
+
+    function fecharPlayerFerramenta() {
+      document.getElementById('iframeFerramenta').src = '';
+      document.getElementById('boxPlayerFerramenta').classList.add('hidden');
+      document.getElementById('gridFerramentasCards').classList.remove('hidden');
+    }
+
     async function abrirModalSaibaMais() {
       const modal = document.getElementById('modalSaibaMaisInstrutor');
       const nomeInst = usuarioLogado ? (usuarioLogado.instrutor || usuarioLogado.nome || 'Amauri de Souza') : 'Amauri de Souza';
@@ -2440,11 +3474,82 @@
       setTimeout(() => modal.classList.add('hidden'), 200);
     }
 
+    function verificarExibicaoBannerPWA() {
+      const jaEstaInstalado = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const b = document.getElementById('bannerInstalacaoApp');
+      const txt = document.getElementById('txtBannerInstalacaoApp');
+      const btn = document.getElementById('btnAcaoInstalarApp');
+
+      if (!b) return;
+
+      if (jaEstaInstalado) {
+        b.classList.add('hidden');
+        b.classList.remove('flex');
+        return;
+      }
+
+      if (sessionStorage.getItem('pwa_banner_fechado') === 'true') {
+        b.classList.add('hidden');
+        b.classList.remove('flex');
+        return;
+      }
+
+      if (txt && btn) {
+        txt.innerText = "Deseja instalar o aplicativo oficial ou abrir diretamente por ele?";
+        btn.innerText = "Instalar / Abrir App";
+      }
+
+      b.classList.remove('hidden');
+      b.classList.add('flex');
+    }
+
+    function fecharBannerInstalacaoApp() {
+      const b = document.getElementById('bannerInstalacaoApp');
+      if (b) {
+        b.classList.add('hidden');
+        b.classList.remove('flex');
+      }
+      sessionStorage.setItem('pwa_banner_fechado', 'true');
+    }
+
+    async function acionarInstalacaoApp() {
+      const jaEstaInstalado = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      if (jaEstaInstalado) {
+        window.location.href = "./";
+        fecharBannerInstalacaoApp();
+        return;
+      }
+
+      if (deferredPromptApp) {
+        deferredPromptApp.prompt();
+        const { outcome } = await deferredPromptApp.userChoice;
+        if (outcome === 'accepted') {
+          fecharBannerInstalacaoApp();
+        }
+        deferredPromptApp = null;
+      } else {
+        alert("Para instalar o app:\n• No Android/Chrome: Toque no menu do navegador (3 pontinhos) e em 'Adicionar à tela inicial' ou 'Instalar aplicativo'.\n• No iPhone/Safari: Toque no botão Compartilhar e selecione 'Adicionar à Tela de Início'.");
+      }
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPromptApp = e;
+      verificarExibicaoBannerPWA();
+    });
+
+    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+      const swCode = `self.addEventListener('fetch', (event) => { event.respondWith(fetch(event.request)); });`;
+      const swBlob = new Blob([swCode], { type: 'text/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+    }
+
     function fazerLogout() { location.reload(); }
 
     window.onload = () => {
       lucide.createIcons();
+      verificarExibicaoBannerPWA();
     };
   </script>
 </body>
-</html> 
+</html>
